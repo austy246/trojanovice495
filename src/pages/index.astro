@@ -3,7 +3,7 @@ import Layout from '../layouts/Layout.astro';
 import Pozemky from '../components/Pozemky.astro';
 import { nemovitost } from '../data/nemovitost';
 
-const { nazev, podtitul, perex, parametry, galerie, lokalita, kontakt } = nemovitost;
+const { nazev, podtitul, perex, parametry, rozlozeni, galerie, lokalita, kontakt } = nemovitost;
 const telefonHref = 'tel:' + kontakt.telefon.replace(/\s/g, '');
 ---
 
@@ -30,6 +30,17 @@ const telefonHref = 'tel:' + kontakt.telefon.replace(/\s/g, '');
 					))
 				}
 			</dl>
+
+			<ul class="rozlozeni">
+				{
+					rozlozeni.map((podlazi) => (
+						<li>
+							<span>{podlazi.podlazi}</span>
+							<strong>{podlazi.mistnosti}</strong>
+						</li>
+					))
+				}
+			</ul>
 		</div>
 	</section>
 
@@ -42,12 +53,11 @@ const telefonHref = 'tel:' + kontakt.telefon.replace(/\s/g, '');
 					<div class="galerie">
 						{galerie.map((fotka, index) => (
 							<figure class="galerie__polozka">
+								{/* poměr stran drží CSS, fotky jsou na výšku i na šířku */}
 								<img
 									src={`/fotky/${fotka.soubor}`}
 									alt={fotka.popis}
 									loading={index === 0 ? 'eager' : 'lazy'}
-									width="1600"
-									height="1067"
 								/>
 								<figcaption>{fotka.popis}</figcaption>
 							</figure>
@@ -127,6 +137,33 @@ const telefonHref = 'tel:' + kontakt.telefon.replace(/\s/g, '');
 		margin: 0.25rem 0 0;
 		font-family: var(--pismo);
 		font-size: 1.375rem;
+	}
+
+	.rozlozeni {
+		list-style: none;
+		padding: 0;
+		margin: 2rem 0 0;
+		max-width: 44rem;
+	}
+
+	.rozlozeni li {
+		display: grid;
+		grid-template-columns: 7rem 1fr;
+		gap: 1rem;
+		padding: 0.6rem 0;
+		border-bottom: 1px solid var(--barva-linka);
+	}
+
+	.rozlozeni span {
+		font-size: 0.8rem;
+		letter-spacing: 0.08em;
+		text-transform: uppercase;
+		color: var(--barva-text-tlumena);
+		padding-top: 0.15rem;
+	}
+
+	.rozlozeni strong {
+		font-weight: 400;
 	}
 
 	.galerie {

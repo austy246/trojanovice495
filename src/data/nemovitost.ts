@@ -11,7 +11,8 @@ export const nemovitost = {
 	// Výměry pozemků pocházejí z katastru — viz src/data/parcely.ts.
 	// Zbytek je zatím zástupný a čeká na doplnění.
 	parametry: [
-		{ nazev: 'Dispozice', hodnota: '5+1' },
+		{ nazev: 'Dispozice', hodnota: '7+1' },
+		{ nazev: 'Koupelny', hodnota: '3' },
 		{ nazev: 'Užitná plocha', hodnota: '000 m²' },
 		{ nazev: 'Pozemky celkem', hodnota: '33 152 m² (3,32 ha)' },
 		{ nazev: 'Zastavěná plocha', hodnota: '479 m² (3 stavební parcely)' },
@@ -24,9 +25,28 @@ export const nemovitost = {
 		{ nazev: 'Parkování', hodnota: '3 místa před garáží' },
 	],
 
-	// Fotky ulož do public/fotky/ a doplň sem názvy souborů:
-	// { soubor: 'dum-01.jpg', popis: 'Pohled na dům z příjezdové cesty' }
-	galerie: [] as { soubor: string; popis: string }[],
+	rozlozeni: [
+		{ podlazi: 'Přízemí', mistnosti: 'Ložnice, dva pokoje, obývák a kuchyň, dvě koupelny' },
+		{ podlazi: 'Patro', mistnosti: 'Tři pokoje a koupelna' },
+	],
+
+	// Dočasné amatérské fotky z 2. 5. 2026, než budou profesionální.
+	galerie: [
+		{ soubor: '01-dum-a-pozemek.jpg', popis: 'Dům na kraji vlastní louky' },
+		{ soubor: '02-dum-ze-zahrady.jpg', popis: 'Vstup do domu ze zahrady' },
+		{ soubor: '03-terasa.jpg', popis: 'Krytá terasa s výhledem do zahrady' },
+		{ soubor: '04-obytna-hala.jpg', popis: 'Obytná hala se schodištěm do podkroví' },
+		{ soubor: '05-krb.jpg', popis: 'Krb v obytné hale' },
+		{ soubor: '06-kuchyn.jpg', popis: 'Kuchyň s ostrůvkem a barem' },
+		{ soubor: '07-jidelna.jpg', popis: 'Jídelna' },
+		{ soubor: '08-obyvaci-cast.jpg', popis: 'Obývací část s výstupem na terasu' },
+		{ soubor: '09-loznice.jpg', popis: 'Ložnice' },
+		{ soubor: '10-koupelna.jpg', popis: 'Koupelna s vanou i sprchovým koutem' },
+		{ soubor: '11-galerie.jpg', popis: 'Galerie v podkroví' },
+		{ soubor: '12-pokoj-podkrovi.jpg', popis: 'Pokoj v podkroví' },
+		{ soubor: '13-vyhled.jpg', popis: 'Výhled na Beskydy ze zahrady' },
+		{ soubor: '14-garaz.jpg', popis: 'Garáž pro dva vozy' },
+	],
 
 	lokalita: {
 		popis:
