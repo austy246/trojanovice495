@@ -4,8 +4,8 @@ export const nemovitost = {
 	nazev: 'Trojanovice 495',
 	podtitul: 'Rodinný dům s 3,3 hektaru pozemků pod Radhoštěm',
 	perex:
-		'Dřevem obložený dům z roku 2006 stojí na okraji Trojanovic, kde zástavba přechází ' +
-		'v louky a les. Uvnitř je otevřená obytná hala s krbem a galerií přes dvě podlaží, ' +
+		'Na horním konci Trojanovic, kde zástavba přechází v louky a les, stojí rodinný dům ' +
+		'z roku 2006. Uvnitř je otevřená obytná hala s krbem a galerií přes dvě podlaží, ' +
 		'sedm pokojů a tři koupelny; teplo dodává tepelné čerpadlo země-voda do podlahového ' +
 		'vytápění. K domu patří devět parcel o celkové výměře 3,32 ha a dolní stanice lanovky ' +
 		'na Pustevny je odsud kilometr daleko.',
@@ -26,6 +26,7 @@ export const nemovitost = {
 		{ nazev: 'Zastavěná plocha', hodnota: '479 m² (3 stavební parcely)' },
 		{ nazev: 'Rok výstavby', hodnota: '2006' },
 		{ nazev: 'Stav', hodnota: 'Původní, bez rekonstrukce' },
+		{ nazev: 'Fasáda', hodnota: 'Větraná, dřevěný obklad' },
 		{ nazev: 'Vytápění', hodnota: 'Tepelné čerpadlo země-voda' },
 		{ nazev: 'Otopná soustava', hodnota: 'Podlahové vytápění' },
 		{ nazev: 'Zemní kolektor', hodnota: '130 m jedním směrem' },
