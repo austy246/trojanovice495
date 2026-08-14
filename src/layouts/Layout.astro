@@ -1,5 +1,6 @@
 ---
 import '../styles/global.css';
+import { nemovitost } from '../data/nemovitost';
 
 interface Props {
 	titulek: string;
@@ -8,6 +9,9 @@ interface Props {
 
 const { titulek, popis } = Astro.props;
 const kanonicka = new URL(Astro.url.pathname, Astro.site);
+
+const { sirka, delka } = nemovitost.souradnice;
+const mapa = `https://mapy.cz/zakladni?x=${delka}&y=${sirka}&z=17&source=coor&id=${delka}%2C${sirka}`;
 ---
 
 <!doctype html>
@@ -33,7 +37,10 @@ const kanonicka = new URL(Astro.url.pathname, Astro.site);
 
 		<footer class="paticka">
 			<div class="obsah">
-				<p>Trojanovice 495, 744 01 Trojanovice</p>
+				<p>
+					Trojanovice 495, 744 01 Trojanovice —
+					<a href={mapa} target="_blank" rel="noopener">ukázat na mapy.cz</a>
+				</p>
 			</div>
 		</footer>
 	</body>

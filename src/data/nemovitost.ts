@@ -1,12 +1,20 @@
 // Jediné místo, kde se mění údaje o nemovitosti.
-// Hodnoty jsou zatím orientační zástupné texty — přepiš je skutečnými.
 
 export const nemovitost = {
 	nazev: 'Trojanovice 495',
-	podtitul: 'Rodinný dům na úpatí Beskyd',
+	podtitul: 'Rodinný dům s 3,3 hektaru pozemků pod Radhoštěm',
 	perex:
-		'Doplň dva až tři věty, které nemovitost představí — co je na ní výjimečné, ' +
-		'komu bude sedět a jaký je z ní výhled.',
+		'Dřevem obložený dům z roku 2006 stojí na okraji Trojanovic, kde zástavba přechází ' +
+		'v louky a les. Uvnitř je otevřená obytná hala s krbem a galerií přes dvě podlaží, ' +
+		'sedm pokojů a tři koupelny; teplo dodává tepelné čerpadlo země-voda do podlahového ' +
+		'vytápění. K domu patří devět parcel o celkové výměře 3,32 ha a dolní stanice lanovky ' +
+		'na Pustevny je odsud kilometr daleko.',
+
+	// Úvodní fotka pod nadpisem. Soubor leží v public/fotky/.
+	uvodniFoto: { soubor: '01-dum-a-pozemek.jpg', popis: 'Dům na kraji vlastní louky' },
+
+	// Adresní bod č.p. 495 podle RÚIAN (ČÚZK), leží na parcele St. 1878.
+	souradnice: { sirka: 49.511258, delka: 18.239152 },
 
 	// Výměry pozemků pocházejí z katastru — viz src/data/parcely.ts.
 	// Zbytek je zatím zástupný a čeká na doplnění.
@@ -20,7 +28,7 @@ export const nemovitost = {
 		{ nazev: 'Stav', hodnota: 'Původní, bez rekonstrukce' },
 		{ nazev: 'Vytápění', hodnota: 'Tepelné čerpadlo země-voda' },
 		{ nazev: 'Otopná soustava', hodnota: 'Podlahové vytápění' },
-		{ nazev: 'Zemní kolektor', hodnota: '130 m' },
+		{ nazev: 'Zemní kolektor', hodnota: '130 m jedním směrem' },
 		{ nazev: 'Garáž', hodnota: 'Pro dva vozy, s dílnou a podkrovím' },
 		{ nazev: 'Parkování', hodnota: '3 místa před garáží' },
 	],
@@ -48,14 +56,20 @@ export const nemovitost = {
 		{ soubor: '14-garaz.jpg', popis: 'Garáž pro dva vozy' },
 	],
 
+	// Vzdálenosti jsou po silnici, spočítané z adresního bodu domu.
 	lokalita: {
 		popis:
-			'Trojanovice leží pod Radhoštěm a Pustevnami, s Frenštátem pod Radhoštěm ' +
-			'na dosah. Doplň, co je v okolí a jak daleko.',
+			'Trojanovice se táhnou po severním úbočí Radhoště a dům stojí v jejich horní části, ' +
+			'kde už zástavbu střídají louky a les. Hřeben s Pustevnami a Radhoštěm je odsud ' +
+			'vzdušnou čarou tři kilometry a nahoru se dá vyjet lanovkou z Ráztoky, jejíž dolní ' +
+			'stanice je kousek po cestě. Veškerou občanskou vybavenost — obchody, školy i vlakové ' +
+			'nádraží — nabízí Frenštát pod Radhoštěm pět minut autem.',
 		vzdalenosti: [
-			{ misto: 'Frenštát pod Radhoštěm', hodnota: '0 km' },
-			{ misto: 'Pustevny', hodnota: '0 km' },
-			{ misto: 'Ostrava', hodnota: '0 km' },
+			{ misto: 'Lanovka na Pustevny (Ráztoka)', hodnota: '1 km' },
+			{ misto: 'Frenštát pod Radhoštěm', hodnota: '5 km' },
+			{ misto: 'Rožnov pod Radhoštěm', hodnota: '13 km' },
+			{ misto: 'Letiště Ostrava-Mošnov', hodnota: '26 km' },
+			{ misto: 'Ostrava', hodnota: '48 km' },
 		],
 	},
 

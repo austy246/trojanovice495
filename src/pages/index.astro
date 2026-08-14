@@ -3,7 +3,7 @@ import Layout from '../layouts/Layout.astro';
 import Pozemky from '../components/Pozemky.astro';
 import { nemovitost } from '../data/nemovitost';
 
-const { nazev, podtitul, perex, parametry, rozlozeni, galerie, lokalita, kontakt } = nemovitost;
+const { nazev, podtitul, perex, uvodniFoto, parametry, rozlozeni, galerie, lokalita, kontakt } = nemovitost;
 const telefonHref = 'tel:' + kontakt.telefon.replace(/\s/g, '');
 ---
 
@@ -14,6 +14,8 @@ const telefonHref = 'tel:' + kontakt.telefon.replace(/\s/g, '');
 			<h1>{nazev}</h1>
 			<p class="hero__perex">{perex}</p>
 		</div>
+
+		<img class="hero__foto" src={`/fotky/${uvodniFoto.soubor}`} alt={uvodniFoto.popis} fetchpriority="high" />
 	</header>
 
 	<section class="sekce sekce--tlumena" id="parametry">
@@ -91,11 +93,14 @@ const telefonHref = 'tel:' + kontakt.telefon.replace(/\s/g, '');
 	<section class="sekce" id="kontakt">
 		<div class="obsah">
 			<p class="nadpis-sekce">Máte zájem?</p>
-			<h2>Kontakt</h2>
+			<h2>Kontakt přímo na majitele</h2>
 			<p class="kontakt">
 				{kontakt.jmeno}<br />
 				<a href={telefonHref}>{kontakt.telefon}</a><br />
 				<a href={`mailto:${kontakt.email}`}>{kontakt.email}</a>
+			</p>
+			<p class="kontakt__poznamka">
+				Dům prodávám sám, bez realitní kanceláře — ozvěte se mi přímo.
 			</p>
 		</div>
 	</section>
@@ -103,8 +108,15 @@ const telefonHref = 'tel:' + kontakt.telefon.replace(/\s/g, '');
 
 <style>
 	.hero {
-		padding-block: clamp(4rem, 12vw, 8rem);
+		padding-top: clamp(3rem, 9vw, 6rem);
 		border-bottom: 1px solid var(--barva-linka);
+	}
+
+	.hero__foto {
+		width: 100%;
+		margin-top: clamp(2.5rem, 6vw, 4rem);
+		aspect-ratio: 21 / 9;
+		object-fit: cover;
 	}
 
 	.hero__perex {
@@ -212,5 +224,10 @@ const telefonHref = 'tel:' + kontakt.telefon.replace(/\s/g, '');
 
 	.kontakt {
 		font-size: 1.125rem;
+	}
+
+	.kontakt__poznamka {
+		color: var(--barva-text-tlumena);
+		max-width: 34rem;
 	}
 </style>
