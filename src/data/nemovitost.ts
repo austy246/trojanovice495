@@ -20,7 +20,8 @@ export const nemovitost = {
 		{ nazev: 'Vytápění', hodnota: 'Tepelné čerpadlo země-voda' },
 		{ nazev: 'Otopná soustava', hodnota: 'Podlahové vytápění' },
 		{ nazev: 'Zemní kolektor', hodnota: '130 m' },
-		{ nazev: 'Parkování', hodnota: 'Garáž na parcele St. 1879' },
+		{ nazev: 'Garáž', hodnota: 'Pro dva vozy, s dílnou a podkrovím' },
+		{ nazev: 'Parkování', hodnota: '3 místa před garáží' },
 	],
 
 	// Fotky ulož do public/fotky/ a doplň sem názvy souborů:
