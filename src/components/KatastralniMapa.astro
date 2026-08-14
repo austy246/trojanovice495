@@ -1,0 +1,299 @@
+---
+import { parcely, VYREZY } from '../data/parcely';
+
+interface Props {
+	/** který výřez se vykresluje */
+	varianta: 'prehled' | 'detail';
+	/** popisek pod mapou, slouží zároveň jako přístupový název */
+	popis: string;
+}
+
+const { varianta, popis } = Astro.props;
+const vyrez = VYREZY[varianta];
+const viewBox = `0 0 ${vyrez.sirka} ${vyrez.vyska}`;
+const pomer = ((vyrez.vyska / vyrez.sirka) * 100).toFixed(3);
+const podklad = varianta === 'prehled' ? 'prehled' : 'detail';
+---
+
+<figure class="mapa-fig">
+	<div class="mapa" data-mapa={varianta} data-sirka={vyrez.sirka}>
+		<div class="mapa__pomer" style={`padding-top:${pomer}%`}></div>
+
+		<div class="mapa__scena">
+			<img
+				class="mapa__vrstva mapa__orto"
+				src={`/katastr/orto-${podklad}.jpg`}
+				alt="Ortofoto ČÚZK"
+				draggable="false"
+				loading="lazy"
+			/>
+
+			<svg class="mapa__vrstva mapa__vyplne" viewBox={viewBox} preserveAspectRatio="none" aria-hidden="true">
+				{
+					parcely.map((p) => (
+						<path class={`vyplen ${p.stavebni ? 'je-st' : 'je-poz'}`} data-p={p.cislo} d={p[varianta].d} />
+					))
+				}
+			</svg>
+
+			<img
+				class="mapa__vrstva mapa__km"
+				src={`/katastr/km-${podklad}.png`}
+				alt="Katastrální mapa ČÚZK"
+				draggable="false"
+				loading="lazy"
+			/>
+
+			<svg class="mapa__vrstva" viewBox={viewBox} preserveAspectRatio="none" role="img" aria-label={popis}>
+				{
+					parcely.map((p) => (
+						<path
+							class={`obrys ${p.stavebni ? 'je-st' : 'je-poz'}`}
+							data-p={p.cislo}
+							d={p[varianta].d}
+							tabindex="0"
+							role="button"
+							aria-label={`${p.cislo}, ${p.vymera} m², ${p.druh}`}
+						>
+							<title>{`${p.cislo} · ${p.vymera} m² · ${p.druh}`}</title>
+						</path>
+					))
+				}
+				<g class="mapa__popisky">
+					{
+						parcely.map((p) => (
+							<g class="popisek" data-p={p.cislo} data-fit={p[varianta].fit}>
+								<text x={p[varianta].x} y={p[varianta].y} class="halo">
+									{p.cislo}
+								</text>
+								<text x={p[varianta].x} y={p[varianta].y}>
+									{p.cislo}
+								</text>
+							</g>
+						))
+					}
+				</g>
+			</svg>
+		</div>
+
+		<div class="mapa__sever" aria-hidden="true">S</div>
+		<div class="mapa__meritko">
+			<i style={`width:${vyrez.meritkoPodil}%`}></i>
+			<span data-meritko={vyrez.meritko}>{vyrez.meritko} m</span>
+		</div>
+		<div class="mapa__zoom">
+			<button type="button" data-z="in" aria-label="Přiblížit">+</button>
+			<button type="button" data-z="out" aria-label="Oddálit">−</button>
+			<button type="button" data-z="reset" aria-label="Zpět na celý výřez">⟲</button>
+		</div>
+	</div>
+	<figcaption>{popis}</figcaption>
+</figure>
+
+<style>
+	.mapa-fig {
+		margin: 0;
+		display: flex;
+		flex-direction: column;
+		gap: 0.5rem;
+	}
+
+	.mapa-fig figcaption {
+		color: var(--barva-text-tlumena);
+		font-size: 0.875rem;
+		line-height: 1.45;
+	}
+
+	/*
+	 * --u = kolik pixelů displeje připadá na jednotku viewBoxu. Obrysy i popisky
+	 * se jím dělí, takže při zvětšení drží stálou tloušťku a velikost.
+	 */
+	.mapa {
+		position: relative;
+		overflow: hidden;
+		border: 1px solid var(--barva-linka);
+		border-radius: 2px;
+		background: #0c0e0c;
+		line-height: 0;
+		touch-action: pan-y;
+		cursor: grab;
+		--u: 0.25;
+	}
+
+	.mapa.je-zvetsena {
+		touch-action: none;
+	}
+
+	.mapa.je-tazena {
+		cursor: grabbing;
+	}
+
+	.mapa__pomer {
+		width: 100%;
+	}
+
+	.mapa__scena {
+		position: absolute;
+		inset: 0;
+		transform-origin: 0 0;
+		will-change: transform;
+	}
+
+	.mapa__vrstva {
+		position: absolute;
+		inset: 0;
+		width: 100%;
+		height: 100%;
+		user-select: none;
+	}
+
+	.mapa.bez-km .mapa__km {
+		display: none;
+	}
+
+	/*
+	 * Barvu výplně a barvu obrysu drž v oddělených pravidlech. Sloučené
+	 * `.vyplen.je-st, .obrys.je-st { fill: … }` má vyšší specificitu než
+	 * `.obrys { fill: none }` a obarvilo by i obrysovou vrstvu, která žádnou
+	 * průhlednost nemá — parcely by přes ortofoto vyšly jako plné plochy.
+	 */
+	/* Krytí výplně řídí jediná hodnota, ať je zřejmé, co se nastavuje. */
+	.vyplen {
+		stroke: none;
+		fill-opacity: 0.28;
+	}
+
+	.vyplen.je-st {
+		fill: #ff6b2c;
+	}
+
+	.vyplen.je-poz {
+		fill: #2e9bff;
+	}
+
+	.obrys {
+		fill: none;
+		stroke-width: calc(2.6px / var(--u));
+		stroke-linejoin: round;
+		cursor: pointer;
+		outline: none;
+	}
+
+	.obrys.je-st {
+		stroke: #ff6b2c;
+	}
+
+	.obrys.je-poz {
+		stroke: #2e9bff;
+	}
+
+	.obrys:hover,
+	.obrys.je-zvyraznena,
+	.obrys:focus-visible {
+		stroke-width: calc(5px / var(--u));
+	}
+
+	.vyplen.je-zvyraznena {
+		fill-opacity: 0.6;
+	}
+
+	.mapa__popisky text {
+		font: 600 calc(13.5px / var(--u)) ui-monospace, Consolas, monospace;
+		fill: #fff;
+		text-anchor: middle;
+		dominant-baseline: middle;
+		paint-order: stroke;
+		pointer-events: none;
+	}
+
+	.mapa__popisky .halo {
+		stroke: #0b0d0b;
+		stroke-width: calc(3.4px / var(--u));
+		opacity: 0.92;
+	}
+
+	.popisek.je-skryty {
+		display: none;
+	}
+
+	.mapa__sever {
+		position: absolute;
+		top: 10px;
+		right: 12px;
+		width: 26px;
+		height: 26px;
+		border-radius: 50%;
+		background: rgba(10, 12, 10, 0.62);
+		color: #fff;
+		font: 600 11px/26px var(--pismo-ui);
+		text-align: center;
+	}
+
+	.mapa__sever::before {
+		content: '▲';
+		position: absolute;
+		top: -9px;
+		left: 50%;
+		transform: translateX(-50%);
+		font-size: 9px;
+	}
+
+	.mapa__meritko {
+		position: absolute;
+		left: 12px;
+		bottom: 11px;
+		display: flex;
+		align-items: center;
+		gap: 0.4rem;
+		background: rgba(10, 12, 10, 0.62);
+		padding: 5px 8px;
+		border-radius: 2px;
+	}
+
+	.mapa__meritko i {
+		display: block;
+		height: 5px;
+		border: 1.5px solid #fff;
+		border-top: none;
+	}
+
+	.mapa__meritko span {
+		color: #fff;
+		font: 600 11px/1 ui-monospace, Consolas, monospace;
+	}
+
+	.mapa__zoom {
+		position: absolute;
+		right: 10px;
+		bottom: 10px;
+		display: flex;
+		flex-direction: column;
+		gap: 5px;
+	}
+
+	.mapa__zoom button {
+		width: 34px;
+		height: 34px;
+		border: 1px solid rgba(255, 255, 255, 0.28);
+		border-radius: 3px;
+		background: rgba(10, 12, 10, 0.66);
+		color: #fff;
+		font: 500 17px/1 var(--pismo-ui);
+		cursor: pointer;
+		-webkit-tap-highlight-color: transparent;
+	}
+
+	.mapa__zoom button:hover {
+		background: rgba(10, 12, 10, 0.85);
+	}
+
+	.mapa__zoom button:focus-visible {
+		outline: 2px solid #fff;
+		outline-offset: 1px;
+	}
+
+	.mapa__zoom button[disabled] {
+		opacity: 0.4;
+		cursor: default;
+	}
+</style>

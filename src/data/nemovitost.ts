@@ -8,23 +8,22 @@ export const nemovitost = {
 		'Doplň dva až tři věty, které nemovitost představí — co je na ní výjimečné, ' +
 		'komu bude sedět a jaký je z ní výhled.',
 
+	// Výměry pozemků pocházejí z katastru — viz src/data/parcely.ts.
+	// Zbytek je zatím zástupný a čeká na doplnění.
 	parametry: [
 		{ nazev: 'Dispozice', hodnota: '5+1' },
 		{ nazev: 'Užitná plocha', hodnota: '000 m²' },
-		{ nazev: 'Plocha pozemku', hodnota: '000 m²' },
+		{ nazev: 'Pozemky celkem', hodnota: '33 152 m² (3,32 ha)' },
+		{ nazev: 'Zastavěná plocha', hodnota: '479 m² (3 stavební parcely)' },
 		{ nazev: 'Rok výstavby', hodnota: '0000' },
 		{ nazev: 'Stav', hodnota: 'Po rekonstrukci' },
 		{ nazev: 'Vytápění', hodnota: 'Doplnit' },
-		{ nazev: 'Energetická třída', hodnota: 'Doplnit' },
-		{ nazev: 'Parkování', hodnota: 'Garáž + stání na pozemku' },
+		{ nazev: 'Parkování', hodnota: 'Garáž na parcele St. 1879' },
 	],
 
-	// Fotky ulož do public/fotky/ a doplň sem názvy souborů.
-	galerie: [
-		{ soubor: 'dum-01.jpg', popis: 'Pohled na dům z příjezdové cesty' },
-		{ soubor: 'dum-02.jpg', popis: 'Obývací pokoj' },
-		{ soubor: 'dum-03.jpg', popis: 'Zahrada' },
-	],
+	// Fotky ulož do public/fotky/ a doplň sem názvy souborů:
+	// { soubor: 'dum-01.jpg', popis: 'Pohled na dům z příjezdové cesty' }
+	galerie: [] as { soubor: string; popis: string }[],
 
 	lokalita: {
 		popis:

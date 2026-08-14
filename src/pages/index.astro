@@ -1,5 +1,6 @@
 ---
 import Layout from '../layouts/Layout.astro';
+import Pozemky from '../components/Pozemky.astro';
 import { nemovitost } from '../data/nemovitost';
 
 const { nazev, podtitul, perex, parametry, galerie, lokalita, kontakt } = nemovitost;
@@ -32,28 +33,32 @@ const telefonHref = 'tel:' + kontakt.telefon.replace(/\s/g, '');
 		</div>
 	</section>
 
-	<section class="sekce" id="galerie">
-		<div class="obsah">
-			<p class="nadpis-sekce">Fotografie</p>
-			<h2>Prohlídka</h2>
-			<div class="galerie">
-				{
-					galerie.map((fotka, index) => (
-						<figure class="galerie__polozka">
-							<img
-								src={`/fotky/${fotka.soubor}`}
-								alt={fotka.popis}
-								loading={index === 0 ? 'eager' : 'lazy'}
-								width="1600"
-								height="1067"
-							/>
-							<figcaption>{fotka.popis}</figcaption>
-						</figure>
-					))
-				}
-			</div>
-		</div>
-	</section>
+	{
+		galerie.length > 0 && (
+			<section class="sekce" id="galerie">
+				<div class="obsah">
+					<p class="nadpis-sekce">Fotografie</p>
+					<h2>Prohlídka</h2>
+					<div class="galerie">
+						{galerie.map((fotka, index) => (
+							<figure class="galerie__polozka">
+								<img
+									src={`/fotky/${fotka.soubor}`}
+									alt={fotka.popis}
+									loading={index === 0 ? 'eager' : 'lazy'}
+									width="1600"
+									height="1067"
+								/>
+								<figcaption>{fotka.popis}</figcaption>
+							</figure>
+						))}
+					</div>
+				</div>
+			</section>
+		)
+	}
+
+	<Pozemky />
 
 	<section class="sekce sekce--tlumena" id="lokalita">
 		<div class="obsah">

@@ -1,0 +1,515 @@
+---
+import KatastralniMapa from './KatastralniMapa.astro';
+import { parcely, celkovaVymera } from '../data/parcely';
+
+const cislo = new Intl.NumberFormat('cs-CZ');
+const hektary = (celkovaVymera / 10000).toLocaleString('cs-CZ', { minimumFractionDigits: 2 });
+const stavebnich = parcely.filter((p) => p.stavebni).length;
+
+const prehledPopis = 'Přehled — všech devět parcel tvoří souvislý celek podél cesty.';
+const detailPopis = 'Detail zastavěné části — St. 1878 s domem č.p. 495, St. 1879 s garáží, St. 173/4.';
+---
+
+<section class="sekce" id="pozemky">
+	<div class="obsah">
+		<p class="nadpis-sekce">Pozemky</p>
+		<h2>Devět parcel o celkové výměře {hektary} ha</h2>
+
+		<dl class="rozpiska">
+			<div><dt>Katastrální území</dt><dd>Trojanovice</dd></div>
+			<div><dt>Kód k.ú.</dt><dd>768499</dd></div>
+			<div><dt>Parcel</dt><dd>{parcely.length} <span>({stavebnich}× st.)</span></dd></div>
+			<div><dt>Celková výměra</dt><dd>{cislo.format(celkovaVymera)} m²</dd></div>
+		</dl>
+
+		<div class="ovladani">
+			<label><input type="checkbox" id="prep-km" checked /> Katastrální mapa</label>
+			<span class="legenda">
+				<b class="tecka je-st"></b> stavební parcely
+				<b class="tecka je-poz"></b> pozemkové parcely
+			</span>
+		</div>
+
+		<div class="mapy">
+			<KatastralniMapa varianta="prehled" popis={prehledPopis} />
+			<KatastralniMapa varianta="detail" popis={detailPopis} />
+		</div>
+
+		<p class="napoveda">
+			Zvětšení kolečkem myši, dvojklikem, dvěma prsty nebo tlačítky v rohu mapy; ve zvětšené mapě
+			se posouvá tažením. Klepnutím na parcelu nebo na řádek tabulky se parcela zvýrazní v obou
+			mapách.
+		</p>
+
+		<div class="tabulka">
+			<table>
+				<caption>Parcely podle výpisu z katastru</caption>
+				<thead>
+					<tr>
+						<th></th>
+						<th>Parcela</th>
+						<th class="v">Výměra&nbsp;(m²)</th>
+						<th>Druh pozemku</th>
+						<th></th>
+					</tr>
+				</thead>
+				<tbody>
+					{
+						parcely.map((p) => (
+							<tr data-p={p.cislo} class={p.stavebni ? 'je-st' : ''} tabindex="0">
+								<td class="pruh">
+									<i />
+								</td>
+								<td class="num">{p.cislo}</td>
+								<td class="v">{cislo.format(p.vymera)}</td>
+								<td class="druh">{p.druh}</td>
+								<td class="odkaz">
+									<a href={p.kn} target="_blank" rel="noopener">
+										KN&#8239;↗
+									</a>
+								</td>
+							</tr>
+						))
+					}
+				</tbody>
+				<tfoot>
+					<tr>
+						<td class="pruh"></td>
+						<td>Celkem</td>
+						<td class="v">{cislo.format(celkovaVymera)}</td>
+						<td class="druh">{hektary} ha</td>
+						<td></td>
+					</tr>
+				</tfoot>
+			</table>
+		</div>
+
+		<p class="zdroj">
+			Geometrie parcel: RÚIAN, <a href="https://ags.cuzk.cz/arcgis/rest/services/RUIAN/MapServer" target="_blank" rel="noopener">ČÚZK</a>.
+			Podklad: ortofoto ČÚZK a WMS Katastrální mapa, staženo 29.&nbsp;7.&nbsp;2026. Zobrazení je
+			orientační a nenahrazuje výpis z katastru nemovitostí ani geometrický plán.
+		</p>
+	</div>
+</section>
+
+<style>
+	.rozpiska {
+		display: grid;
+		grid-template-columns: repeat(auto-fit, minmax(11rem, 1fr));
+		border: 1px solid var(--barva-linka);
+		border-radius: 2px;
+		background: var(--barva-pozadi-blok);
+		margin: 0 0 1.5rem;
+	}
+
+	.rozpiska > div {
+		padding: 0.6rem 0.9rem;
+		border-right: 1px solid var(--barva-linka);
+	}
+
+	.rozpiska > div:last-child {
+		border-right: none;
+	}
+
+	.rozpiska dt {
+		font-size: 0.7rem;
+		letter-spacing: 0.1em;
+		text-transform: uppercase;
+		color: var(--barva-text-tlumena);
+		margin-bottom: 0.2rem;
+	}
+
+	.rozpiska dd {
+		margin: 0;
+		font: 0.95rem/1.3 ui-monospace, Consolas, monospace;
+		font-variant-numeric: tabular-nums;
+	}
+
+	.rozpiska dd span {
+		color: var(--barva-text-tlumena);
+	}
+
+	.ovladani {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: center;
+		gap: 0.6rem 1.4rem;
+		padding: 0.6rem 0.9rem;
+		margin-bottom: 1.25rem;
+		border: 1px solid var(--barva-linka);
+		border-radius: 2px;
+		background: var(--barva-pozadi-blok);
+		font-size: 0.875rem;
+	}
+
+	.ovladani label {
+		display: flex;
+		align-items: center;
+		gap: 0.45rem;
+		cursor: pointer;
+	}
+
+	.ovladani input {
+		width: 16px;
+		height: 16px;
+		accent-color: var(--barva-akcent);
+	}
+
+	.legenda {
+		display: flex;
+		align-items: center;
+		gap: 0.45rem;
+		color: var(--barva-text-tlumena);
+	}
+
+	.tecka {
+		width: 11px;
+		height: 11px;
+		border-radius: 2px;
+		display: inline-block;
+	}
+
+	.tecka.je-st {
+		background: #ff6b2c;
+	}
+
+	.tecka.je-poz {
+		background: #2e9bff;
+		margin-left: 0.6rem;
+	}
+
+	.mapy {
+		display: grid;
+		gap: 1.25rem;
+		grid-template-columns: 1fr;
+	}
+
+	@media (min-width: 900px) {
+		.mapy {
+			grid-template-columns: 1.62fr 1fr;
+			align-items: start;
+		}
+	}
+
+	.napoveda {
+		color: var(--barva-text-tlumena);
+		font-size: 0.8rem;
+		margin: 0.75rem 0 1.75rem;
+		max-width: 52rem;
+	}
+
+	.tabulka {
+		overflow-x: auto;
+		border: 1px solid var(--barva-linka);
+		border-radius: 2px;
+		background: var(--barva-pozadi-blok);
+	}
+
+	.tabulka table {
+		width: 100%;
+		border-collapse: collapse;
+		font-size: 0.9rem;
+	}
+
+	.tabulka caption {
+		text-align: left;
+		padding: 0.85rem 1rem 0;
+		font-size: 0.7rem;
+		letter-spacing: 0.1em;
+		text-transform: uppercase;
+		color: var(--barva-text-tlumena);
+	}
+
+	.tabulka th,
+	.tabulka td {
+		padding: 0.55rem 0.9rem;
+		border-bottom: 1px solid var(--barva-linka);
+		text-align: left;
+	}
+
+	.tabulka thead th {
+		font-size: 0.7rem;
+		letter-spacing: 0.1em;
+		text-transform: uppercase;
+		color: var(--barva-text-tlumena);
+		font-weight: 600;
+	}
+
+	.tabulka .v {
+		text-align: right;
+		font-family: ui-monospace, Consolas, monospace;
+		font-variant-numeric: tabular-nums;
+		white-space: nowrap;
+	}
+
+	.tabulka tbody tr {
+		cursor: pointer;
+	}
+
+	.tabulka tbody tr:hover,
+	.tabulka tbody tr:focus-visible,
+	.tabulka tbody tr.je-zvyraznena {
+		background: color-mix(in srgb, var(--barva-text) 8%, transparent);
+		outline: none;
+	}
+
+	.tabulka td.pruh {
+		width: 6px;
+		padding: 0 0 0 6px;
+	}
+
+	.tabulka td.pruh i {
+		display: block;
+		width: 4px;
+		height: 26px;
+		border-radius: 2px;
+		background: #2e9bff;
+	}
+
+	.tabulka tr.je-st td.pruh i {
+		background: #ff6b2c;
+	}
+
+	.tabulka td.num {
+		font: 600 0.9rem/1.3 ui-monospace, Consolas, monospace;
+		white-space: nowrap;
+	}
+
+	.tabulka td.druh {
+		color: var(--barva-text-tlumena);
+	}
+
+	.tabulka td.odkaz a {
+		color: var(--barva-text-tlumena);
+		text-decoration: none;
+		font-size: 0.75rem;
+		white-space: nowrap;
+		border-bottom: 1px solid var(--barva-linka);
+	}
+
+	.tabulka td.odkaz a:hover,
+	.tabulka td.odkaz a:focus-visible {
+		color: var(--barva-text);
+		border-color: currentColor;
+	}
+
+	.tabulka tfoot td {
+		font-weight: 600;
+		border-bottom: none;
+	}
+
+	.zdroj {
+		color: var(--barva-text-tlumena);
+		font-size: 0.75rem;
+		line-height: 1.6;
+		margin: 1rem 0 0;
+	}
+
+	.zdroj a {
+		color: inherit;
+	}
+</style>
+
+<script>
+	const mapy = [...document.querySelectorAll<HTMLElement>('.mapa')];
+
+	/* --- podkladová katastrální mapa --- */
+	const prepKm = document.getElementById('prep-km') as HTMLInputElement | null;
+	prepKm?.addEventListener('change', () => {
+		mapy.forEach((m) => m.classList.toggle('bez-km', !prepKm.checked));
+	});
+
+	/* --- zvýraznění parcely v obou mapách i v tabulce --- */
+	let zamcena: string | null = null;
+
+	const oznac = (klic: string, zap: boolean) =>
+		document.querySelectorAll<HTMLElement>('[data-p]').forEach((el) => {
+			if (el.dataset.p === klic) el.classList.toggle('je-zvyraznena', zap);
+		});
+
+	const najeti = (klic: string, zap: boolean) => {
+		if (zamcena && zamcena !== klic) return;
+		oznac(klic, zap || zamcena === klic);
+	};
+
+	document.querySelectorAll<HTMLElement>('[data-p]').forEach((el) => {
+		const klic = el.dataset.p;
+		if (!klic) return;
+
+		el.addEventListener('mouseenter', () => najeti(klic, true));
+		el.addEventListener('mouseleave', () => najeti(klic, false));
+		el.addEventListener('focus', () => najeti(klic, true));
+		el.addEventListener('blur', () => najeti(klic, false));
+
+		const vyber = (e: Event) => {
+			// tažení mapy nesmí skončit výběrem parcely
+			const mapa = el.closest<HTMLElement>('.mapa');
+			if (mapa && mapa.dataset.tazeno === '1') return;
+			e.preventDefault();
+			if (zamcena === klic) {
+				zamcena = null;
+				oznac(klic, false);
+			} else {
+				if (zamcena) oznac(zamcena, false);
+				zamcena = klic;
+				oznac(klic, true);
+			}
+		};
+
+		el.addEventListener('click', vyber);
+		el.addEventListener('keydown', (e) => {
+			if (e.key === 'Enter' || e.key === ' ') vyber(e);
+		});
+	});
+
+	/* --- zoom a posun --- */
+	const MAX = 12;
+
+	mapy.forEach((mapa) => {
+		const scena = mapa.querySelector<HTMLElement>('.mapa__scena');
+		const meritko = mapa.querySelector<HTMLElement>('.mapa__meritko span');
+		const popisky = [...mapa.querySelectorAll<HTMLElement>('.popisek')];
+		if (!scena || !meritko) return;
+
+		const sirkaVyrezu = Number(mapa.dataset.sirka);
+		const zakladniMeritko = Number(meritko.dataset.meritko);
+		const tlacitko = (t: string) => mapa.querySelector<HTMLButtonElement>(`[data-z="${t}"]`);
+
+		let k = 1;
+		let x = 0;
+		let y = 0;
+		let tazeno = false;
+
+		const uplatni = () => {
+			const w = mapa.clientWidth;
+			const h = mapa.clientHeight;
+			k = Math.min(MAX, Math.max(1, k));
+			x = Math.min(0, Math.max(w - w * k, x));
+			y = Math.min(0, Math.max(h - h * k, y));
+			scena.style.transform = `translate(${x}px, ${y}px) scale(${k})`;
+
+			const pxNaJednotku = (w / sirkaVyrezu) * k;
+			mapa.style.setProperty('--u', String(pxNaJednotku));
+			mapa.classList.toggle('je-zvetsena', k > 1.01);
+
+			const dovnitr = tlacitko('in');
+			const ven = tlacitko('out');
+			const zpet = tlacitko('reset');
+			if (dovnitr) dovnitr.disabled = k >= MAX - 0.01;
+			if (ven) ven.disabled = k <= 1.01;
+			if (zpet) zpet.disabled = k <= 1.01;
+
+			// popisek se skryje, jakmile by přetekl přes hranice parcely
+			popisky.forEach((p) => p.classList.toggle('je-skryty', Number(p.dataset.fit) * pxNaJednotku < 17));
+
+			const m = zakladniMeritko / k;
+			meritko.textContent = m >= 10 ? `${Math.round(m)} m` : `${m.toFixed(1)} m`;
+		};
+
+		const zoomNa = (cx: number, cy: number, nasobek: number) => {
+			const nove = Math.min(MAX, Math.max(1, k * nasobek));
+			const pomer = nove / k;
+			x = cx - (cx - x) * pomer;
+			y = cy - (cy - y) * pomer;
+			k = nove;
+			uplatni();
+		};
+
+		const vMape = (e: { clientX: number; clientY: number }): [number, number] => {
+			const b = mapa.getBoundingClientRect();
+			return [e.clientX - b.left, e.clientY - b.top];
+		};
+
+		mapa.addEventListener(
+			'wheel',
+			(e) => {
+				e.preventDefault();
+				const [cx, cy] = vMape(e);
+				zoomNa(cx, cy, Math.exp(-e.deltaY * (e.deltaMode === 1 ? 0.05 : 0.0016)));
+			},
+			{ passive: false },
+		);
+
+		mapa.addEventListener('dblclick', (e) => {
+			const [cx, cy] = vMape(e);
+			zoomNa(cx, cy, e.shiftKey ? 0.5 : 2);
+		});
+
+		tlacitko('in')?.addEventListener('click', () => zoomNa(mapa.clientWidth / 2, mapa.clientHeight / 2, 1.8));
+		tlacitko('out')?.addEventListener('click', () => zoomNa(mapa.clientWidth / 2, mapa.clientHeight / 2, 1 / 1.8));
+		tlacitko('reset')?.addEventListener('click', () => {
+			k = 1;
+			x = 0;
+			y = 0;
+			uplatni();
+		});
+
+		const body = new Map<number, [number, number]>();
+		let start: { px: number; py: number; x: number; y: number; k: number; dist: number; mx: number; my: number } | null =
+			null;
+
+		mapa.addEventListener('pointerdown', (e) => {
+			if (e.button > 0) return;
+			body.set(e.pointerId, vMape(e));
+			tazeno = false;
+			mapa.dataset.tazeno = '0';
+
+			if (body.size === 1) {
+				const [px, py] = body.get(e.pointerId)!;
+				start = { px, py, x, y, k, dist: 0, mx: 0, my: 0 };
+			} else if (body.size === 2) {
+				mapa.classList.add('je-zvetsena');
+				const [a, b] = [...body.values()];
+				start = {
+					px: 0,
+					py: 0,
+					x,
+					y,
+					k,
+					dist: Math.hypot(a[0] - b[0], a[1] - b[1]),
+					mx: (a[0] + b[0]) / 2,
+					my: (a[1] + b[1]) / 2,
+				};
+			}
+		});
+
+		window.addEventListener('pointermove', (e) => {
+			if (!body.has(e.pointerId) || !start) return;
+			body.set(e.pointerId, vMape(e));
+
+			if (body.size === 1 && k > 1.01) {
+				const [px, py] = body.get(e.pointerId)!;
+				if (Math.abs(px - start.px) + Math.abs(py - start.py) > 4) tazeno = true;
+				x = start.x + (px - start.px);
+				y = start.y + (py - start.py);
+				mapa.classList.add('je-tazena');
+				uplatni();
+			} else if (body.size === 2 && start.dist) {
+				const [a, b] = [...body.values()];
+				const d = Math.hypot(a[0] - b[0], a[1] - b[1]);
+				const nove = Math.min(MAX, Math.max(1, (start.k * d) / start.dist));
+				const pomer = nove / start.k;
+				x = start.mx - (start.mx - start.x) * pomer;
+				y = start.my - (start.my - start.y) * pomer;
+				k = nove;
+				tazeno = true;
+				uplatni();
+			}
+		});
+
+		const konec = (e: PointerEvent) => {
+			if (!body.has(e.pointerId)) return;
+			body.delete(e.pointerId);
+			mapa.classList.remove('je-tazena');
+			start = null;
+			mapa.dataset.tazeno = tazeno ? '1' : '0';
+			if (tazeno) setTimeout(() => (mapa.dataset.tazeno = '0'), 0);
+		};
+
+		window.addEventListener('pointerup', konec);
+		window.addEventListener('pointercancel', konec);
+		window.addEventListener('resize', uplatni);
+
+		uplatni();
+	});
+</script>
