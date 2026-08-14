@@ -127,6 +127,9 @@ const telefonHref = 'tel:' + kontakt.telefon.replace(/\s/g, '');
 		width: 100%;
 		height: clamp(21rem, 66vh, 38rem);
 		object-fit: cover;
+		/* výřez posunutý nad střed, ať se do záběru vejde i hřeben střechy
+		   a dole zůstane tráva, na které drží nadpis */
+		object-position: 50% 36%;
 	}
 
 	/* Ztmavení jde jen zespodu a nahoře doběhne do průhledna, aby fotka
