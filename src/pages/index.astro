@@ -10,7 +10,10 @@ const telefonHref = 'tel:' + kontakt.telefon.replace(/\s/g, '');
 <Layout titulek={`${nazev} — ${podtitul}`} popis={perex}>
 	<header class="hero">
 		<div class="hero__media">
-			<img class="hero__foto" src={`/fotky/${uvodniFoto.soubor}`} alt={uvodniFoto.popis} fetchpriority="high" />
+			<picture>
+				<source media="(max-width: 60rem)" srcset={`/fotky/${uvodniFoto.souborNaVysku}`} />
+				<img class="hero__foto" src={`/fotky/${uvodniFoto.soubor}`} alt={uvodniFoto.popis} fetchpriority="high" />
+			</picture>
 			<div class="hero__titulek">
 				<div class="obsah">
 					<p class="nadpis-sekce">{podtitul}</p>
@@ -122,6 +125,10 @@ const telefonHref = 'tel:' + kontakt.telefon.replace(/\s/g, '');
 		position: relative;
 	}
 
+	.hero__media picture {
+		display: block;
+	}
+
 	.hero__foto {
 		display: block;
 		width: 100%;
@@ -129,7 +136,14 @@ const telefonHref = 'tel:' + kontakt.telefon.replace(/\s/g, '');
 		object-fit: cover;
 		/* výřez posunutý nad střed, ať se do záběru vejde i hřeben střechy
 		   a dole zůstane tráva, na které drží nadpis */
-		object-position: 50% 36%;
+		object-position: 50% 30%;
+	}
+
+	/* varianta na výšku je oříznutá už v souboru, stačí ji držet u středu */
+	@media (max-width: 60rem) {
+		.hero__foto {
+			object-position: 50% 50%;
+		}
 	}
 
 	/* Ztmavení jde jen zespodu a nahoře doběhne do průhledna, aby fotka

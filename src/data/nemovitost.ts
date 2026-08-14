@@ -11,8 +11,13 @@ export const nemovitost = {
 		'loukami k domu patří 3,32 ha pozemků. Dolní stanice lanovky na Pustevny je odsud ' +
 		'kilometr daleko.',
 
-	// Úvodní fotka pod nadpisem. Soubor leží v public/fotky/.
-	uvodniFoto: { soubor: '01-dum-a-pozemek.jpg', popis: 'Dům na kraji vlastní louky' },
+	// Úvodní fotka. Varianta na výšku je vlastní výřez pro úzké displeje —
+	// na nich by se z fotky na šířku ukázalo celé nebe i celá louka.
+	uvodniFoto: {
+		soubor: '01-dum-a-pozemek.jpg',
+		souborNaVysku: '01-dum-a-pozemek-na-vysku.jpg',
+		popis: 'Dům na kraji vlastní louky',
+	},
 
 	// Adresní bod č.p. 495 podle RÚIAN (ČÚZK), leží na parcele St. 1878.
 	souradnice: { sirka: 49.511258, delka: 18.239152 },
