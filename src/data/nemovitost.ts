@@ -38,7 +38,7 @@ export const nemovitost = {
 
 	kontakt: {
 		jmeno: 'Jan Austerlitz',
-		telefon: '+420 000 000 000',
+		telefon: '+420 725 398 765',
 		email: 'hausterlitz@gmail.com',
 	},
 };
