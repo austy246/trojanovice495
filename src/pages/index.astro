@@ -9,13 +9,19 @@ const telefonHref = 'tel:' + kontakt.telefon.replace(/\s/g, '');
 
 <Layout titulek={`${nazev} — ${podtitul}`} popis={perex}>
 	<header class="hero">
-		<div class="hero__text">
-			<p class="nadpis-sekce">{podtitul}</p>
-			<h1>{nazev}</h1>
-			<p class="hero__perex">{perex}</p>
+		<div class="hero__media">
+			<img class="hero__foto" src={`/fotky/${uvodniFoto.soubor}`} alt={uvodniFoto.popis} fetchpriority="high" />
+			<div class="hero__titulek">
+				<div class="obsah">
+					<p class="nadpis-sekce">{podtitul}</p>
+					<h1>{nazev}</h1>
+				</div>
+			</div>
 		</div>
 
-		<img class="hero__foto" src={`/fotky/${uvodniFoto.soubor}`} alt={uvodniFoto.popis} fetchpriority="high" />
+		<div class="obsah">
+			<p class="hero__perex">{perex}</p>
+		</div>
 	</header>
 
 	<section class="sekce sekce--tlumena" id="parametry">
@@ -107,63 +113,44 @@ const telefonHref = 'tel:' + kontakt.telefon.replace(/\s/g, '');
 </Layout>
 
 <style>
-	/*
-	 * Na širokých displejích stojí text v levé polovině obsahového sloupce
-	 * a fotka od jeho středu vybíhá až k pravému okraji okna. Mřížka to řeší
-	 * pojmenovanými sloupci místo počítání s jednotkami vw, takže se výpočet
-	 * netrefuje vedle o šířku svislého posuvníku.
-	 */
 	.hero {
-		display: grid;
-		gap: clamp(2rem, 5vw, 3rem);
-		padding-top: clamp(2.5rem, 8vw, 5rem);
-		padding-bottom: clamp(2.5rem, 8vw, 5rem);
+		padding-bottom: clamp(2.5rem, 7vw, 4.5rem);
 		border-bottom: 1px solid var(--barva-linka);
 	}
 
-	.hero__text {
-		width: 100%;
-		max-width: var(--sirka-obsahu);
-		margin-inline: auto;
-		padding-inline: 1.5rem;
+	.hero__media {
+		position: relative;
 	}
 
 	.hero__foto {
+		display: block;
 		width: 100%;
-		aspect-ratio: 4 / 3;
+		height: clamp(21rem, 66vh, 38rem);
 		object-fit: cover;
 	}
 
-	@media (min-width: 62rem) {
-		.hero {
-			grid-template-columns:
-				1fr
-				[obsah-start] minmax(0, calc(var(--sirka-obsahu) / 2))
-				[stred] minmax(0, calc(var(--sirka-obsahu) / 2))
-				1fr [konec];
-			align-items: center;
-			/* mezeru dělá odsazení textu, ne column-gap — ten by rozházel
-			   zarovnání levého okraje se sekcemi pod hero */
-			column-gap: 0;
-		}
+	/* Ztmavení jde jen zespodu a nahoře doběhne do průhledna, aby fotka
+	   zůstala fotkou a text na ní přesto držel kontrast. */
+	.hero__titulek {
+		position: absolute;
+		inset-inline: 0;
+		bottom: 0;
+		padding-block: clamp(4rem, 12vh, 7rem) clamp(1.5rem, 4vh, 2.5rem);
+		background: linear-gradient(to top, rgba(16, 14, 11, 0.74), rgba(16, 14, 11, 0.4) 45%, transparent);
+	}
 
-		.hero__text {
-			grid-column: obsah-start / stred;
-			max-width: none;
-			margin-inline: 0;
-			padding-right: clamp(2rem, 4vw, 3.5rem);
-		}
+	.hero__titulek h1 {
+		color: #fff;
+	}
 
-		.hero__foto {
-			grid-column: stred / konec;
-			aspect-ratio: auto;
-			height: clamp(24rem, 62vh, 34rem);
-		}
+	.hero__titulek .nadpis-sekce {
+		color: rgba(255, 255, 255, 0.85);
+		margin-bottom: 0.5rem;
 	}
 
 	.hero__perex {
 		max-width: 42rem;
-		margin-top: 1.5rem;
+		margin-top: clamp(2rem, 5vw, 3rem);
 		font-size: 1.125rem;
 		color: var(--barva-text-tlumena);
 	}
