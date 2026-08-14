@@ -134,9 +134,13 @@ const telefonHref = 'tel:' + kontakt.telefon.replace(/\s/g, '');
 		width: 100%;
 		height: clamp(21rem, 66vh, 38rem);
 		object-fit: cover;
-		/* výřez posunutý nad střed, ať se do záběru vejde i hřeben střechy
-		   a dole zůstane tráva, na které drží nadpis */
-		object-position: 50% 30%;
+		/*
+		 * Nižší hodnota ukazuje horní část fotky a tlačí dům v záběru dolů
+		 * k nadpisu, vyšší ho zvedá a přidává trávu pod ním. Hřeben střechy
+		 * je ve 32 % výšky fotky; 45 % ho na běžných šířkách okna nechá
+		 * těsně u horní hrany a pod nadpisem udrží travnatý pás.
+		 */
+		object-position: 50% 45%;
 	}
 
 	/* varianta na výšku je oříznutá už v souboru, stačí ji držet u středu */
