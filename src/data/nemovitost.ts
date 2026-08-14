@@ -7,8 +7,9 @@ export const nemovitost = {
 		'Na horním konci Trojanovic, kde zástavba přechází v louky a les, stojí rodinný dům ' +
 		'z roku 2006. Uvnitř je otevřená obytná hala s krbem a galerií přes dvě podlaží, ' +
 		'sedm pokojů a tři koupelny; teplo dodává tepelné čerpadlo země-voda do podlahového ' +
-		'vytápění. K domu patří devět parcel o celkové výměře 3,32 ha a dolní stanice lanovky ' +
-		'na Pustevny je odsud kilometr daleko.',
+		'vytápění. Zahrada kolem domu měla dvacet let na to, aby vzrostla, a spolu s okolními ' +
+		'loukami k domu patří 3,32 ha pozemků. Dolní stanice lanovky na Pustevny je odsud ' +
+		'kilometr daleko.',
 
 	// Úvodní fotka pod nadpisem. Soubor leží v public/fotky/.
 	uvodniFoto: { soubor: '01-dum-a-pozemek.jpg', popis: 'Dům na kraji vlastní louky' },
@@ -26,7 +27,7 @@ export const nemovitost = {
 		{ nazev: 'Zastavěná plocha', hodnota: '479 m² (3 stavební parcely)' },
 		{ nazev: 'Rok výstavby', hodnota: '2006' },
 		{ nazev: 'Stav', hodnota: 'Původní, bez rekonstrukce' },
-		{ nazev: 'Fasáda', hodnota: 'Větraná, dřevěný obklad' },
+		{ nazev: 'Fasáda', hodnota: 'Omítka, dřevem obložený štít' },
 		{ nazev: 'Vytápění', hodnota: 'Tepelné čerpadlo země-voda' },
 		{ nazev: 'Otopná soustava', hodnota: 'Podlahové vytápění' },
 		{ nazev: 'Zemní kolektor', hodnota: '130 m jedním směrem' },
@@ -54,7 +55,8 @@ export const nemovitost = {
 		{ soubor: '11-galerie.jpg', popis: 'Galerie v podkroví' },
 		{ soubor: '12-pokoj-podkrovi.jpg', popis: 'Pokoj v podkroví' },
 		{ soubor: '13-vyhled.jpg', popis: 'Výhled na Beskydy ze zahrady' },
-		{ soubor: '14-garaz.jpg', popis: 'Garáž pro dva vozy' },
+		{ soubor: '14-zahrada.jpg', popis: 'Vzrostlá zahrada kolem domu' },
+		{ soubor: '15-garaz.jpg', popis: 'Garáž pro dva vozy' },
 	],
 
 	// Vzdálenosti jsou po silnici, spočítané z adresního bodu domu.
