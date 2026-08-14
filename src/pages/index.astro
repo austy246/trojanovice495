@@ -1,0 +1,174 @@
+---
+import Layout from '../layouts/Layout.astro';
+import { nemovitost } from '../data/nemovitost';
+
+const { nazev, podtitul, perex, parametry, galerie, lokalita, kontakt } = nemovitost;
+const telefonHref = 'tel:' + kontakt.telefon.replace(/\s/g, '');
+---
+
+<Layout titulek={`${nazev} — ${podtitul}`} popis={perex}>
+	<header class="hero">
+		<div class="obsah">
+			<p class="nadpis-sekce">{podtitul}</p>
+			<h1>{nazev}</h1>
+			<p class="hero__perex">{perex}</p>
+		</div>
+	</header>
+
+	<section class="sekce sekce--tlumena" id="parametry">
+		<div class="obsah">
+			<p class="nadpis-sekce">Přehled</p>
+			<h2>Základní parametry</h2>
+			<dl class="parametry">
+				{
+					parametry.map((polozka) => (
+						<div class="parametry__polozka">
+							<dt>{polozka.nazev}</dt>
+							<dd>{polozka.hodnota}</dd>
+						</div>
+					))
+				}
+			</dl>
+		</div>
+	</section>
+
+	<section class="sekce" id="galerie">
+		<div class="obsah">
+			<p class="nadpis-sekce">Fotografie</p>
+			<h2>Prohlídka</h2>
+			<div class="galerie">
+				{
+					galerie.map((fotka, index) => (
+						<figure class="galerie__polozka">
+							<img
+								src={`/fotky/${fotka.soubor}`}
+								alt={fotka.popis}
+								loading={index === 0 ? 'eager' : 'lazy'}
+								width="1600"
+								height="1067"
+							/>
+							<figcaption>{fotka.popis}</figcaption>
+						</figure>
+					))
+				}
+			</div>
+		</div>
+	</section>
+
+	<section class="sekce sekce--tlumena" id="lokalita">
+		<div class="obsah">
+			<p class="nadpis-sekce">Okolí</p>
+			<h2>Lokalita</h2>
+			<p class="lokalita__popis">{lokalita.popis}</p>
+			<ul class="vzdalenosti">
+				{
+					lokalita.vzdalenosti.map((polozka) => (
+						<li>
+							<span>{polozka.misto}</span>
+							<strong>{polozka.hodnota}</strong>
+						</li>
+					))
+				}
+			</ul>
+		</div>
+	</section>
+
+	<section class="sekce" id="kontakt">
+		<div class="obsah">
+			<p class="nadpis-sekce">Máte zájem?</p>
+			<h2>Kontakt</h2>
+			<p class="kontakt">
+				{kontakt.jmeno}<br />
+				<a href={telefonHref}>{kontakt.telefon}</a><br />
+				<a href={`mailto:${kontakt.email}`}>{kontakt.email}</a>
+			</p>
+		</div>
+	</section>
+</Layout>
+
+<style>
+	.hero {
+		padding-block: clamp(4rem, 12vw, 8rem);
+		border-bottom: 1px solid var(--barva-linka);
+	}
+
+	.hero__perex {
+		max-width: 42rem;
+		margin-top: 1.5rem;
+		font-size: 1.125rem;
+		color: var(--barva-text-tlumena);
+	}
+
+	.parametry {
+		display: grid;
+		grid-template-columns: repeat(auto-fit, minmax(13rem, 1fr));
+		gap: 1.5rem 2rem;
+		margin: 0;
+	}
+
+	.parametry__polozka {
+		border-top: 1px solid var(--barva-linka);
+		padding-top: 0.75rem;
+	}
+
+	.parametry dt {
+		font-size: 0.8rem;
+		letter-spacing: 0.08em;
+		text-transform: uppercase;
+		color: var(--barva-text-tlumena);
+	}
+
+	.parametry dd {
+		margin: 0.25rem 0 0;
+		font-family: var(--pismo);
+		font-size: 1.375rem;
+	}
+
+	.galerie {
+		display: grid;
+		grid-template-columns: repeat(auto-fit, minmax(20rem, 1fr));
+		gap: 1.5rem;
+	}
+
+	.galerie__polozka {
+		margin: 0;
+	}
+
+	.galerie__polozka img {
+		width: 100%;
+		aspect-ratio: 3 / 2;
+		object-fit: cover;
+		background: var(--barva-pozadi-blok);
+		border-radius: 2px;
+	}
+
+	.galerie figcaption {
+		margin-top: 0.5rem;
+		font-size: 0.875rem;
+		color: var(--barva-text-tlumena);
+	}
+
+	.lokalita__popis {
+		max-width: 42rem;
+		margin-top: 0;
+	}
+
+	.vzdalenosti {
+		list-style: none;
+		padding: 0;
+		margin: 2rem 0 0;
+		max-width: 32rem;
+	}
+
+	.vzdalenosti li {
+		display: flex;
+		justify-content: space-between;
+		gap: 1rem;
+		padding: 0.75rem 0;
+		border-bottom: 1px solid var(--barva-linka);
+	}
+
+	.kontakt {
+		font-size: 1.125rem;
+	}
+</style>
