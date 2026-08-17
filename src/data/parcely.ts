@@ -169,7 +169,7 @@ export const parcely: Parcela[] = [
 		vymera: 284,
 		druh: "ostatní plocha",
 		stavebni: false,
-		nabidka: "dum",
+		nabidka: "hajecek",
 		kn: "https://nahlizenidokn.cuzk.gov.cz/ZobrazObjekt.aspx?typ=parcela&id=2202030804",
 		prehled: {
 			d: "M938.3,524.1L871.4,527.4L883.8,539.9L961.7,533.8L1033.5,640.1L1041.7,626.5L961.8,517.6L949.5,521.8L938.3,524.1Z",

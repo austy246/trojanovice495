@@ -3,13 +3,13 @@
 
 export const nemovitost = {
 	nazev: 'Trojanovice 495',
-	podtitul: 'Rodinný dům s 3 hektary pozemků pod Radhoštěm',
+	podtitul: 'Rodinný dům se 3 hektary pozemků pod Radhoštěm',
 	perex:
 		'Na horním konci Trojanovic, kde zástavba přechází v louky a les, stojí rodinný dům ' +
 		'z roku 2006. Uvnitř je otevřená obytná hala s krbem a galerií přes dvě podlaží, ' +
 		'sedm pokojů a tři koupelny; teplo dodává tepelné čerpadlo země-voda do podlahového ' +
 		'vytápění. Zahrada kolem domu měla dvacet let na to, aby vzrostla, a spolu s okolními ' +
-		'loukami k domu patří 3,08 ha pozemků. Dolní stanice lanovky na Pustevny je odsud ' +
+		'loukami k domu patří 3,05 ha pozemků. Dolní stanice lanovky na Pustevny je odsud ' +
 		'kilometr daleko.',
 
 	// Úvodní fotka. Varianta na výšku je vlastní výřez pro úzké displeje —
@@ -26,7 +26,7 @@ export const nemovitost = {
 		{ nazev: 'Dispozice', hodnota: '7+1' },
 		{ nazev: 'Koupelny', hodnota: '3' },
 		{ nazev: 'Užitná plocha', hodnota: '000 m²' },
-		{ nazev: 'Pozemky celkem', hodnota: '30 794 m² (3,08 ha)' },
+		{ nazev: 'Pozemky celkem', hodnota: '30 510 m² (3,05 ha)' },
 		{ nazev: 'Zastavěná plocha', hodnota: '299 m² (2 stavební parcely)' },
 		{ nazev: 'Rok výstavby', hodnota: '2006' },
 		{ nazev: 'Stav', hodnota: 'Původní, bez rekonstrukce' },
