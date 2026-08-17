@@ -1,14 +1,24 @@
 ---
-import { parcely, VYREZY } from '../data/parcely';
+import { parcely, VYREZY, type Nabidka } from '../data/parcely';
 
 interface Props {
 	/** který výřez se vykresluje */
 	varianta: 'prehled' | 'detail';
 	/** popisek pod mapou, slouží zároveň jako přístupový název */
 	popis: string;
+	/** parcely mimo tuto nabídku se kreslí ztlumeně a nejsou interaktivní */
+	nabidka: Nabidka;
 }
 
-const { varianta, popis } = Astro.props;
+const { varianta, popis, nabidka } = Astro.props;
+
+/*
+ * Kreslí se vždy všechny parcely — soused je užitečný kontext. Ty mimo
+ * nabídku ale dostanou třídu je-mimo: ztlumené, bez kliknutí i bez Tabu.
+ */
+const trida = (p: (typeof parcely)[number]) =>
+	`${p.stavebni ? 'je-st' : 'je-poz'}${p.nabidka === nabidka ? '' : ' je-mimo'}`;
+const jeNase = (p: (typeof parcely)[number]) => p.nabidka === nabidka;
 const vyrez = VYREZY[varianta];
 const viewBox = `0 0 ${vyrez.sirka} ${vyrez.vyska}`;
 const pomer = ((vyrez.vyska / vyrez.sirka) * 100).toFixed(3);
@@ -31,7 +41,7 @@ const podklad = varianta === 'prehled' ? 'prehled' : 'detail';
 			<svg class="mapa__vrstva mapa__vyplne" viewBox={viewBox} preserveAspectRatio="none" aria-hidden="true">
 				{
 					parcely.map((p) => (
-						<path class={`vyplen ${p.stavebni ? 'je-st' : 'je-poz'}`} data-p={p.cislo} d={p[varianta].d} />
+						<path class={`vyplen ${trida(p)}`} data-p={p.cislo} d={p[varianta].d} />
 					))
 				}
 			</svg>
@@ -48,21 +58,22 @@ const podklad = varianta === 'prehled' ? 'prehled' : 'detail';
 				{
 					parcely.map((p) => (
 						<path
-							class={`obrys ${p.stavebni ? 'je-st' : 'je-poz'}`}
+							class={`obrys ${trida(p)}`}
 							data-p={p.cislo}
 							d={p[varianta].d}
-							tabindex="0"
-							role="button"
-							aria-label={`${p.cislo}, ${p.vymera} m², ${p.druh}`}
+							tabindex={jeNase(p) ? '0' : undefined}
+							role={jeNase(p) ? 'button' : undefined}
+							aria-hidden={jeNase(p) ? undefined : 'true'}
+							aria-label={jeNase(p) ? `${p.cislo}, ${p.vymera} m², ${p.druh}` : undefined}
 						>
-							<title>{`${p.cislo} · ${p.vymera} m² · ${p.druh}`}</title>
+							{jeNase(p) && <title>{`${p.cislo} · ${p.vymera} m² · ${p.druh}`}</title>}
 						</path>
 					))
 				}
 				<g class="mapa__popisky">
 					{
 						parcely.map((p) => (
-							<g class="popisek" data-p={p.cislo} data-fit={p[varianta].fit}>
+							<g class={`popisek ${jeNase(p) ? '' : 'je-mimo'}`} data-p={p.cislo} data-fit={p[varianta].fit}>
 								<text x={p[varianta].x} y={p[varianta].y} class="halo">
 									{p.cislo}
 								</text>
@@ -195,6 +206,27 @@ const podklad = varianta === 'prehled' ? 'prehled' : 'detail';
 
 	.vyplen.je-zvyraznena {
 		fill-opacity: 0.6;
+	}
+
+	/*
+	 * Parcely mimo nabídku. Zůstávají vidět jako kontext, ale nejsou barevné,
+	 * nedají se kliknout ani chytit Tabem a nereagují na zvýraznění.
+	 */
+	.vyplen.je-mimo {
+		fill: #fff;
+		fill-opacity: 0.06;
+	}
+
+	.obrys.je-mimo {
+		stroke: rgba(255, 255, 255, 0.45);
+		stroke-width: calc(1.4px / var(--u));
+		stroke-dasharray: calc(6px / var(--u)) calc(4px / var(--u));
+		pointer-events: none;
+		cursor: default;
+	}
+
+	.popisek.je-mimo text {
+		fill: rgba(255, 255, 255, 0.5);
 	}
 
 	.mapa__popisky text {

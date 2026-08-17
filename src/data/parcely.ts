@@ -2,11 +2,17 @@
 // Geometrie stazena z RUIAN (CUZK), souradnice jsou v soustave viewBoxu
 // prislusne mapy - viz VYREZY nize. Generovano ze zakresu do katastralni mapy.
 
+/** Pozemky se prodavaji ve dvou samostatnych nabidkach. */
+export type Nabidka = "dum" | "hajecek";
+
 export interface Parcela {
 	cislo: string;
 	vymera: number;
 	druh: string;
 	stavebni: boolean;
+	nabidka: Nabidka;
+	/** co na stavebni parcele stoji; chybi, kdyz je parcela volna */
+	stavba?: string;
 	kn: string;
 	prehled: Zakres;
 	detail: Zakres;
@@ -33,6 +39,8 @@ export const parcely: Parcela[] = [
 		vymera: 220,
 		druh: "zastavěná plocha a nádvoří",
 		stavebni: true,
+		nabidka: "dum",
+		stavba: "dům č.p. 495",
 		kn: "https://nahlizenidokn.cuzk.gov.cz/ZobrazObjekt.aspx?typ=parcela&id=3018265804",
 		prehled: {
 			d: "M895.8,585.1L898.8,589.5L883.6,599.6L895.9,618.1L911.0,607.8L922.7,625.1L928.5,633.6L937.0,628.0L955.2,615.5L922.7,567.1L895.8,585.1Z",
@@ -48,6 +56,7 @@ export const parcely: Parcela[] = [
 		vymera: 180,
 		druh: "zastavěná plocha a nádvoří",
 		stavebni: true,
+		nabidka: "hajecek",
 		kn: "https://nahlizenidokn.cuzk.gov.cz/ZobrazObjekt.aspx?typ=parcela&id=2196233804",
 		prehled: {
 			d: "M821.4,539.3L838.4,557.6L849.5,570.0L883.8,539.9L871.4,527.4L854.2,508.8L821.4,539.3Z",
@@ -63,6 +72,8 @@ export const parcely: Parcela[] = [
 		vymera: 79,
 		druh: "zastavěná plocha a nádvoří",
 		stavebni: true,
+		nabidka: "dum",
+		stavba: "garáž",
 		kn: "https://nahlizenidokn.cuzk.gov.cz/ZobrazObjekt.aspx?typ=parcela&id=3018266804",
 		prehled: {
 			d: "M983.5,617.2L1002.8,645.9L1022.6,632.5L1003.3,603.8L983.5,617.2Z",
@@ -78,6 +89,7 @@ export const parcely: Parcela[] = [
 		vymera: 18794,
 		druh: "trvalý travní porost",
 		stavebni: false,
+		nabidka: "dum",
 		kn: "https://nahlizenidokn.cuzk.gov.cz/ZobrazObjekt.aspx?typ=parcela&id=2797220804",
 		prehled: {
 			d: "M518.1,94.6L524.4,154.4L534.7,273.5L550.2,513.6L553.6,598.1L560.7,686.0L569.8,780.5L575.7,794.5L584.6,856.5L601.9,859.5L869.4,765.7L985.5,725.0L1033.5,640.1L961.7,533.8L946.8,542.1L896.9,546.6L895.6,562.7L863.5,581.1L840.8,614.7L788.9,633.9L723.3,512.4L866.3,413.7L938.3,524.1L949.5,521.8L961.8,517.6L912.3,444.5L827.2,298.4L742.6,177.1L711.9,188.2L699.3,196.0L620.5,244.7L613.0,233.8L593.1,204.6L557.6,152.5L518.1,94.6ZM1022.6,632.5L1002.8,645.9L983.5,617.2L1003.3,603.8L1022.6,632.5ZM955.2,615.5L937.0,628.0L928.5,633.6L922.7,625.1L911.0,607.8L895.9,618.1L883.6,599.6L898.8,589.5L895.8,585.1L922.7,567.1L955.2,615.5Z",
@@ -93,6 +105,7 @@ export const parcely: Parcela[] = [
 		vymera: 9175,
 		druh: "trvalý travní porost",
 		stavebni: false,
+		nabidka: "dum",
 		kn: "https://nahlizenidokn.cuzk.gov.cz/ZobrazObjekt.aspx?typ=parcela&id=2797217804",
 		prehled: {
 			d: "M914.4,924.2L1048.0,1055.7L1117.1,1123.7L1139.2,1145.4L1156.1,1140.5L1281.9,1141.9L1229.9,927.6L1112.4,744.7L1047.2,647.5L945.3,837.7L922.8,879.7L914.4,924.2Z",
@@ -108,6 +121,7 @@ export const parcely: Parcela[] = [
 		vymera: 2178,
 		druh: "trvalý travní porost",
 		stavebni: false,
+		nabidka: "hajecek",
 		kn: "https://nahlizenidokn.cuzk.gov.cz/ZobrazObjekt.aspx?typ=parcela&id=2200251804",
 		prehled: {
 			d: "M838.4,557.6L821.4,539.3L854.2,508.8L871.4,527.4L938.3,524.1L866.3,413.7L723.3,512.4L788.9,633.9L840.8,614.7L863.5,581.1L895.6,562.7L896.9,546.6L946.8,542.1L961.7,533.8L883.8,539.9L849.5,570.0L838.4,557.6Z",
@@ -123,6 +137,7 @@ export const parcely: Parcela[] = [
 		vymera: 1172,
 		druh: "trvalý travní porost",
 		stavebni: false,
+		nabidka: "dum",
 		kn: "https://nahlizenidokn.cuzk.gov.cz/ZobrazObjekt.aspx?typ=parcela&id=2797218804",
 		prehled: {
 			d: "M963.1,765.3L906.7,785.4L679.4,866.6L729.2,871.5L775.4,871.3L865.2,872.2L902.4,866.2L932.4,816.3L963.1,765.3Z",
@@ -138,6 +153,7 @@ export const parcely: Parcela[] = [
 		vymera: 1070,
 		druh: "ostatní plocha",
 		stavebni: false,
+		nabidka: "dum",
 		kn: "https://nahlizenidokn.cuzk.gov.cz/ZobrazObjekt.aspx?typ=parcela&id=2797219804",
 		prehled: {
 			d: "M601.9,859.5L679.4,866.6L906.7,785.4L963.1,765.3L985.5,725.0L869.4,765.7L601.9,859.5Z",
@@ -153,6 +169,7 @@ export const parcely: Parcela[] = [
 		vymera: 284,
 		druh: "ostatní plocha",
 		stavebni: false,
+		nabidka: "dum",
 		kn: "https://nahlizenidokn.cuzk.gov.cz/ZobrazObjekt.aspx?typ=parcela&id=2202030804",
 		prehled: {
 			d: "M938.3,524.1L871.4,527.4L883.8,539.9L961.7,533.8L1033.5,640.1L1041.7,626.5L961.8,517.6L949.5,521.8L938.3,524.1Z",
@@ -166,3 +183,18 @@ export const parcely: Parcela[] = [
 ];
 
 export const celkovaVymera = parcely.reduce((s, p) => s + p.vymera, 0);
+
+/** Parcely jedne nabidky, v poradi podle vypisu z katastru. */
+export const proNabidku = (nabidka: Nabidka) => parcely.filter((p) => p.nabidka === nabidka);
+
+export const vymeraNabidky = (nabidka: Nabidka) =>
+	proNabidku(nabidka).reduce((s, p) => s + p.vymera, 0);
+
+/**
+ * Vymera k zobrazeni. Hektary davaji smysl az u velkych celku - z hajecku
+ * by zbylo "0,24 ha", proto se pod hektar zustava u metru.
+ */
+export const vymeraSlovy = (vymera: number) =>
+	vymera >= 10000
+		? `${(vymera / 10000).toLocaleString("cs-CZ", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ha`
+		: `${vymera.toLocaleString("cs-CZ")} m²`;

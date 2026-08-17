@@ -1,25 +1,50 @@
 ---
 import KatastralniMapa from './KatastralniMapa.astro';
-import { parcely, celkovaVymera } from '../data/parcely';
+import { proNabidku, vymeraNabidky, vymeraSlovy, type Nabidka } from '../data/parcely';
+import { spolecne } from '../data/spolecne';
+
+interface Props {
+	/** kterou z nabídek sekce vypisuje */
+	nabidka: Nabidka;
+}
+
+const { nabidka } = Astro.props;
 
 const cislo = new Intl.NumberFormat('cs-CZ');
-const hektary = (celkovaVymera / 10000).toLocaleString('cs-CZ', { minimumFractionDigits: 2 });
-const stavebnich = parcely.filter((p) => p.stavebni).length;
+const nase = proNabidku(nabidka);
+const vymera = vymeraNabidky(nabidka);
+const stavebnich = nase.filter((p) => p.stavebni).length;
 
-const prehledPopis = 'Přehled — všech devět parcel tvoří souvislý celek podél cesty.';
-const detailPopis = 'Detail zastavěné části — St. 1878 s domem č.p. 495, St. 1879 s garáží, St. 173/4.';
+const vymeraText = vymeraSlovy(vymera);
+
+const CISLOVKY = ['', 'Jedna', 'Dvě', 'Tři', 'Čtyři', 'Pět', 'Šest', 'Sedm', 'Osm', 'Devět'];
+const pocetSlovy = CISLOVKY[nase.length] ?? cislo.format(nase.length);
+const tvarParcely = nase.length === 1 ? 'parcela' : nase.length < 5 ? 'parcely' : 'parcel';
+
+/** „a“ místo poslední čárky: „St. 1878, St. 1879 a 2290“ */
+const vyjmenuj = (polozky: string[]) =>
+	polozky.length < 2 ? (polozky[0] ?? '') : `${polozky.slice(0, -1).join(', ')} a ${polozky.at(-1)}`;
+
+const prehledPopis =
+	`Přehled — ${pocetSlovy.toLowerCase()} ${tvarParcely} této nabídky, ${vymeraText}. ` +
+	'Ztlumené parcely jsou sousední pozemky mimo nabídku.';
+
+const detailPopis =
+	'Detail zastavěné části — ' +
+	vyjmenuj(nase.filter((p) => p.stavebni).map((p) => `${p.cislo} (${p.stavba ?? 'bez stavby'})`)) +
+	'.';
 ---
 
 <section class="sekce" id="pozemky">
 	<div class="obsah">
 		<p class="nadpis-sekce">Pozemky</p>
-		<h2>Devět parcel o celkové výměře {hektary} ha</h2>
+		<h2>{pocetSlovy} {tvarParcely} o celkové výměře {vymeraText}</h2>
 
 		<dl class="rozpiska">
-			<div><dt>Katastrální území</dt><dd>Trojanovice</dd></div>
-			<div><dt>Kód k.ú.</dt><dd>768499</dd></div>
-			<div><dt>Parcel</dt><dd>{parcely.length} <span>({stavebnich}× st.)</span></dd></div>
-			<div><dt>Celková výměra</dt><dd>{cislo.format(celkovaVymera)} m²</dd></div>
+			<div><dt>Katastrální území</dt><dd>{spolecne.katastr.uzemi}</dd></div>
+			<div><dt>Kód k.ú.</dt><dd>{spolecne.katastr.kod}</dd></div>
+			<div><dt>Parcel</dt><dd>{nase.length} <span>({stavebnich}× st.)</span></dd></div>
+			<div><dt>Celková výměra</dt><dd>{cislo.format(vymera)} m²</dd></div>
 		</dl>
 
 		<div class="ovladani">
@@ -31,8 +56,8 @@ const detailPopis = 'Detail zastavěné části — St. 1878 s domem č.p. 495, 
 		</div>
 
 		<div class="mapy">
-			<KatastralniMapa varianta="prehled" popis={prehledPopis} />
-			<KatastralniMapa varianta="detail" popis={detailPopis} />
+			<KatastralniMapa varianta="prehled" popis={prehledPopis} nabidka={nabidka} />
+			<KatastralniMapa varianta="detail" popis={detailPopis} nabidka={nabidka} />
 		</div>
 
 		<p class="napoveda">
@@ -55,7 +80,7 @@ const detailPopis = 'Detail zastavěné části — St. 1878 s domem č.p. 495, 
 				</thead>
 				<tbody>
 					{
-						parcely.map((p) => (
+						nase.map((p) => (
 							<tr data-p={p.cislo} class={p.stavebni ? 'je-st' : ''} tabindex="0">
 								<td class="pruh">
 									<i />
@@ -76,8 +101,8 @@ const detailPopis = 'Detail zastavěné části — St. 1878 s domem č.p. 495, 
 					<tr>
 						<td class="pruh"></td>
 						<td>Celkem</td>
-						<td class="v">{cislo.format(celkovaVymera)}</td>
-						<td class="druh">{hektary} ha</td>
+						<td class="v">{cislo.format(vymera)}</td>
+						<td class="druh">{vymeraText}</td>
 						<td></td>
 					</tr>
 				</tfoot>
@@ -334,7 +359,8 @@ const detailPopis = 'Detail zastavěné části — St. 1878 s domem č.p. 495, 
 
 	document.querySelectorAll<HTMLElement>('[data-p]').forEach((el) => {
 		const klic = el.dataset.p;
-		if (!klic) return;
+		// je-mimo = parcela sousední nabídky, ta se zvýrazňovat nemá
+		if (!klic || el.classList.contains('je-mimo')) return;
 
 		el.addEventListener('mouseenter', () => najeti(klic, true));
 		el.addEventListener('mouseleave', () => najeti(klic, false));

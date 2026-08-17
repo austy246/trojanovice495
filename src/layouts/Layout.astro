@@ -1,6 +1,6 @@
 ---
 import '../styles/global.css';
-import { nemovitost } from '../data/nemovitost';
+import { spolecne } from '../data/spolecne';
 
 interface Props {
 	titulek: string;
@@ -10,7 +10,10 @@ interface Props {
 const { titulek, popis } = Astro.props;
 const kanonicka = new URL(Astro.url.pathname, Astro.site);
 
-const { sirka, delka } = nemovitost.souradnice;
+// Na podstránkách nabídek vede cesta zpět na rozcestník; ten sám ji nepotřebuje.
+const jeRozcestnik = Astro.url.pathname === '/';
+
+const { sirka, delka } = spolecne.souradnice;
 const mapa = `https://mapy.cz/zakladni?x=${delka}&y=${sirka}&z=17&source=coor&id=${delka}%2C${sirka}`;
 ---
 
@@ -35,6 +38,16 @@ const mapa = `https://mapy.cz/zakladni?x=${delka}&y=${sirka}&z=17&source=coor&id
 		<meta property="og:url" content={kanonicka} />
 	</head>
 	<body>
+		{
+			!jeRozcestnik && (
+				<nav class="zpet">
+					<div class="obsah">
+						<a href="/">← Obě nabídky</a>
+					</div>
+				</nav>
+			)
+		}
+
 		<slot />
 
 		<footer class="paticka">
@@ -49,6 +62,22 @@ const mapa = `https://mapy.cz/zakladni?x=${delka}&y=${sirka}&z=17&source=coor&id
 </html>
 
 <style>
+	.zpet {
+		border-bottom: 1px solid var(--barva-linka);
+		padding-block: 0.7rem;
+		font-size: 0.875rem;
+	}
+
+	.zpet a {
+		text-decoration: none;
+		color: var(--barva-text-tlumena);
+	}
+
+	.zpet a:hover,
+	.zpet a:focus-visible {
+		color: var(--barva-text);
+	}
+
 	.paticka {
 		border-top: 1px solid var(--barva-linka);
 		padding-block: 2rem;
