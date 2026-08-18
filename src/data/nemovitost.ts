@@ -3,14 +3,20 @@
 
 export const nemovitost = {
 	nazev: 'Trojanovice 495',
-	podtitul: 'Rodinný dům se 3 hektary pozemků pod Radhoštěm',
+	podtitul: 'Rodinný dům se vzrostlou zahradou pod Radhoštěm',
+
+	// Cena za nabídku, tedy dům, garáž a vymezený pozemek kolem nich.
+	// Okolní louky v ceně nejsou, jdou dokoupit - viz parcely.ts.
+	cena: 21_900_000,
+	cenaPoznamka: 'za dům, garáž a pozemek ≈ 3 200 m²',
+
 	perex:
 		'Na horním konci Trojanovic, kde zástavba přechází v louky a les, stojí rodinný dům ' +
 		'z roku 2006. Uvnitř je otevřená obytná hala s krbem a galerií přes dvě podlaží, ' +
 		'sedm pokojů a tři koupelny; teplo dodává tepelné čerpadlo země-voda do podlahového ' +
-		'vytápění. Zahrada kolem domu měla dvacet let na to, aby vzrostla, a spolu s okolními ' +
-		'loukami k domu patří 3,05 ha pozemků. Dolní stanice lanovky na Pustevny je odsud ' +
-		'kilometr daleko.',
+		'vytápění. Zahrada kolem domu měla dvacet let na to, aby vzrostla — k domu patří ' +
+		'zhruba 3 200 m² pozemku a dokoupit se dají i okolní louky až k lesu. Dolní stanice ' +
+		'lanovky na Pustevny je odsud kilometr daleko.',
 
 	// Úvodní fotka. Varianta na výšku je vlastní výřez pro úzké displeje —
 	// na nich by se z fotky na šířku ukázalo celé nebe i celá louka.
@@ -26,14 +32,15 @@ export const nemovitost = {
 		{ nazev: 'Dispozice', hodnota: '7+1' },
 		{ nazev: 'Koupelny', hodnota: '3' },
 		{ nazev: 'Užitná plocha', hodnota: '000 m²' },
-		{ nazev: 'Pozemky celkem', hodnota: '30 510 m² (3,05 ha)' },
+		// Pozemek je odměřený ze zákresu do katastrální mapy — viz parcely.ts.
+		{ nazev: 'Pozemek', hodnota: '≈ 3 200 m²' },
+		{ nazev: 'Louky k dokoupení', hodnota: '≈ 27 310 m² (2,73 ha)' },
 		{ nazev: 'Zastavěná plocha', hodnota: '299 m² (2 stavební parcely)' },
 		{ nazev: 'Rok výstavby', hodnota: '2006' },
 		{ nazev: 'Stav', hodnota: 'Původní, bez rekonstrukce' },
 		{ nazev: 'Fasáda', hodnota: 'Omítka, dřevem obložený štít' },
 		{ nazev: 'Vytápění', hodnota: 'Tepelné čerpadlo země-voda' },
 		{ nazev: 'Otopná soustava', hodnota: 'Podlahové vytápění' },
-		{ nazev: 'Zemní kolektor', hodnota: '130 m jedním směrem' },
 		{ nazev: 'Garáž', hodnota: 'Pro dva vozy, s dílnou a podkrovím' },
 		{ nazev: 'Parkování', hodnota: '3 místa před garáží' },
 	],

@@ -1,10 +1,12 @@
 ---
 import Layout from '../layouts/Layout.astro';
 import Pozemky from '../components/Pozemky.astro';
+import Cena from '../components/Cena.astro';
 import { nemovitost } from '../data/nemovitost';
 import { spolecne, telefonHref } from '../data/spolecne';
 
-const { nazev, podtitul, perex, uvodniFoto, parametry, rozlozeni, galerie } = nemovitost;
+const { nazev, podtitul, perex, cena, cenaPoznamka, uvodniFoto, parametry, rozlozeni, galerie } =
+	nemovitost;
 const { lokalita, kontakt } = spolecne;
 ---
 
@@ -25,6 +27,7 @@ const { lokalita, kontakt } = spolecne;
 
 		<div class="obsah">
 			<p class="hero__perex">{perex}</p>
+			<Cena cena={cena} poznamka={cenaPoznamka} />
 		</div>
 	</header>
 

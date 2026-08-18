@@ -1,5 +1,5 @@
 ---
-import { parcely, VYREZY, type Nabidka } from '../data/parcely';
+import { parcely, pozemekUDomu, VYREZY, type Nabidka } from '../data/parcely';
 
 interface Props {
 	/** který výřez se vykresluje */
@@ -12,17 +12,42 @@ interface Props {
 
 const { varianta, popis, nabidka } = Astro.props;
 
+const jeNase = (p: (typeof parcely)[number]) => p.nabidka === nabidka;
+
+/*
+ * Nabídka ① má dvě úrovně: modrý je jen vymezený pozemek u domu, okolní louky
+ * jsou bílé. Nabídka ② žádné dělení nemá, modré je v ní všechno.
+ */
+const dvouurovnova = nabidka === 'dum';
+
 /*
  * Kreslí se vždy všechny parcely — soused je užitečný kontext. Ty mimo
  * nabídku ale dostanou třídu je-mimo: ztlumené, bez kliknutí i bez Tabu.
+ * Louky navíc mají je-doplnek: bílé jako sousedi, ale klikací.
  */
-const trida = (p: (typeof parcely)[number]) =>
-	`${p.stavebni ? 'je-st' : 'je-poz'}${p.nabidka === nabidka ? '' : ' je-mimo'}`;
-const jeNase = (p: (typeof parcely)[number]) => p.nabidka === nabidka;
+const trida = (p: (typeof parcely)[number]) => {
+	const zaklad = p.stavebni ? 'je-st' : 'je-poz';
+	if (!jeNase(p)) return `${zaklad} je-mimo`;
+	return dvouurovnova && !p.stavebni ? `${zaklad} je-doplnek` : zaklad;
+};
 const vyrez = VYREZY[varianta];
 const viewBox = `0 0 ${vyrez.sirka} ${vyrez.vyska}`;
 const pomer = ((vyrez.vyska / vyrez.sirka) * 100).toFixed(3);
-const podklad = varianta === 'prehled' ? 'prehled' : 'detail';
+
+/*
+ * Přehled skládá ortofoto a katastrální mapu ze dvou vrstev, detail je jediný
+ * snímek z nahlížení do KN — katastrální kresba je v něm natvrdo.
+ */
+const jeDetail = varianta === 'detail';
+
+/*
+ * Rozteč šrafů se odvozuje od šířky výřezu, aby byly v obou mapách stejně
+ * husté na obrazovce, ne v jednotkách viewBoxu.
+ */
+const krok = Math.round(vyrez.sirka / 55);
+const idSraf = `srafy-${varianta}`;
+
+const pozemek = dvouurovnova ? pozemekUDomu[varianta] : null;
 ---
 
 <figure class="mapa-fig">
@@ -32,27 +57,57 @@ const podklad = varianta === 'prehled' ? 'prehled' : 'detail';
 		<div class="mapa__scena">
 			<img
 				class="mapa__vrstva mapa__orto"
-				src={`/katastr/orto-${podklad}.jpg`}
-				alt="Ortofoto ČÚZK"
+				src={jeDetail ? '/katastr/kn-detail.jpg' : '/katastr/orto-prehled.jpg'}
+				alt={jeDetail ? 'Ortofoto s katastrální mapou ČÚZK' : 'Ortofoto ČÚZK'}
 				draggable="false"
 				loading="lazy"
 			/>
 
 			<svg class="mapa__vrstva mapa__vyplne" viewBox={viewBox} preserveAspectRatio="none" aria-hidden="true">
+				<defs>
+					<pattern id={idSraf} width={krok} height={krok} patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+						<line x1="0" y1="0" x2="0" y2={krok} stroke="#8ecbff" stroke-width={krok / 5} />
+					</pattern>
+				</defs>
+
 				{
 					parcely.map((p) => (
 						<path class={`vyplen ${trida(p)}`} data-p={p.cislo} d={p[varianta].d} />
 					))
 				}
+
+				{/*
+				 * Šrafy nesou modrou plochu nabídky. U domu je to jen vymezený
+				 * pozemek, u háječku všechny jeho parcely.
+				 */}
+				{
+					!dvouurovnova &&
+						parcely
+							.filter(jeNase)
+							.map((p) => <path class="srafy" d={p[varianta].d} fill={`url(#${idSraf})`} />)
+				}
+
+				{
+					pozemek && (
+						<>
+							<path class="vyplen je-pozemek" d={pozemek.d} />
+							<path class="srafy" d={pozemek.d} fill={`url(#${idSraf})`} />
+						</>
+					)
+				}
 			</svg>
 
-			<img
-				class="mapa__vrstva mapa__km"
-				src={`/katastr/km-${podklad}.png`}
-				alt="Katastrální mapa ČÚZK"
-				draggable="false"
-				loading="lazy"
-			/>
+			{
+				!jeDetail && (
+					<img
+						class="mapa__vrstva mapa__km"
+						src="/katastr/km-prehled.png"
+						alt="Katastrální mapa ČÚZK"
+						draggable="false"
+						loading="lazy"
+					/>
+				)
+			}
 
 			<svg class="mapa__vrstva" viewBox={viewBox} preserveAspectRatio="none" role="img" aria-label={popis}>
 				{
@@ -70,26 +125,36 @@ const podklad = varianta === 'prehled' ? 'prehled' : 'detail';
 						</path>
 					))
 				}
+				{pozemek && <path class="pozemek" d={pozemek.d} />}
+
+				{/*
+				 * V detailu má podklad čísla parcel vypálená v obrázku, takže se
+				 * kreslí jen stavební parcely nabídky — v podkladu jsou bez předpony
+				 * „St.“ a jsou to ty, na kterých v této mapě záleží. V přehledu
+				 * podklad popisky nemá, tam se kreslí všechny.
+				 */}
 				<g class="mapa__popisky">
 					{
-						parcely.map((p) => (
-							<g class={`popisek ${jeNase(p) ? '' : 'je-mimo'}`} data-p={p.cislo} data-fit={p[varianta].fit}>
-								<text x={p[varianta].x} y={p[varianta].y} class="halo">
-									{p.cislo}
-								</text>
-								<text x={p[varianta].x} y={p[varianta].y}>
-									{p.cislo}
-								</text>
-							</g>
-						))
+						parcely
+							.filter((p) => (jeDetail ? jeNase(p) && p.stavebni : true))
+							.map((p) => (
+								<g class={`popisek ${jeNase(p) ? '' : 'je-mimo'}`} data-p={p.cislo} data-fit={p[varianta].fit}>
+									<text x={p[varianta].x} y={p[varianta].y} class="halo">
+										{p.cislo}
+									</text>
+									<text x={p[varianta].x} y={p[varianta].y}>
+										{p.cislo}
+									</text>
+								</g>
+							))
 					}
 				</g>
 			</svg>
 		</div>
 
 		<div class="mapa__sever" aria-hidden="true">S</div>
-		<div class="mapa__meritko">
-			<i style={`width:${vyrez.meritkoPodil}%`}></i>
+		<div class="mapa__meritko" data-podil={vyrez.meritkoPodil}>
+			<i></i>
 			<span data-meritko={vyrez.meritko}>{vyrez.meritko} m</span>
 		</div>
 		<div class="mapa__zoom">
@@ -158,28 +223,31 @@ const podklad = varianta === 'prehled' ? 'prehled' : 'detail';
 		user-select: none;
 	}
 
-	.mapa.bez-km .mapa__km {
-		display: none;
-	}
-
 	/*
 	 * Barvu výplně a barvu obrysu drž v oddělených pravidlech. Sloučené
 	 * `.vyplen.je-st, .obrys.je-st { fill: … }` má vyšší specificitu než
 	 * `.obrys { fill: none }` a obarvilo by i obrysovou vrstvu, která žádnou
 	 * průhlednost nemá — parcely by přes ortofoto vyšly jako plné plochy.
 	 */
-	/* Krytí výplně řídí jediná hodnota, ať je zřejmé, co se nastavuje. */
+	/*
+	 * Nabízené pozemky jsou modré v obou nabídkách; stavební parcely jen sytěji,
+	 * protože jsou drobné a proti ortofotu by se ztratily.
+	 */
 	.vyplen {
 		stroke: none;
-		fill-opacity: 0.28;
+		fill: #2e9bff;
+		fill-opacity: 0.14;
 	}
 
 	.vyplen.je-st {
-		fill: #ff6b2c;
+		fill: #0f7ae5;
+		fill-opacity: 0.42;
 	}
 
-	.vyplen.je-poz {
-		fill: #2e9bff;
+	/* Šrafy leží nad výplní a nesmí brát kliknutí obrysové vrstvě pod sebou. */
+	.srafy {
+		pointer-events: none;
+		opacity: 0.32;
 	}
 
 	.obrys {
@@ -191,11 +259,29 @@ const podklad = varianta === 'prehled' ? 'prehled' : 'detail';
 	}
 
 	.obrys.je-st {
-		stroke: #ff6b2c;
+		stroke: #c7e9ff;
 	}
 
 	.obrys.je-poz {
-		stroke: #2e9bff;
+		stroke: #35a4ff;
+	}
+
+	/*
+	 * Vymezený pozemek u domu nese modrou plochu nabídky ①, proto vypadá jako
+	 * nabízená parcela — včetně obvodu. Že jedna jeho strana nemá oporu
+	 * v katastru, říká text pod mapou, ne odlišná čára.
+	 */
+	.vyplen.je-pozemek {
+		fill: #2e9bff;
+		fill-opacity: 0.2;
+	}
+
+	.pozemek {
+		fill: none;
+		pointer-events: none;
+		stroke: #35a4ff;
+		stroke-width: calc(2.6px / var(--u));
+		stroke-linejoin: round;
 	}
 
 	.obrys:hover,
@@ -223,6 +309,26 @@ const podklad = varianta === 'prehled' ? 'prehled' : 'detail';
 		stroke-dasharray: calc(6px / var(--u)) calc(4px / var(--u));
 		pointer-events: none;
 		cursor: default;
+	}
+
+	/*
+	 * Louky navíc u nabídky ①. Bílé jako sousední parcely, aby modrá zůstala
+	 * jen pozemku u domu, ale plnou čarou a klikací — do nabídky patří.
+	 * Musí přebít .je-poz, proto stojí až za ním.
+	 */
+	.vyplen.je-doplnek {
+		fill: #fff;
+		fill-opacity: 0.06;
+	}
+
+	.obrys.je-doplnek {
+		stroke: rgba(255, 255, 255, 0.7);
+		stroke-width: calc(1.8px / var(--u));
+	}
+
+	/* bílá plocha při zvýraznění oslňuje, stačí jí menší krytí než modré */
+	.vyplen.je-doplnek.je-zvyraznena {
+		fill-opacity: 0.26;
 	}
 
 	.popisek.je-mimo text {
@@ -276,7 +382,9 @@ const podklad = varianta === 'prehled' ? 'prehled' : 'detail';
 		bottom: 11px;
 		display: flex;
 		align-items: center;
+		flex-wrap: nowrap;
 		gap: 0.4rem;
+		max-width: calc(100% - 24px);
 		background: rgba(10, 12, 10, 0.62);
 		padding: 5px 8px;
 		border-radius: 2px;
@@ -284,6 +392,7 @@ const podklad = varianta === 'prehled' ? 'prehled' : 'detail';
 
 	.mapa__meritko i {
 		display: block;
+		flex: none;
 		height: 5px;
 		border: 1.5px solid #fff;
 		border-top: none;
@@ -291,6 +400,7 @@ const podklad = varianta === 'prehled' ? 'prehled' : 'detail';
 
 	.mapa__meritko span {
 		color: #fff;
+		white-space: nowrap;
 		font: 600 11px/1 ui-monospace, Consolas, monospace;
 	}
 

@@ -2,7 +2,12 @@
 // Geometrie stazena z RUIAN (CUZK), souradnice jsou v soustave viewBoxu
 // prislusne mapy - viz VYREZY nize. Generovano ze zakresu do katastralni mapy.
 
-/** Pozemky se prodavaji ve dvou samostatnych nabidkach. */
+/*
+ * Pozemky se prodavaji ve dvou samostatnych nabidkach. U hajecku jsou v nabidce
+ * cele tri parcely; u domu se prodava jen pozemek vymezeny kolem staveb (viz
+ * pozemekUDomu nize) a okolni louky jsou k dokoupeni nad ramec nabidky.
+ * `nabidka` proto rika, ke ktere nabidce parcela patri - ne ze je cela na prodej.
+ */
 export type Nabidka = "dum" | "hajecek";
 
 export interface Parcela {
@@ -30,7 +35,9 @@ export interface Zakres {
 
 export const VYREZY = {
 	prehled: { sirka: 1800, vyska: 1240, meritko: 100, meritkoPodil: 17.93 },
-	detail: { sirka: 1200, vyska: 900, meritko: 25, meritkoPodil: 16.67 },
+	// Detail je vyrez ze snimku nahlizeni do KN (880x1100 px, 1 px = 12,47 cm),
+	// takze jednotka viewBoxu odpovida pixelu podkladu.
+	detail: { sirka: 880, vyska: 1100, meritko: 25, meritkoPodil: 22.79 },
 } as const;
 
 export const parcely: Parcela[] = [
@@ -47,8 +54,8 @@ export const parcely: Parcela[] = [
 			x: 917, y: 591, fit: 17,
 		},
 		detail: {
-			d: "M470.9,393.9L478.2,404.7L440.5,429.8L471.1,475.6L508.6,450.1L537.5,493.0L551.9,514.1L572.9,500.1L618.1,469.3L537.5,349.3L470.9,393.9Z",
-			x: 523, y: 410, fit: 42,
+			d: "M464.8,494.4L471.2,505.8L431.4,527.8L458.2,576.1L497.8,553.7L523.1,599.0L535.7,621.3L557.9,609.1L605.6,582.1L535.1,455.4L464.8,494.4Z",
+			x: 516, y: 493, fit: 42,
 		},
 	},
 	{
@@ -63,8 +70,8 @@ export const parcely: Parcela[] = [
 			x: 853, y: 539, fit: 21,
 		},
 		detail: {
-			d: "M286.5,280.3L328.5,325.8L356.0,356.5L441.1,281.9L410.2,250.8L367.6,204.7L286.5,280.3Z",
-			x: 364, y: 281, fit: 52,
+			d: "M290.0,365.5L328.2,414.5L353.1,447.5L444.4,380.0L416.1,346.4L377.4,296.7L290.0,365.5Z",
+			x: 367, y: 351, fit: 52,
 		},
 	},
 	{
@@ -80,8 +87,8 @@ export const parcely: Parcela[] = [
 			x: 1003, y: 625, fit: 12,
 		},
 		detail: {
-			d: "M688.2,473.5L735.9,544.5L785.1,511.3L737.2,440.3L688.2,473.5Z",
-			x: 737, y: 492, fit: 30,
+			d: "M675.3,592.1L717.1,667.0L769.0,638.0L727.1,563.0L675.3,592.1Z",
+			x: 723, y: 593, fit: 30,
 		},
 	},
 	{
@@ -96,8 +103,8 @@ export const parcely: Parcela[] = [
 			x: 690, y: 375, fit: 132,
 		},
 		detail: {
-			d: "M-465.3,-821.8L-449.6,-673.6L-424.2,-378.5L-385.6,216.6L-377.2,426.0L-359.7,644.0L-337.1,878.1L-322.6,912.8L-300.4,1066.4L-257.6,1073.8L405.5,841.3L693.0,740.5L812.1,530.1L634.2,266.8L597.2,287.3L473.7,298.5L470.2,338.4L390.7,383.9L334.5,467.1L206.0,514.7L43.4,213.8L397.6,-31.0L576.1,242.6L603.8,237.0L634.4,226.6L511.6,45.3L300.8,-316.6L91.1,-617.3L15.2,-589.8L-16.2,-570.4L-211.5,-449.6L-230.0,-476.7L-279.4,-549.2L-367.4,-678.2L-465.3,-821.8ZM785.1,511.3L735.9,544.5L688.2,473.5L737.2,440.3L785.1,511.3ZM618.1,469.3L572.9,500.1L551.9,514.1L537.5,493.0L508.6,450.1L471.1,475.6L440.5,429.8L478.2,404.7L470.9,393.9L537.5,349.3L618.1,469.3Z",
-			x: -39, y: -127, fit: 327,
+			d: "M-369.3,-798.6L-366.0,-649.2L-365.2,-352.2L-376.3,245.7L-385.4,455.7L-386.1,675.0L-383.1,910.8L-371.5,946.7L-362.1,1102.1L-320.0,1113.1L362.1,936.1L657.8,859.3L794.4,659.0L638.6,381.0L599.9,398.4L475.6,399.3L468.7,438.9L385.5,477.7L322.4,556.2L190.0,593.0L52.6,278.8L427.0,63.7L582.6,352.0L610.7,348.7L642.2,340.9L534.6,149.5L354.1,-229.8L169.7,-547.8L91.5,-526.7L58.5,-509.9L-146.7,-405.5L-162.9,-434.1L-206.3,-510.7L-283.4,-646.9L-369.3,-798.6ZM769.0,638.0L717.1,667.0L675.3,592.1L727.1,563.0L769.0,638.0ZM605.6,582.1L557.9,609.1L535.7,621.3L523.1,599.0L497.8,553.7L458.2,576.1L431.4,527.8L471.2,505.8L464.8,494.4L535.1,455.4L605.6,582.1Z",
+			x: 170, y: 810, fit: 328,
 		},
 	},
 	{
@@ -112,8 +119,8 @@ export const parcely: Parcela[] = [
 			x: 1061, y: 896, fit: 123,
 		},
 		detail: {
-			d: "M516.8,1234.3L847.9,1560.1L1019.2,1728.7L1074.0,1782.5L1115.9,1770.3L1427.7,1773.7L1298.9,1242.8L1007.6,789.5L846.1,548.4L593.4,1019.9L537.6,1124.0L516.8,1234.3Z",
-			x: 881, y: 1165, fit: 305,
+			d: "M440.5,1338.1L744.2,1691.3L901.3,1874.1L951.6,1932.4L994.5,1923.7L1305.8,1953.2L1221.4,1411.9L968.1,934.6L826.9,680.1L535.0,1130.2L470.5,1229.6L440.5,1338.1Z",
+			x: 810, y: 1299, fit: 306,
 		},
 	},
 	{
@@ -128,8 +135,8 @@ export const parcely: Parcela[] = [
 			x: 779, y: 524, fit: 41,
 		},
 		detail: {
-			d: "M328.5,325.8L286.5,280.3L367.6,204.7L410.2,250.8L576.1,242.6L397.6,-31.0L43.4,213.8L206.0,514.7L334.5,467.1L390.7,383.9L470.2,338.4L473.7,298.5L597.2,287.3L634.2,266.8L441.1,281.9L356.0,356.5L328.5,325.8Z",
-			x: 181, y: 242, fit: 101,
+			d: "M328.2,414.5L290.0,365.5L377.4,296.7L416.1,346.4L582.6,352.0L427.0,63.7L52.6,278.8L190.0,593.0L322.4,556.2L385.5,477.7L468.7,438.9L475.6,399.3L599.9,398.4L638.6,381.0L444.4,380.0L353.1,447.5L328.2,414.5Z",
+			x: 188, y: 318, fit: 101,
 		},
 	},
 	{
@@ -144,8 +151,8 @@ export const parcely: Parcela[] = [
 			x: 878, y: 833, fit: 35,
 		},
 		detail: {
-			d: "M637.5,840.4L497.9,890.2L-65.6,1091.5L57.9,1103.6L172.5,1103.3L394.9,1105.3L487.2,1090.5L561.5,966.8L637.5,840.4Z",
-			x: 427, y: 1008, fit: 87,
+			d: "M594.0,954.5L450.4,992.6L-129.6,1146.8L-7.2,1169.2L107.4,1178.4L329.5,1199.0L422.9,1191.9L507.5,1074.5L594.0,954.5Z",
+			x: 330, y: 1075, fit: 87,
 		},
 	},
 	{
@@ -160,8 +167,8 @@ export const parcely: Parcela[] = [
 			x: 858, y: 786, fit: 16,
 		},
 		detail: {
-			d: "M-257.6,1073.8L-65.6,1091.5L497.9,890.2L637.5,840.4L693.0,740.5L405.5,841.3L-257.6,1073.8Z",
-			x: 376, y: 893, fit: 39,
+			d: "M-320.0,1113.1L-129.6,1146.8L450.4,992.6L594.0,954.5L657.8,859.3L362.1,936.1L-320.0,1113.1Z",
+			x: 328, y: 985, fit: 39,
 		},
 	},
 	{
@@ -176,11 +183,38 @@ export const parcely: Parcela[] = [
 			x: 1030, y: 624, fit: 6,
 		},
 		detail: {
-			d: "M576.1,242.6L410.2,250.8L441.1,281.9L634.2,266.8L812.1,530.1L832.3,496.4L634.4,226.6L603.8,237.0L576.1,242.6Z",
-			x: 804, y: 490, fit: 16,
+			d: "M582.6,352.0L416.1,346.4L444.4,380.0L638.6,381.0L794.4,659.0L817.4,627.0L642.2,340.9L610.7,348.7L582.6,352.0Z",
+			x: 790, y: 618, fit: 16,
 		},
 	},
 ];
+
+/*
+ * Pozemek u domu - to, co se u nabidky (1) skutecne prodava. Hranici tvori
+ * z vetsiny katastralni linie; jedina nova vede uhloprickou pres louku 2260/8
+ * a je dlouha 70 m. Plocha je odmerena ze zakresu, ne z katastru: vychazi na
+ * 3 235 m2, na webu se uvadi zaokrouhlena. Rozpad po parcelach:
+ * St. 1878 220 + St. 1879 79 + 2260/8 2 673 + 3587/5 204 + 1888/18 58.
+ *
+ * Pozor: krome obou stavebnich parcel nejde o cele parcely - pozemek kolem
+ * domu se z 2260/8, 3587/5 a 1888/18 teprve oddeli geometrickym planem.
+ */
+export const pozemekUDomu = {
+	/** zaokrouhleno na stovky - zdroj je zakres, ne geometricky plan */
+	vymera: 3200,
+	/** delka nove vyznacene hranice v metrech */
+	delka: 70,
+	/** parcely, ze kterych se pozemek kolem staveb oddeli */
+	zParcel: ["2260/8", "3587/5", "1888/18"],
+	// Prvni a posledni bod obrysu jsou konce nove vyznacene hranice - jedine
+	// strany pozemku bez opory v katastru.
+	prehled: {
+		d: "M789.0,633.9L840.8,614.7L863.5,581.1L895.6,562.7L897.0,546.6L946.8,542.1L961.7,533.8L1033.5,640.1L985.5,725.0L963.1,765.3L939.3,801.8Z",
+	},
+	detail: {
+		d: "M190.0,593.0L322.4,556.2L385.5,477.7L468.7,438.9L475.6,399.3L599.9,398.4L638.6,381.0L794.4,659.0L657.8,859.3L594.0,954.5L527.5,1040.0Z",
+	},
+} as const;
 
 export const celkovaVymera = parcely.reduce((s, p) => s + p.vymera, 0);
 
@@ -189,6 +223,22 @@ export const proNabidku = (nabidka: Nabidka) => parcely.filter((p) => p.nabidka 
 
 export const vymeraNabidky = (nabidka: Nabidka) =>
 	proNabidku(nabidka).reduce((s, p) => s + p.vymera, 0);
+
+/**
+ * Co nabidka skutecne obsahuje. U hajecku jsou to cele parcely, u domu jen
+ * vymezeny pozemek - okolni louky se k nemu daji dokoupit, ale soucasti
+ * nabidky nejsou.
+ */
+export const vymeraVNabidce = (nabidka: Nabidka) =>
+	nabidka === "dum" ? pozemekUDomu.vymera : vymeraNabidky(nabidka);
+
+/** Louky kolem domu, ktere jsou k dokoupeni nad ramec nabidky. */
+export const vymeraKDokoupeni = vymeraNabidky("dum") - pozemekUDomu.vymera;
+
+/** Stavby v nabidce jsou cele parcely, zbytek pozemku se teprve oddeli. */
+export const vymeraStaveb = proNabidku("dum")
+	.filter((p) => p.stavebni)
+	.reduce((s, p) => s + p.vymera, 0);
 
 /**
  * Vymera k zobrazeni. Hektary davaji smysl az u velkych celku - z hajecku

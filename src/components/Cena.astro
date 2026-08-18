@@ -1,0 +1,41 @@
+---
+import { cenaSlovy } from '../data/spolecne';
+
+interface Props {
+	cena: number;
+	/** co je v ceně — stojí pod částkou, aby nebyla čtena bez kontextu */
+	poznamka: string;
+}
+
+const { cena, poznamka } = Astro.props;
+---
+
+<p class="cena">
+	<strong>{cenaSlovy(cena)}</strong>
+	<span>{poznamka}</span>
+</p>
+
+<style>
+	.cena {
+		display: inline-flex;
+		flex-direction: column;
+		gap: 0.15rem;
+		margin: clamp(1.5rem, 4vw, 2.25rem) 0 0;
+		padding: 0.7rem 1.1rem 0.8rem;
+		border: 1px solid var(--barva-linka);
+		border-left: 3px solid var(--barva-akcent);
+		border-radius: 2px;
+		background: var(--barva-pozadi-blok);
+	}
+
+	.cena strong {
+		font: 1.75rem/1.1 var(--pismo);
+		font-weight: 400;
+		font-variant-numeric: tabular-nums;
+	}
+
+	.cena span {
+		font-size: 0.8rem;
+		color: var(--barva-text-tlumena);
+	}
+</style>

@@ -7,6 +7,11 @@
 export const hajecek = {
 	nazev: 'Háječek se stavebním pozemkem',
 	podtitul: 'Stavební parcela s vlastní zelení pod Radhoštěm',
+
+	// Cena za všechny tři parcely nabídky (2 642 m²).
+	cena: 3_700_000,
+	cenaPoznamka: 'za všechny tři parcely',
+
 	perex:
 		'Na stejném svahu nad Trojanovicemi jako dům č.p. 495, hned vedle jeho pozemků, ' +
 		'prodávám samostatně stavební parcelu St. 173/4, přilehlý háječek a přístupovou cestu ' +

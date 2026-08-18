@@ -31,3 +31,9 @@ export const spolecne = {
 };
 
 export const telefonHref = 'tel:' + spolecne.kontakt.telefon.replace(/\s/g, '');
+
+/*
+ * Cena v celých korunách. Oddělovač tisíců, který dá Intl, se sjednocuje na
+ * pevnou mezeru — jinak by se číslo mohlo zalomit uprostřed.
+ */
+export const cenaSlovy = (cena: number) => `${cena.toLocaleString('cs-CZ').replace(/\s/g, ' ')} Kč`;

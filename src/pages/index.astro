@@ -2,8 +2,8 @@
 import Layout from '../layouts/Layout.astro';
 import { nemovitost } from '../data/nemovitost';
 import { hajecek } from '../data/hajecek';
-import { spolecne, telefonHref } from '../data/spolecne';
-import { vymeraNabidky, vymeraSlovy } from '../data/parcely';
+import { cenaSlovy, spolecne, telefonHref } from '../data/spolecne';
+import { vymeraKDokoupeni, vymeraSlovy, vymeraVNabidce } from '../data/parcely';
 
 const { uvodniFoto } = nemovitost;
 const { kontakt } = spolecne;
@@ -15,15 +15,17 @@ const nabidky = [
 	{
 		odkaz: '/dum',
 		nazev: 'Dům, garáž, zahrada',
-		vymera: `${cislo.format(vymeraNabidky('dum'))} m² · ${vymeraSlovy(vymeraNabidky('dum'))}`,
+		vymera: `≈ ${cislo.format(vymeraVNabidce('dum'))} m² pozemku`,
+		cena: cenaSlovy(nemovitost.cena),
 		popis:
-			'Rodinný dům z roku 2006 se sedmi pokoji, garáží pro dva vozy, vzrostlou zahradou ' +
-			'a loukami až k lesu.',
+			'Rodinný dům z roku 2006 se sedmi pokoji, garáží pro dva vozy a vzrostlou zahradou. ' +
+			`Dokoupit se dají i okolní louky, ${vymeraSlovy(vymeraKDokoupeni)}.`,
 	},
 	{
 		odkaz: '/hajecek',
 		nazev: hajecek.nazev,
-		vymera: `${cislo.format(vymeraNabidky('hajecek'))} m²`,
+		vymera: `${cislo.format(vymeraVNabidce('hajecek'))} m²`,
+		cena: cenaSlovy(hajecek.cena),
 		popis: 'Volná stavební parcela se vzrostlou zelení kolem, na stejném svahu nad obcí.',
 	},
 ];
@@ -31,7 +33,7 @@ const nabidky = [
 const titulek = 'Trojanovice 495 — dvě nabídky pod Radhoštěm';
 const popis =
 	'Na horním konci Trojanovic prodávám přímo bez realitní kanceláře dvě samostatné ' +
-	'nabídky: rodinný dům se zahradou a loukami, a stavební parcelu s háječkem.';
+	'nabídky: rodinný dům se vzrostlou zahradou, a stavební parcelu s háječkem.';
 ---
 
 <Layout titulek={titulek} popis={popis}>
@@ -62,6 +64,7 @@ const popis =
 								</span>
 								<h2>{n.nazev}</h2>
 								<p class="nabidka__vymera">{n.vymera}</p>
+								<p class="nabidka__cena">{n.cena}</p>
 								<p class="nabidka__popis">{n.popis}</p>
 								<span class="nabidka__vice">Podrobnosti →</span>
 							</a>
@@ -187,10 +190,16 @@ const popis =
 	}
 
 	.nabidka__vymera {
-		margin: 0 0 0.9rem;
+		margin: 0 0 0.5rem;
 		font: 0.9rem/1.3 ui-monospace, Consolas, monospace;
 		font-variant-numeric: tabular-nums;
 		color: var(--barva-text-tlumena);
+	}
+
+	.nabidka__cena {
+		margin: 0 0 0.9rem;
+		font: 1.35rem/1.2 var(--pismo);
+		font-variant-numeric: tabular-nums;
 	}
 
 	.nabidka__popis {
