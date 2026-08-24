@@ -7,7 +7,7 @@ export const nemovitost = {
 
 	// Cena za nabídku, tedy dům, garáž a vymezený pozemek kolem nich.
 	// Okolní louky v ceně nejsou, jdou dokoupit - viz parcely.ts.
-	cena: 21_900_000,
+	cena: 24_900_000,
 	cenaPoznamka: 'za dům, garáž a pozemek ≈ 3 200 m²',
 
 	perex:
