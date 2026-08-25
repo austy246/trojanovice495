@@ -17,6 +17,26 @@ import { nakresy } from '../data/nakresy';
 			a dá se v něm přiblížit.
 		</p>
 
+		{/* Překreslené schéma stojí nad skeny — dispozice je z něj čitelná na první pohled. */}
+		<figure class="schema">
+			<a href="/nakresy/schema-prizemi.svg" target="_blank" rel="noopener">
+				<img
+					src="/nakresy/schema-prizemi.svg"
+					alt="Schéma dispozice přízemí: koupelna, technické zázemí, zádveří, pracovna, pokoj a spíž
+						při vstupní straně, šatna, druhá koupelna a vstupní hala uprostřed, ložnice, jídelní hala
+						s galerií a kuchyň v jižní části, obytná hala s terasou v křídle."
+					width="1420"
+					height="1442"
+					loading="lazy"
+					decoding="async"
+				/>
+			</a>
+			<figcaption>
+				Dispozice přízemí, překresleno podle projektu. Plochy jsou z legendy místností;
+				schéma je orientační a nenahrazuje výkres.
+			</figcaption>
+		</figure>
+
 		<ul class="vykresy">
 			{
 				nakresy.map((n, i) => (
@@ -206,6 +226,34 @@ import { nakresy } from '../data/nakresy';
 	.uvod {
 		max-width: 42rem;
 		margin: 0 0 2rem;
+		color: var(--barva-text-tlumena);
+	}
+
+	.schema {
+		margin: 0 0 2.5rem;
+	}
+
+	.schema a {
+		display: block;
+		border: 1px solid var(--barva-linka);
+		border-radius: 2px;
+		background: #fbf9f6;
+		transition: border-color 0.15s;
+	}
+
+	.schema a:hover,
+	.schema a:focus-visible {
+		border-color: var(--barva-akcent);
+	}
+
+	.schema img {
+		width: 100%;
+		height: auto;
+	}
+
+	.schema figcaption {
+		margin-top: 0.6rem;
+		font-size: 0.875rem;
 		color: var(--barva-text-tlumena);
 	}
 
