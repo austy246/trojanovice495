@@ -1,6 +1,49 @@
 // Jediné místo, kde se mění údaje o nabídce ①: dům, garáž, zahrada.
 // Údaje společné s háječkem (kontakt, lokalita, souřadnice) jsou v spolecne.ts.
 
+// Plochy místností opsané z legend na stavebních výkresech (A.J.A, 07/2004) —
+// listy „Půdorys přízemí“ a „Půdorys podkroví“, viz nakresy.ts. Čísla místností
+// odpovídají popiskům ve výkresech, ať se dají v legendě dohledat.
+//
+// Terasy tu záměrně nejsou: legenda 1.NP je vede jako 1.14–1.16, ale plochu má
+// vyčíslenou jen 1.14 (10,20 m²). Do užitné plochy se terasy nepočítají.
+const plochy = [
+	{
+		podlazi: 'Přízemí',
+		mistnosti: [
+			{ cislo: '1.01', nazev: 'Zádveří', plocha: 7.3 },
+			{ cislo: '1.02', nazev: 'Vstupní hala', plocha: 12.86 },
+			{ cislo: '1.03', nazev: 'Jídelní hala s galerií', plocha: 32.73 },
+			{ cislo: '1.04', nazev: 'Obytná hala', plocha: 34.0 },
+			{ cislo: '1.05', nazev: 'Kuchyň', plocha: 18.8 },
+			{ cislo: '1.06', nazev: 'Spíž', plocha: 5.76 },
+			{ cislo: '1.07', nazev: 'Pokoj', plocha: 12.6 },
+			{ cislo: '1.08', nazev: 'Pracovna', plocha: 12.78 },
+			{ cislo: '1.09', nazev: 'Ložnice', plocha: 17.12 },
+			{ cislo: '1.10', nazev: 'Šatna', plocha: 7.25 },
+			{ cislo: '1.11', nazev: 'Koupelna', plocha: 10.36 },
+			{ cislo: '1.12', nazev: 'Koupelna', plocha: 3.7 },
+			{ cislo: '1.13', nazev: 'Technické zázemí', plocha: 4.72 },
+		],
+	},
+	{
+		podlazi: 'Podkroví',
+		mistnosti: [
+			{ cislo: '2.01', nazev: 'Galerie', plocha: 33.6 },
+			{ cislo: '2.02', nazev: 'Pokoj', plocha: 30.6 },
+			{ cislo: '2.03', nazev: 'Pokoj', plocha: 23.1 },
+			{ cislo: '2.04', nazev: 'Pokoj', plocha: 25.75 },
+			{ cislo: '2.05', nazev: 'Koupelna', plocha: 4.05 },
+		],
+	},
+];
+
+/** Užitná plocha = součet místností obou podlaží, bez teras. Vychází 297,08 m². */
+const uzitnaPlocha = plochy.reduce(
+	(celkem, podlazi) => celkem + podlazi.mistnosti.reduce((s, m) => s + m.plocha, 0),
+	0,
+);
+
 export const nemovitost = {
 	nazev: 'Trojanovice 495',
 	podtitul: 'Rodinný dům se vzrostlou zahradou pod Radhoštěm',
@@ -26,12 +69,15 @@ export const nemovitost = {
 		popis: 'Dům na kraji vlastní louky',
 	},
 
+	// Rozpis místností, ze kterého se počítá užitná plocha níž.
+	plochy,
+
 	// Výměry pozemků pocházejí z katastru — viz src/data/parcely.ts.
-	// Zbytek je zatím zástupný a čeká na doplnění.
 	parametry: [
 		{ nazev: 'Dispozice', hodnota: '7+1' },
 		{ nazev: 'Koupelny', hodnota: '3' },
-		{ nazev: 'Užitná plocha', hodnota: '000 m²' },
+		// V přehledu zaokrouhleno, přesný součet je v sekci Rozlohy místností.
+		{ nazev: 'Užitná plocha', hodnota: `${Math.round(uzitnaPlocha)} m²` },
 		// Pozemek je odměřený ze zákresu do katastrální mapy — viz parcely.ts.
 		{ nazev: 'Pozemek', hodnota: '≈ 3 200 m²' },
 		{ nazev: 'Louky k dokoupení', hodnota: '≈ 27 310 m² (2,73 ha)' },

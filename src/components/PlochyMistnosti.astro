@@ -1,0 +1,148 @@
+---
+/*
+ * Rozpis ploch po místnostech. Čísla jsou opsaná z legend na stavebních
+ * výkresech (viz Nakresy.astro), součty se dopočítávají, aby se nemohly
+ * rozejít s rozpisem ani s užitnou plochou v přehledu parametrů.
+ */
+import { nemovitost } from '../data/nemovitost';
+
+const { plochy } = nemovitost;
+
+/** 7.3 → „7,30“ — desetinná čárka bez spoléhání na ICU v Node */
+const cislo = (n: number) => n.toFixed(2).replace('.', ',');
+const soucet = (mistnosti: { plocha: number }[]) =>
+	mistnosti.reduce((s, m) => s + m.plocha, 0);
+
+const celkem = plochy.reduce((s, p) => s + soucet(p.mistnosti), 0);
+---
+
+<section class="sekce sekce--tlumena" id="plochy">
+	<div class="obsah">
+		<p class="nadpis-sekce">Dispozice</p>
+		<h2>Rozlohy místností</h2>
+		<p class="uvod">
+			Plochy podle legendy místností ve stavebních výkresech (projekt 2004). Čísla u názvů
+			odpovídají popiskům v půdorysech. Terasy se do užitné plochy nepočítají — projekt
+			vyčísluje jen terasu&nbsp;1.14 (10,20&nbsp;m²).
+		</p>
+
+		<div class="podlazi">
+			{
+				plochy.map((p) => (
+					<div class="podlazi__sloupec">
+						<h3>{p.podlazi}</h3>
+						<ul class="mistnosti">
+							{p.mistnosti.map((m) => (
+								<li>
+									<span class="mistnosti__nazev">
+										<span class="mistnosti__cislo">{m.cislo}</span>
+										{m.nazev}
+									</span>
+									<strong>{cislo(m.plocha)}&nbsp;m²</strong>
+								</li>
+							))}
+							<li class="mistnosti__soucet">
+								<span class="mistnosti__nazev">Celkem</span>
+								<strong>{cislo(soucet(p.mistnosti))}&nbsp;m²</strong>
+							</li>
+						</ul>
+					</div>
+				))
+			}
+		</div>
+
+		<p class="celkem">
+			<span>Užitná plocha celkem</span>
+			<strong>{cislo(celkem)}&nbsp;m²</strong>
+		</p>
+	</div>
+</section>
+
+<style>
+	.uvod {
+		max-width: 42rem;
+		margin: 0 0 2.5rem;
+		color: var(--barva-text-tlumena);
+	}
+
+	.podlazi {
+		display: grid;
+		grid-template-columns: repeat(auto-fit, minmax(19rem, 1fr));
+		gap: clamp(2rem, 5vw, 3.5rem);
+	}
+
+	.podlazi h3 {
+		margin: 0 0 0.75rem;
+		font-size: 0.8rem;
+		font-family: var(--pismo-ui);
+		letter-spacing: 0.08em;
+		text-transform: uppercase;
+		color: var(--barva-text-tlumena);
+	}
+
+	.mistnosti {
+		list-style: none;
+		padding: 0;
+		margin: 0;
+	}
+
+	.mistnosti li {
+		display: flex;
+		align-items: baseline;
+		justify-content: space-between;
+		gap: 1rem;
+		padding: 0.55rem 0;
+		border-bottom: 1px solid var(--barva-linka);
+	}
+
+	.mistnosti strong {
+		font-family: var(--pismo);
+		font-weight: 400;
+		white-space: nowrap;
+	}
+
+	/* číslo místnosti drží svůj sloupec, aby názvy začínaly pod sebou */
+	.mistnosti__cislo {
+		display: inline-block;
+		width: 2.75rem;
+		font-size: 0.8125rem;
+		color: var(--barva-text-tlumena);
+		font-variant-numeric: tabular-nums;
+	}
+
+	.mistnosti__soucet {
+		border-bottom: 0;
+		padding-top: 0.75rem;
+	}
+
+	.mistnosti__soucet .mistnosti__nazev {
+		font-size: 0.8rem;
+		letter-spacing: 0.08em;
+		text-transform: uppercase;
+		color: var(--barva-text-tlumena);
+	}
+
+	.celkem {
+		display: flex;
+		align-items: baseline;
+		justify-content: space-between;
+		gap: 1rem;
+		margin: clamp(2rem, 5vw, 3rem) 0 0;
+		padding-top: 1rem;
+		border-top: 2px solid var(--barva-akcent);
+	}
+
+	.celkem span {
+		font-size: 0.8rem;
+		letter-spacing: 0.08em;
+		text-transform: uppercase;
+		color: var(--barva-text-tlumena);
+	}
+
+	.celkem strong {
+		font-family: var(--pismo);
+		font-weight: 400;
+		font-size: clamp(1.5rem, 4vw, 2rem);
+		white-space: nowrap;
+	}
+</style>

@@ -2,6 +2,7 @@
 import Layout from '../layouts/Layout.astro';
 import Pozemky from '../components/Pozemky.astro';
 import Nakresy from '../components/Nakresy.astro';
+import PlochyMistnosti from '../components/PlochyMistnosti.astro';
 import Cena from '../components/Cena.astro';
 import { nemovitost } from '../data/nemovitost';
 import { spolecne, telefonHref } from '../data/spolecne';
@@ -83,6 +84,8 @@ const { lokalita, kontakt } = spolecne;
 			</section>
 		)
 	}
+
+	<PlochyMistnosti />
 
 	<Nakresy />
 
