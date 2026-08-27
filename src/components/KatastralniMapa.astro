@@ -35,8 +35,8 @@ const viewBox = `0 0 ${vyrez.sirka} ${vyrez.vyska}`;
 const pomer = ((vyrez.vyska / vyrez.sirka) * 100).toFixed(3);
 
 /*
- * Přehled skládá ortofoto a katastrální mapu ze dvou vrstev, detail je jediný
- * snímek z nahlížení do KN — katastrální kresba je v něm natvrdo.
+ * Obě mapy se skládají stejně: ortofoto ČÚZK a nad ním katastrální kresba jako
+ * samostatná průhledná vrstva. Oboje generuje scripts/podklady.mjs.
  */
 const jeDetail = varianta === 'detail';
 
@@ -55,13 +55,16 @@ const pozemek = dvouurovnova ? pozemekUDomu[varianta] : null;
 		<div class="mapa__pomer" style={`padding-top:${pomer}%`}></div>
 
 		<div class="mapa__scena">
-			<img
-				class="mapa__vrstva mapa__orto"
-				src={jeDetail ? '/katastr/kn-detail.jpg' : '/katastr/orto-prehled.jpg'}
-				alt={jeDetail ? 'Ortofoto s katastrální mapou ČÚZK' : 'Ortofoto ČÚZK'}
-				draggable="false"
-				loading="lazy"
-			/>
+			<picture>
+				<source srcset={`/katastr/${varianta}-orto.avif`} type="image/avif" />
+				<img
+					class="mapa__vrstva mapa__orto"
+					src={`/katastr/${varianta}-orto.webp`}
+					alt="Ortofoto ČÚZK"
+					draggable="false"
+					loading="lazy"
+				/>
+			</picture>
 
 			<svg class="mapa__vrstva mapa__vyplne" viewBox={viewBox} preserveAspectRatio="none" aria-hidden="true">
 				<defs>
@@ -97,17 +100,13 @@ const pozemek = dvouurovnova ? pozemekUDomu[varianta] : null;
 				}
 			</svg>
 
-			{
-				!jeDetail && (
-					<img
-						class="mapa__vrstva mapa__km"
-						src="/katastr/km-prehled.png"
-						alt="Katastrální mapa ČÚZK"
-						draggable="false"
-						loading="lazy"
-					/>
-				)
-			}
+			<img
+				class="mapa__vrstva mapa__km"
+				src={`/katastr/${varianta}-kresba.webp`}
+				alt="Katastrální mapa ČÚZK"
+				draggable="false"
+				loading="lazy"
+			/>
 
 			<svg class="mapa__vrstva" viewBox={viewBox} preserveAspectRatio="none" role="img" aria-label={popis}>
 				{

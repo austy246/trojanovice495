@@ -195,9 +195,9 @@ const detailPopis =
 		}
 
 		<p class="zdroj">
-			Geometrie parcel: RÚIAN, <a href="https://ags.cuzk.cz/arcgis/rest/services/RUIAN/MapServer" target="_blank" rel="noopener">ČÚZK</a>.
-			Podklad přehledu: ortofoto ČÚZK a WMS Katastrální mapa, staženo 29.&nbsp;7.&nbsp;2026;
-			podklad detailu: nahlížení do KN, 18.&nbsp;8.&nbsp;2026. Zobrazení je orientační a nenahrazuje
+			Geometrie parcel: RÚIAN, <a href="https://ags.cuzk.gov.cz/arcgis/rest/services/RUIAN/MapServer" target="_blank" rel="noopener">ČÚZK</a>.
+			Podklad obou map: ortofoto ČÚZK v rozlišení 12,5&nbsp;cm/px a WMS Katastrální mapa,
+			staženo 27.&nbsp;8.&nbsp;2026. Zobrazení je orientační a nenahrazuje
 			výpis z katastru nemovitostí ani geometrický plán.
 			{vymezena && ' Hranice pozemku u domu je zákres do katastrální mapy — výměra je odměřená, ne úřední, a oddělení parcel teprve čeká na geometrický plán.'}
 		</p>
@@ -594,8 +594,28 @@ const detailPopis =
 			if (ven) ven.disabled = k <= 1.01;
 			if (zpet) zpet.disabled = k <= 1.01;
 
-			// popisek se skryje, jakmile by přetekl přes hranice parcely
-			popisky.forEach((p) => p.classList.toggle('je-skryty', Number(p.dataset.fit) * pxNaJednotku < 17));
+			/*
+			 * fit je průměr největší kružnice vepsané do parcely, takže popisek
+			 * zmizí přesně tehdy, když se do parcely přestane vejít. Písmo se
+			 * škáluje inverzně k přiblížení, šířka textu v pixelech displeje je
+			 * proto stálá a stačí ji změřit jednou.
+			 */
+			popisky.forEach((p) => {
+				if (!p.dataset.sirkaTextu) {
+					const text = p.querySelector('text:last-of-type') as SVGTextElement | null;
+					const sirka = text ? text.getBBox().width * pxNaJednotku : 0;
+					if (!sirka) return;
+					p.dataset.sirkaTextu = String(sirka);
+				}
+				/*
+				 * Vepsaná kružnice je střídmé měřítko: u protáhlé parcely vyjde
+				 * malá, i když se do její délky popisek pohodlně vejde. Text proto
+				 * smí být až dvakrát širší — na téhle hranici se popisky skrývaly
+				 * i dřív, jen se tehdy délka textu nebrala v potaz.
+				 */
+				const misto = Number(p.dataset.fit) * pxNaJednotku;
+				p.classList.toggle('je-skryty', misto < Number(p.dataset.sirkaTextu) / 2);
+			});
 
 			const m = zakladniMeritko / k;
 			meritko.textContent = m >= 10 ? `${Math.round(m)} m` : `${m.toFixed(1)} m`;
