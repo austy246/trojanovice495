@@ -9,6 +9,7 @@
     "dev": "astro dev",
     "build": "astro build",
     "podklady": "node scripts/podklady.mjs",
+    "srovnani": "node scripts/srovnani-kresby.mjs",
     "preview": "astro preview",
     "astro": "astro"
   },

@@ -20,7 +20,7 @@
 
 import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import { dirname, resolve } from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 import sharp from 'sharp';
 
 const KOREN = resolve(dirname(fileURLToPath(import.meta.url)), '..');
@@ -28,7 +28,7 @@ const KOREN = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 /* ---------- co se stahuje ---------- */
 
 /** Ortofoto ČR nemá jemnější data než 12,5 cm/px — víc pixelů už jen dopočítává. */
-const ROZLISENI = 0.125;
+export const ROZLISENI = 0.125;
 
 /** 1 jednotka viewBoxu = 1 dm v terénu. Měřítková úsečka pak vychází z kulatých čísel. */
 const JEDNOTEK_NA_METR = 10;
@@ -37,13 +37,13 @@ const JEDNOTEK_NA_METR = 10;
  * Výřezy jsou dané středem a velikostí v metrech, ne v pixelech — z toho se
  * teprve odvodí rastr i viewBox, takže všechno drží pohromadě.
  */
-const VYREZY = {
+export const VYREZY = {
 	prehled: { stred: [2030369.425, 6362050.33], sirka: 555.5, vyska: 383.0, meritko: 100 },
 	detail: { stred: [2030361.43, 6362057.16], sirka: 122.0, vyska: 152.5, meritko: 25 },
 };
 
 /** Žlutá z Nahlížení do KN — odměřeno z jeho snímku (medián 245, 250, 50). */
-const BARVA_KRESBY = [245, 250, 50];
+export const BARVA_KRESBY = [245, 250, 50];
 
 const ORTOFOTO = 'https://ags.cuzk.gov.cz/arcgis1/rest/services/ORTOFOTO_WM/MapServer/export';
 const KATASTR = 'https://services.cuzk.gov.cz/wms/wms.asp';
@@ -51,12 +51,12 @@ const RUIAN = 'https://ags.cuzk.gov.cz/arcgis/rest/services/RUIAN/MapServer/5/qu
 const PREVOD = 'https://ags.cuzk.gov.cz/arcgis/rest/services/Utilities/Geometry/GeometryServer/project';
 
 /** ArcGIS neposkytne širší snímek, přehled se proto skládá ze dvou dílů. */
-const MAX_SIRKA = 4096;
+export const MAX_SIRKA = 4096;
 
 /* ---------- pomůcky ---------- */
 
 /** Bez hlavičky prohlížeče odpoví geoportál přesměrováním na prázdno. */
-const HLAVICKY = { 'User-Agent': 'trojanovice495-podklady/1 (+https://trojanovice495.cz)' };
+export const HLAVICKY = { 'User-Agent': 'trojanovice495-podklady/1 (+https://trojanovice495.cz)' };
 
 async function stahni(url, hledani) {
 	const cil = new URL(url);
@@ -87,7 +87,7 @@ async function odesliJson(url, telo) {
 const zkresleni = (y) => Math.cos(2 * Math.atan(Math.exp(y / 6378137)) - Math.PI / 2);
 
 /** Ze středu a velikosti v metrech spočítá výřez v Mercatoru, rastr i viewBox. */
-function ramec({ stred, sirka, vyska, meritko }) {
+export function ramec({ stred, sirka, vyska, meritko }) {
 	const k = zkresleni(stred[1]);
 	const [sirkaM, vyskaM] = [sirka / k, vyska / k];
 	const bbox = [stred[0] - sirkaM / 2, stred[1] - vyskaM / 2, stred[0] + sirkaM / 2, stred[1] + vyskaM / 2];
@@ -153,7 +153,7 @@ async function ortofoto({ bbox, px }) {
  * ořežou. Je to samostatná vrstva, kterou CSS stejně roztáhne na stejný rám,
  * takže o osm procent hrubší čáry nikdo nepozná.
  */
-async function kresba({ bbox, px }) {
+export async function kresba({ bbox, px }) {
 	const sirka = Math.min(px[0], MAX_SIRKA);
 	const vyska = Math.round((sirka * px[1]) / px[0]);
 	return stahniBuffer(KATASTR, {
@@ -176,7 +176,7 @@ async function kresba({ bbox, px }) {
  * ne v alfě — alfa je jen 0/255. Přebarvení proto luminanci přesouvá do alfy,
  * jinak by čáry vyšly zubaté.
  */
-async function obarvi(data, barva) {
+export async function obarvi(data, barva) {
 	const { data: px, info } = await sharp(data).ensureAlpha().raw().toBuffer({ resolveWithObject: true });
 	for (let i = 0; i < px.length; i += 4) {
 		const jas = (px[i] + px[i + 1] + px[i + 2]) / 3 / 255;
@@ -429,4 +429,5 @@ ${Object.entries(pozemekZakres)
 	console.log('\nzapsáno src/data/zakresy.ts');
 }
 
-await main();
+/* Skript jde i importovat: srovnání kresby si z něj bere rámce, WMS i přebarvení. */
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) await main();
