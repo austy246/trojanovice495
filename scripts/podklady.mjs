@@ -22,6 +22,7 @@ import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import sharp from 'sharp';
+import { BARVA_KRESBY } from '../src/lib/kresba.mjs';
 
 const KOREN = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 
@@ -42,8 +43,8 @@ export const VYREZY = {
 	detail: { stred: [2030361.43, 6362057.16], sirka: 122.0, vyska: 152.5, meritko: 25 },
 };
 
-/** Žlutá z Nahlížení do KN — odměřeno z jeho snímku (medián 245, 250, 50). */
-export const BARVA_KRESBY = [245, 250, 50];
+/** Barvu kresby i její přebarvení drží src/lib/kresba.mjs — počítá s ní i stránka srovnání. */
+export { BARVA_KRESBY };
 
 const ORTOFOTO = 'https://ags.cuzk.gov.cz/arcgis1/rest/services/ORTOFOTO_WM/MapServer/export';
 const KATASTR = 'https://services.cuzk.gov.cz/wms/wms.asp';
@@ -392,11 +393,12 @@ export interface Zakres {
 	fit: number;
 }
 
+/** Rozměry viewBoxu v dm, k tomu rám v EPSG:3857 a rastr, ze kterého mapa vznikla. */
 export const VYREZY = {
 ${Object.entries(ramce)
 	.map(
 		([k, r]) =>
-			`\t${k}: { sirka: ${r.jednotek[0]}, vyska: ${r.jednotek[1]}, meritko: ${r.meritko}, meritkoPodil: ${r.meritkoPodil.toFixed(2)} },`,
+			`\t${k}: {\n\t\tsirka: ${r.jednotek[0]}, vyska: ${r.jednotek[1]}, meritko: ${r.meritko}, meritkoPodil: ${r.meritkoPodil.toFixed(2)},\n\t\tbbox: [${r.bbox.map((n) => n.toFixed(2)).join(', ')}], px: [${r.px.join(', ')}],\n\t},`,
 	)
 	.join('\n')}
 } as const;

@@ -15,9 +15,16 @@ export interface Zakres {
 	fit: number;
 }
 
+/** Rozměry viewBoxu v dm, k tomu rám v EPSG:3857 a rastr, ze kterého mapa vznikla. */
 export const VYREZY = {
-	prehled: { sirka: 5555, vyska: 3830, meritko: 100, meritkoPodil: 18.00 },
-	detail: { sirka: 1220, vyska: 1525, meritko: 25, meritkoPodil: 20.49 },
+	prehled: {
+		sirka: 5555, vyska: 3830, meritko: 100, meritkoPodil: 18.00,
+		bbox: [2029941.66, 6361755.40, 2030797.19, 6362345.26], px: [4444, 3064],
+	},
+	detail: {
+		sirka: 1220, vyska: 1525, meritko: 25, meritkoPodil: 20.49,
+		bbox: [2030267.48, 6361939.73, 2030455.38, 6362174.59], px: [976, 1220],
+	},
 } as const;
 
 export const ZAKRESY: Record<string, { prehled: Zakres; detail: Zakres }> = {

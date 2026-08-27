@@ -1,0 +1,651 @@
+---
+/*
+ * Technická stránka: srovnává dosavadní WMS KN_I s dlaždicovou službou WMTS
+ * jako zdrojem katastrální kresby. Podklady si tahá prohlížeč přímo z ČÚZK
+ * a čísla počítá nad jejich pixely, takže stránka nepotřebuje nic předem
+ * staženého — na rozdíl od scripts/srovnani-kresby.mjs, který dělá totéž
+ * lokálně a týmiž funkcemi z src/lib.
+ */
+import Layout from '../layouts/Layout.astro';
+import { VYREZY } from '../data/zakresy';
+
+const popis =
+	'Srovnání WMS a dlaždicové WMTS jako zdroje katastrální kresby. Podklady se stahují živě z ČÚZK a měří přímo v prohlížeči.';
+
+/** Rozlišení, na které se všechny varianty převedou — strop dat Ortofota ČR. */
+const ROZLISENI = 0.125;
+/** Kolik metrů v terénu připadá na metr v Mercatoru; plyne z rámu, není třeba goniometrie. */
+const ZKRESLENI = (VYREZY.prehled.sirka / 10 / (VYREZY.prehled.bbox[2] - VYREZY.prehled.bbox[0])).toFixed(4);
+---
+
+<Layout titulek="Srovnání mapových podkladů — Trojanovice 495" popis={popis} neindexovat>
+	<section class="sekce">
+		<div class="obsah">
+			<p class="nadpis-sekce">Technická stránka</p>
+			<h1>Srovnání mapových podkladů</h1>
+			<p class="perex">
+				Katastrální kresba nad ortofotem se dnes bere z WMS <code>KN_I</code>. ČÚZK ji nabízí i jako{' '}
+				<a
+					href="https://cuzk.gov.cz/Katastr-nemovitosti/Poskytovani-udaju-z-KN/Webove-mapove-dlazdicove-sluzby-pro-katastralni-ma.aspx"
+					target="_blank"
+					rel="noopener">dlaždicovou službu WMTS</a
+				>. Keš je vykreslená vcelku a nakrájená až potom, takže popisek přes šev přejde celý a mapa se nemusí
+				ořezávat na 4096 px, na které WMS končí. Proti tomu stojí pevný žebřík úrovní: cíl {ROZLISENI} m/px padne
+				mezi úroveň 19 a 20, z jedné se zmenšuje a čáry se ztenčí, z druhé zvětšuje.
+			</p>
+			<p>
+				Stránka postaví varianty vedle sebe na společné mřížce a spočítá je přímo v prohlížeči nad pixely, které
+				z ČÚZK přijdou. Ortofoto pod kresbou je to už uložené v repozitáři.
+			</p>
+
+			<form class="ovladani" id="ovladani">
+				<label>
+					Výřez
+					<select name="vyrez">
+						<option value="okno">u domu, 1:1 ({ROZLISENI} m/px)</option>
+						<option value="prehled">celý přehled (jen na oko, kvůli švům a popiskům)</option>
+					</select>
+				</label>
+				<label>
+					Úrovně WMTS
+					<input name="urovne" value="19,20" size="8" />
+				</label>
+				<label>
+					Vrstva
+					<input name="vrstva" value="KN" size="8" />
+				</label>
+				<label>
+					Sada matic
+					<input name="sada" value="googlemapscompatible" size="20" />
+				</label>
+				<label class="prepinac-meritka">
+					<input type="checkbox" name="jednaKjedne" />
+					<span>ukázat 1:1</span>
+				</label>
+				<button type="submit">Spustit srovnání</button>
+			</form>
+			<p class="stav" id="stav" role="status"></p>
+		</div>
+	</section>
+
+	<section class="sekce sekce--tlumena">
+		<div class="obsah">
+			<h2>Náhled</h2>
+			<p>
+				Všechny varianty sedí na stejné mřížce, takže přepínání mezi nimi ukáže rozdíl na místě. Šipkami vlevo
+				a vpravo se dá přepínat z klávesnice.
+			</p>
+			<div class="prepinac" id="prepinac"></div>
+			<div class="platno" id="platno"></div>
+		</div>
+	</section>
+
+	<section class="sekce">
+		<div class="obsah">
+			<h2>Čísla</h2>
+			<p>
+				Měří se nad alfou přebarvené kresby. <strong>Ostrost</strong> je rozptyl Laplaciánu, tedy jak ostře kresba
+				přechází do prázdna. <strong>Šířka čáry</strong> je medián vodorovných běhů kresby.{' '}
+				<strong>Vrchol alfy</strong> říká, co z čar zbyde, když stránka rastr zmenší na svou šířku — tenká čára se
+				rozmaže do šedi. <strong>Shoda</strong> je IoU masky proti dnešnímu WMS: hlídá, že dlaždice sedí na stejné
+				místo, ne že vypadají stejně.
+			</p>
+			<div class="tabulka">
+				<table id="cisla">
+					<thead>
+						<tr>
+							<th>Varianta</th>
+							<th>Zdroj</th>
+							<th>Ostrost</th>
+							<th>Šířka čáry</th>
+							<th>Pokrytí</th>
+							<th>Vrchol alfy</th>
+							<th>Shoda s WMS</th>
+						</tr>
+					</thead>
+					<tbody></tbody>
+				</table>
+			</div>
+			<p class="zdroje">
+				Kresba i ortofoto: <a href="https://services.cuzk.gov.cz/" target="_blank" rel="noopener">ČÚZK</a>,
+				prohlížecí služby zdarma a bez registrace. Stejný výpočet lokálně dělá <code>npm run srovnani</code>.
+			</p>
+		</div>
+	</section>
+</Layout>
+
+<script>
+	import { VYREZY } from '../data/zakresy';
+	import { BARVA_KRESBY, alfaKanal, kvantil, naZlutou, ostrost, pokryti, shoda, sirkaCary } from '../lib/kresba.mjs';
+	import { adresaDlazdice, dlazdiceProBbox, precistCapabilities, sadaMercator, standardniUroven } from '../lib/wmts.mjs';
+
+	const WMS = 'https://services.cuzk.gov.cz/wms/wms.asp';
+	const WMTS = 'https://services.cuzk.gov.cz/wmts/local-km-wmts-google.asp';
+	const ORTOFOTO = '/katastr/prehled-orto.webp';
+
+	/** Cílové rozlišení a strop, na kterém WMS končí — z toho plyne dnešní podoba přehledu. */
+	const ROZLISENI = 0.125;
+	const STROP_WMS = 4096;
+
+	/** Výřez u domu: tolik pixelů cílové mřížky, tedy 125 × 87,5 m v terénu. */
+	const OKNO = [1000, 700];
+
+	/** Mercator na pixel cílové mřížky; stejné číslo, na kterém stojí uložené mapy. */
+	const MERC_NA_PX = (VYREZY.prehled.bbox[2] - VYREZY.prehled.bbox[0]) / VYREZY.prehled.px[0];
+	/** Metry v terénu na metr v Mercatoru. */
+	const ZKRESLENI = VYREZY.prehled.sirka / 10 / (VYREZY.prehled.bbox[2] - VYREZY.prehled.bbox[0]);
+	/** Jak stránka přehled zmenšuje, když ho ukazuje na šířku obsahu. */
+	const ZMENSENI = 1440 / VYREZY.prehled.px[0];
+
+	const stav = document.getElementById('stav');
+	const prepinac = document.getElementById('prepinac');
+	const platno = document.getElementById('platno');
+	const telo = document.querySelector('#cisla tbody');
+	const jednaKjedne = document.querySelector('input[name="jednaKjedne"]');
+	const formular = document.getElementById('ovladani');
+
+	const hlaska = (text) => (stav.textContent = text);
+
+	/* ---------- rámy ---------- */
+
+	/** Okno u domu leží uvnitř přehledu, takže se ortofoto pod kresbou jen vyřízne. */
+	function ram(volba) {
+		if (volba === 'prehled') {
+			const sirka = 1600;
+			return {
+				bbox: [...VYREZY.prehled.bbox],
+				px: [sirka, Math.round((sirka * VYREZY.prehled.px[1]) / VYREZY.prehled.px[0])],
+				mereni: false,
+			};
+		}
+		const stred = [
+			(VYREZY.detail.bbox[0] + VYREZY.detail.bbox[2]) / 2,
+			(VYREZY.detail.bbox[1] + VYREZY.detail.bbox[3]) / 2,
+		];
+		return {
+			bbox: [
+				stred[0] - (OKNO[0] / 2) * MERC_NA_PX,
+				stred[1] - (OKNO[1] / 2) * MERC_NA_PX,
+				stred[0] + (OKNO[0] / 2) * MERC_NA_PX,
+				stred[1] + (OKNO[1] / 2) * MERC_NA_PX,
+			],
+			px: [...OKNO],
+			mereni: true,
+		};
+	}
+
+	/* ---------- načítání ---------- */
+
+	const nactiObrazek = (url, sCors) =>
+		new Promise((hotovo, chyba) => {
+			const img = new Image();
+			if (sCors) img.crossOrigin = 'anonymous';
+			img.onload = () => hotovo(img);
+			img.onerror = () => chyba(new Error(`nenačetlo se ${url}`));
+			img.src = url;
+		});
+
+	/**
+	 * Bez CORS hlaviček by čtení pixelů plátno „ušpinilo" a měření spadlo. Zkusí se
+	 * proto nejdřív přísná varianta; když ji služba odmítne, obrázek se načte aspoň
+	 * na oko a měření se u té varianty vynechá.
+	 */
+	async function obrazek(url) {
+		try {
+			return { img: await nactiObrazek(url, true), cors: true };
+		} catch {
+			return { img: await nactiObrazek(url, false), cors: false };
+		}
+	}
+
+	const novePlatno = (w, h) => {
+		const c = document.createElement('canvas');
+		c.width = w;
+		c.height = h;
+		return c;
+	};
+
+	/* ---------- varianty ---------- */
+
+	/** WMS tak, jak ho web bere dnes: strop 4096 px na celém přehledu, pak zvětšení. */
+	function podilWms(jakDnes) {
+		if (!jakDnes) return 1;
+		return Math.min(1, STROP_WMS / VYREZY.prehled.px[0]);
+	}
+
+	async function variantaWms(ramec, jakDnes) {
+		const podil = podilWms(jakDnes);
+		const w = Math.max(1, Math.round(ramec.px[0] * podil));
+		const h = Math.max(1, Math.round(ramec.px[1] * podil));
+		const q = new URLSearchParams({
+			service: 'WMS',
+			version: '1.3.0',
+			request: 'GetMap',
+			layers: 'KN_I',
+			styles: '',
+			crs: 'EPSG:3857',
+			bbox: ramec.bbox.map((n) => n.toFixed(2)).join(','),
+			width: String(w),
+			height: String(h),
+			format: 'image/png',
+			transparent: 'true',
+		});
+		const { img, cors } = await obrazek(`${WMS}?${q}`);
+		const c = novePlatno(ramec.px[0], ramec.px[1]);
+		c.getContext('2d').drawImage(img, 0, 0, ramec.px[0], ramec.px[1]);
+		return { platno: c, cors, rozliseni: (ramec.bbox[2] - ramec.bbox[0]) / w };
+	}
+
+	async function variantaWmts(ramec, uroven, vrstva, sada) {
+		const m = dlazdiceProBbox(uroven, ramec.bbox);
+		const mozaika = novePlatno(m.platno[0], m.platno[1]);
+		const kontext = mozaika.getContext('2d');
+		let cors = true;
+
+		const souradnice = [];
+		for (let r = 0; r < m.radku; r += 1) for (let s = 0; s < m.sloupcu; s += 1) souradnice.push([r, s]);
+
+		// celý přehled znamená stovky dlaždic, po jedné by se stahoval minuty
+		let dalsi = 0;
+		await Promise.all(
+			Array.from({ length: Math.min(6, souradnice.length) }, async () => {
+				while (dalsi < souradnice.length) {
+					const [r, s] = souradnice[dalsi++];
+					const url = adresaDlazdice(WMTS, vrstva, sada, uroven, m.od.radek + r, m.od.sloupec + s, false);
+					const dlazdice = await obrazek(url);
+					cors = cors && dlazdice.cors;
+					kontext.drawImage(dlazdice.img, s * uroven.sirkaD, r * uroven.vyskaD);
+				}
+			}),
+		);
+
+		const c = novePlatno(ramec.px[0], ramec.px[1]);
+		c.getContext('2d').drawImage(
+			mozaika,
+			m.vyrez.left,
+			m.vyrez.top,
+			m.vyrez.width,
+			m.vyrez.height,
+			0,
+			0,
+			ramec.px[0],
+			ramec.px[1],
+		);
+		return { platno: c, cors, rozliseni: m.px, dlazdic: m.sloupcu * m.radku };
+	}
+
+	/** Vrstvu ani čísla úrovní si stránka nevymýšlí; když capabilities projdou, řídí se jimi. */
+	async function sluzba(vrstvaId, sadaId) {
+		try {
+			const xml = await (await fetch(`${WMTS}?service=WMTS&request=GetCapabilities`)).text();
+			const { sady, vrstvy } = precistCapabilities(xml);
+			const sada = sadaMercator(sady);
+			const vrstva = vrstvy.find((v) => v.id === vrstvaId) ?? vrstvy[0];
+			return { sada, vrstva, zdroj: `capabilities (vrstvy ${vrstvy.map((v) => v.id).join(', ')})` };
+		} catch {
+			return {
+				sada: { id: sadaId, urovne: [16, 17, 18, 19, 20, 21, 22].map(standardniUroven) },
+				vrstva: { id: vrstvaId, styl: 'default', formaty: ['image/png'], sablona: null },
+				zdroj: 'standardní řada Google (capabilities neprošly kvůli CORS)',
+			};
+		}
+	}
+
+	/* ---------- měření ---------- */
+
+	const alfaPlatna = (c) => {
+		const px = c.getContext('2d').getImageData(0, 0, c.width, c.height).data;
+		return { alfa: alfaKanal(px), w: c.width, h: c.height };
+	};
+
+	function zmensene(c, podil) {
+		const w = Math.max(1, Math.round(c.width * podil));
+		const h = Math.max(1, Math.round(c.height * podil));
+		const male = novePlatno(w, h);
+		male.getContext('2d').drawImage(c, 0, 0, w, h);
+		return alfaPlatna(male);
+	}
+
+	/** Přebarví kresbu na žlutou přímo v plátně a vrátí naměřená čísla. */
+	function zmer(c, reference) {
+		const kontext = c.getContext('2d');
+		const obraz = kontext.getImageData(0, 0, c.width, c.height);
+		const rezim = naZlutou(obraz.data, BARVA_KRESBY);
+		kontext.putImageData(obraz, 0, 0);
+
+		const alfa = alfaKanal(obraz.data);
+		const kryti = pokryti(alfa);
+		const naStrance = zmensene(c, ZMENSENI);
+		const hruba = zmensene(c, 0.25);
+		return {
+			rezim,
+			ostrost: ostrost(alfa, c.width, c.height),
+			sirkaCary: sirkaCary(alfa, c.width, c.height),
+			pokryti: kryti,
+			vrchol: kvantil(naStrance.alfa, kryti / 2),
+			shoda: reference ? shoda(hruba.alfa, reference.alfa) : null,
+			hruba,
+		};
+	}
+
+	/* ---------- náhled ---------- */
+
+	let ortofoto = null;
+
+	/** Ortofoto je uložené pro celý přehled, pod okno u domu se z něj jen vyřízne. */
+	async function podklad(ramec) {
+		ortofoto ??= await nactiObrazek(ORTOFOTO, false);
+		const c = novePlatno(ramec.px[0], ramec.px[1]);
+		const merc = (VYREZY.prehled.bbox[2] - VYREZY.prehled.bbox[0]) / ortofoto.naturalWidth;
+		c.getContext('2d').drawImage(
+			ortofoto,
+			(ramec.bbox[0] - VYREZY.prehled.bbox[0]) / merc,
+			(VYREZY.prehled.bbox[3] - ramec.bbox[3]) / merc,
+			(ramec.bbox[2] - ramec.bbox[0]) / merc,
+			(ramec.bbox[3] - ramec.bbox[1]) / merc,
+			0,
+			0,
+			ramec.px[0],
+			ramec.px[1],
+		);
+		return c;
+	}
+
+	function ukazVarianty(varianty) {
+		prepinac.replaceChildren();
+		platno.replaceChildren();
+		varianty.forEach((v, i) => {
+			const tlacitko = document.createElement('button');
+			tlacitko.type = 'button';
+			tlacitko.textContent = v.jmeno;
+			tlacitko.className = i === 0 ? 'je-vybrany' : '';
+			tlacitko.addEventListener('click', () => vyber(i));
+			prepinac.append(tlacitko);
+			v.nahled.className = i === 0 ? '' : 'skryty';
+			platno.append(v.nahled);
+		});
+
+		const vyber = (i) => {
+			[...prepinac.children].forEach((t, j) => t.classList.toggle('je-vybrany', i === j));
+			varianty.forEach((v, j) => v.nahled.classList.toggle('skryty', i !== j));
+			vybrany = i;
+		};
+		let vybrany = 0;
+		document.addEventListener('keydown', (e) => {
+			if (e.key === 'ArrowRight') vyber((vybrany + 1) % varianty.length);
+			if (e.key === 'ArrowLeft') vyber((vybrany - 1 + varianty.length) % varianty.length);
+		});
+	}
+
+	function ukazCisla(varianty, mereno) {
+		telo.replaceChildren();
+		for (const v of varianty) {
+			const radek = document.createElement('tr');
+			const bunky = !mereno
+				? [v.jmeno, v.zdroj, '—', '—', '—', '—', '—']
+				: !v.cisla
+					? [v.jmeno, v.zdroj, ...Array(5).fill('bez CORS')]
+					: [
+							v.jmeno,
+							v.zdroj,
+							v.cisla.ostrost.toFixed(4),
+							`${v.cisla.sirkaCary} px`,
+							`${(v.cisla.pokryti * 100).toFixed(2)} %`,
+							String(v.cisla.vrchol),
+							v.cisla.shoda === null ? '—' : `${(v.cisla.shoda * 100).toFixed(1)} %`,
+						];
+			for (const text of bunky) {
+				const bunka = document.createElement('td');
+				bunka.textContent = text;
+				radek.append(bunka);
+			}
+			telo.append(radek);
+		}
+	}
+
+	/* ---------- běh ---------- */
+
+	async function srovnej({ vyrez, urovne, vrstva: vrstvaId, sada: sadaId }) {
+		const ramec = ram(vyrez);
+		const varianty = [];
+		const vTerenu = (mercNaPx) => `${(mercNaPx * ZKRESLENI).toFixed(3)} m/px`;
+
+		hlaska('stahuji WMS…');
+		if (ramec.mereni) {
+			// Strop 4096 px se pozná jen na cílové mřížce; obě podoby WMS proti sobě.
+			const dnes = await variantaWms(ramec, true);
+			varianty.push({
+				jmeno: 'WMS jak dnes',
+				zdroj: `KN_I, strop ${STROP_WMS} px → ${vTerenu(dnes.rozliseni)}`,
+				...dnes,
+			});
+			const plny = await variantaWms(ramec, false);
+			varianty.push({ jmeno: 'WMS 1:1', zdroj: `KN_I bez stropu → ${vTerenu(plny.rozliseni)}`, ...plny });
+		} else {
+			const jeden = await variantaWms(ramec, false);
+			varianty.push({ jmeno: 'WMS', zdroj: `KN_I → ${vTerenu(jeden.rozliseni)}`, ...jeden });
+		}
+
+		const { sada, vrstva, zdroj } = await sluzba(vrstvaId, sadaId);
+		hlaska(`WMTS: ${zdroj}`);
+		for (const cislo of urovne) {
+			const uroven = sada.urovne.find((u) => u.id === cislo || u.id.endsWith(`:${cislo}`));
+			if (!uroven) {
+				hlaska(`úroveň ${cislo} sada ${sada.id} nemá`);
+				continue;
+			}
+			hlaska(`stahuji dlaždice úrovně ${cislo}…`);
+			const v = await variantaWmts(ramec, uroven, vrstva, sada);
+			varianty.push({
+				jmeno: `WMTS ${cislo}`,
+				zdroj: `${vrstva.id}, ${v.dlazdic} dlaždic → ${vTerenu(v.rozliseni)}`,
+				...v,
+			});
+		}
+
+		hlaska('měřím…');
+		let reference = null;
+		for (const v of varianty) {
+			if (ramec.mereni && v.cors) {
+				v.cisla = zmer(v.platno, reference);
+				reference ??= v.cisla.hruba;
+				v.zdroj += `, ${v.cisla.rezim}`;
+			}
+			const nahled = await podklad(ramec);
+			nahled.getContext('2d').drawImage(v.platno, 0, 0);
+			v.nahled = nahled;
+		}
+
+		ukazVarianty(varianty);
+		ukazCisla(varianty, ramec.mereni);
+		const bezCors = varianty.filter((v) => !v.cors).map((v) => v.jmeno);
+		const kolik = varianty.length === 1 ? 'varianta' : varianty.length < 5 ? 'varianty' : 'variant';
+		hlaska(
+			[
+				`hotovo, ${varianty.length} ${kolik} na mřížce ${ramec.px[0]}×${ramec.px[1]} px`,
+				ramec.mereni ? null : 'celý přehled se neměří, jen ukazuje',
+				bezCors.length
+					? `služba neposlala CORS hlavičky, a tak zůstaly bez čísel i bez přebarvení: ${bezCors.join(', ')}`
+					: null,
+			]
+				.filter(Boolean)
+				.join(' — '),
+		);
+	}
+
+	function zadani() {
+		const data = new FormData(formular);
+		return {
+			vyrez: String(data.get('vyrez')),
+			urovne: String(data.get('urovne'))
+				.split(',')
+				.map((s) => s.trim())
+				.filter(Boolean),
+			vrstva: String(data.get('vrstva')).trim(),
+			sada: String(data.get('sada')).trim(),
+		};
+	}
+
+	async function spust() {
+		try {
+			await srovnej(zadani());
+		} catch (chyba) {
+			hlaska(`nepovedlo se: ${chyba.message}`);
+		}
+	}
+
+	// Zmenšený náhled o tenkých čarách nic neřekne, proto se dá vypnout.
+	jednaKjedne.addEventListener('change', () => platno.classList.toggle('platno--presne', jednaKjedne.checked));
+
+	formular.addEventListener('submit', (e) => {
+		e.preventDefault();
+		spust();
+	});
+	spust();
+</script>
+
+<style>
+	.perex {
+		font-size: 1.1rem;
+	}
+
+	.ovladani {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 1rem;
+		align-items: end;
+		margin-block: 2rem 1rem;
+		padding: 1.25rem;
+		border: 1px solid var(--barva-linka);
+		border-radius: 0.5rem;
+	}
+
+	.prepinac-meritka {
+		flex-direction: row;
+		align-items: center;
+		gap: 0.4rem;
+		text-transform: none;
+		letter-spacing: normal;
+		font-size: 0.95rem;
+		color: var(--barva-text);
+	}
+
+	.ovladani label {
+		display: grid;
+		gap: 0.35rem;
+		font-size: 0.8rem;
+		letter-spacing: 0.04em;
+		text-transform: uppercase;
+		color: var(--barva-text-tlumena);
+	}
+
+	.ovladani input,
+	.ovladani select,
+	.ovladani button {
+		font: inherit;
+		font-size: 0.95rem;
+		text-transform: none;
+		letter-spacing: normal;
+		color: var(--barva-text);
+		padding: 0.4rem 0.6rem;
+		border: 1px solid var(--barva-linka);
+		border-radius: 0.35rem;
+		background: var(--barva-pozadi);
+	}
+
+	.ovladani button {
+		background: var(--barva-akcent);
+		color: #fff;
+		border-color: var(--barva-akcent);
+		cursor: pointer;
+	}
+
+	.stav {
+		font-size: 0.9rem;
+		color: var(--barva-text-tlumena);
+		min-height: 1.5rem;
+	}
+
+	.prepinac {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 0.5rem;
+		margin-bottom: 1rem;
+	}
+
+	.prepinac button {
+		font: inherit;
+		font-size: 0.9rem;
+		padding: 0.35rem 0.75rem;
+		border: 1px solid var(--barva-linka);
+		border-radius: 999px;
+		background: var(--barva-pozadi);
+		cursor: pointer;
+	}
+
+	.prepinac button.je-vybrany {
+		background: var(--barva-akcent);
+		border-color: var(--barva-akcent);
+		color: #fff;
+	}
+
+	.platno {
+		overflow-x: auto;
+		background: var(--barva-pozadi);
+		border: 1px solid var(--barva-linka);
+		border-radius: 0.5rem;
+	}
+
+	.platno {
+		display: flex;
+		justify-content: center;
+	}
+
+	.platno :global(canvas) {
+		display: block;
+		max-width: 100%;
+		height: auto;
+	}
+
+	.platno--presne {
+		justify-content: flex-start;
+	}
+
+	.platno--presne :global(canvas) {
+		max-width: none;
+	}
+
+	.platno :global(canvas.skryty) {
+		display: none;
+	}
+
+	.tabulka {
+		overflow-x: auto;
+	}
+
+	table {
+		border-collapse: collapse;
+		width: 100%;
+		font-size: 0.9rem;
+	}
+
+	th,
+	td {
+		text-align: left;
+		padding: 0.5rem 0.75rem;
+		border-bottom: 1px solid var(--barva-linka);
+		white-space: nowrap;
+	}
+
+	th {
+		font-size: 0.75rem;
+		letter-spacing: 0.06em;
+		text-transform: uppercase;
+		color: var(--barva-text-tlumena);
+	}
+
+	.zdroje {
+		font-size: 0.85rem;
+		color: var(--barva-text-tlumena);
+	}
+</style>
