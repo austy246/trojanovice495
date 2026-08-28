@@ -15,7 +15,8 @@ const popis =
 /** Rozlišení, na které se všechny varianty převedou — strop dat Ortofota ČR. */
 const ROZLISENI = 0.125;
 /** Kolik metrů v terénu připadá na metr v Mercatoru; plyne z rámu, není třeba goniometrie. */
-const ZKRESLENI = (VYREZY.prehled.sirka / 10 / (VYREZY.prehled.bbox[2] - VYREZY.prehled.bbox[0])).toFixed(4);
+/** Čísla se na webu píšou s desetinnou čárkou, i ta počítaná. */
+const cesky = (n: number, desetinnych: number) => n.toFixed(desetinnych).replace('.', ',');
 ---
 
 <Layout titulek="Srovnání mapových podkladů — Trojanovice 495" popis={popis} neindexovat>
@@ -30,7 +31,7 @@ const ZKRESLENI = (VYREZY.prehled.sirka / 10 / (VYREZY.prehled.bbox[2] - VYREZY.
 					target="_blank"
 					rel="noopener">dlaždicovou službu WMTS</a
 				>. Keš je vykreslená vcelku a nakrájená až potom, takže popisek přes šev přejde celý a mapa se nemusí
-				ořezávat na 4096 px, na které WMS končí. Proti tomu stojí pevný žebřík úrovní: cíl {ROZLISENI} m/px padne
+				ořezávat na 4096 px, na které WMS končí. Proti tomu stojí pevný žebřík úrovní: cíl {cesky(ROZLISENI, 3)} m/px padne
 				mezi úroveň 19 a 20, z jedné se zmenšuje a čáry se ztenčí, z druhé zvětšuje.
 			</p>
 			<p>
@@ -42,7 +43,7 @@ const ZKRESLENI = (VYREZY.prehled.sirka / 10 / (VYREZY.prehled.bbox[2] - VYREZY.
 				<label>
 					Výřez
 					<select name="vyrez">
-						<option value="okno">u domu, 1:1 ({ROZLISENI} m/px)</option>
+						<option value="okno">u domu, 1:1 ({cesky(ROZLISENI, 3)} m/px)</option>
 						<option value="prehled">celý přehled (jen na oko, kvůli švům a popiskům)</option>
 					</select>
 				</label>
@@ -145,6 +146,9 @@ const ZKRESLENI = (VYREZY.prehled.sirka / 10 / (VYREZY.prehled.bbox[2] - VYREZY.
 	const formular = document.getElementById('ovladani');
 
 	const hlaska = (text) => (stav.textContent = text);
+
+	/** Desetinná čárka, ať se čísla čtou stejně jako jinde na webu. */
+	const cesky = (n, desetinnych) => n.toFixed(desetinnych).replace('.', ',');
 
 	/* ---------- rámy ---------- */
 
@@ -388,11 +392,11 @@ const ZKRESLENI = (VYREZY.prehled.sirka / 10 / (VYREZY.prehled.bbox[2] - VYREZY.
 					: [
 							v.jmeno,
 							v.zdroj,
-							v.cisla.ostrost.toFixed(4),
+							cesky(v.cisla.ostrost, 4),
 							`${v.cisla.sirkaCary} px`,
-							`${(v.cisla.pokryti * 100).toFixed(2)} %`,
+							`${cesky(v.cisla.pokryti * 100, 2)} %`,
 							String(v.cisla.vrchol),
-							v.cisla.shoda === null ? '—' : `${(v.cisla.shoda * 100).toFixed(1)} %`,
+							v.cisla.shoda === null ? '—' : `${cesky(v.cisla.shoda * 100, 1)} %`,
 						];
 			for (const text of bunky) {
 				const bunka = document.createElement('td');
@@ -408,7 +412,7 @@ const ZKRESLENI = (VYREZY.prehled.sirka / 10 / (VYREZY.prehled.bbox[2] - VYREZY.
 	async function srovnej({ vyrez, urovne, vrstva: vrstvaId, sada: sadaId }) {
 		const ramec = ram(vyrez);
 		const varianty = [];
-		const vTerenu = (mercNaPx) => `${(mercNaPx * ZKRESLENI).toFixed(3)} m/px`;
+		const vTerenu = (mercNaPx) => `${cesky(mercNaPx * ZKRESLENI, 3)} m/px`;
 
 		hlaska('stahuji WMS…');
 		if (ramec.mereni) {
@@ -416,14 +420,14 @@ const ZKRESLENI = (VYREZY.prehled.sirka / 10 / (VYREZY.prehled.bbox[2] - VYREZY.
 			const dnes = await variantaWms(ramec, true);
 			varianty.push({
 				jmeno: 'WMS jak dnes',
-				zdroj: `KN_I, strop ${STROP_WMS} px → ${vTerenu(dnes.rozliseni)}`,
+				zdroj: `KN_I · strop ${STROP_WMS} px · ${vTerenu(dnes.rozliseni)}`,
 				...dnes,
 			});
 			const plny = await variantaWms(ramec, false);
-			varianty.push({ jmeno: 'WMS 1:1', zdroj: `KN_I bez stropu → ${vTerenu(plny.rozliseni)}`, ...plny });
+			varianty.push({ jmeno: 'WMS 1:1', zdroj: `KN_I · bez stropu · ${vTerenu(plny.rozliseni)}`, ...plny });
 		} else {
 			const jeden = await variantaWms(ramec, false);
-			varianty.push({ jmeno: 'WMS', zdroj: `KN_I → ${vTerenu(jeden.rozliseni)}`, ...jeden });
+			varianty.push({ jmeno: 'WMS', zdroj: `KN_I · ${vTerenu(jeden.rozliseni)}`, ...jeden });
 		}
 
 		const { sada, vrstva, zdroj } = await sluzba(vrstvaId, sadaId);
@@ -438,7 +442,7 @@ const ZKRESLENI = (VYREZY.prehled.sirka / 10 / (VYREZY.prehled.bbox[2] - VYREZY.
 			const v = await variantaWmts(ramec, uroven, vrstva, sada);
 			varianty.push({
 				jmeno: `WMTS ${cislo}`,
-				zdroj: `${vrstva.id}, ${v.dlazdic} dlaždic → ${vTerenu(v.rozliseni)}`,
+				zdroj: `${vrstva.id} · ${v.dlazdic} dlaždic · ${vTerenu(v.rozliseni)}`,
 				...v,
 			});
 		}
@@ -449,7 +453,7 @@ const ZKRESLENI = (VYREZY.prehled.sirka / 10 / (VYREZY.prehled.bbox[2] - VYREZY.
 			if (ramec.mereni && v.cors) {
 				v.cisla = zmer(v.platno, reference);
 				reference ??= v.cisla.hruba;
-				v.zdroj += `, ${v.cisla.rezim}`;
+				v.zdroj += ` · ${v.cisla.rezim}`;
 			}
 			const nahled = await podklad(ramec);
 			nahled.getContext('2d').drawImage(v.platno, 0, 0);
@@ -520,8 +524,10 @@ const ZKRESLENI = (VYREZY.prehled.sirka / 10 / (VYREZY.prehled.bbox[2] - VYREZY.
 		border-radius: 0.5rem;
 	}
 
-	.prepinac-meritka {
-		flex-direction: row;
+	/* musí přebít .ovladani label, jinak zůstane v mřížce a v kapitálkách */
+	.ovladani label.prepinac-meritka {
+		display: flex;
+		flex: 0 0 auto;
 		align-items: center;
 		gap: 0.4rem;
 		text-transform: none;
@@ -530,9 +536,16 @@ const ZKRESLENI = (VYREZY.prehled.sirka / 10 / (VYREZY.prehled.bbox[2] - VYREZY.
 		color: var(--barva-text);
 	}
 
+	.ovladani label.prepinac-meritka input[type='checkbox'] {
+		width: auto;
+	}
+
 	.ovladani label {
 		display: grid;
 		gap: 0.35rem;
+		/* bez min-width by se flex položka nezúžila pod obsah selectu a přetekla by stránku */
+		flex: 1 1 9rem;
+		min-width: 0;
 		font-size: 0.8rem;
 		letter-spacing: 0.04em;
 		text-transform: uppercase;
@@ -542,6 +555,9 @@ const ZKRESLENI = (VYREZY.prehled.sirka / 10 / (VYREZY.prehled.bbox[2] - VYREZY.
 	.ovladani input,
 	.ovladani select,
 	.ovladani button {
+		width: 100%;
+		max-width: 100%;
+		min-width: 0;
 		font: inherit;
 		font-size: 0.95rem;
 		text-transform: none;
@@ -553,7 +569,9 @@ const ZKRESLENI = (VYREZY.prehled.sirka / 10 / (VYREZY.prehled.bbox[2] - VYREZY.
 		background: var(--barva-pozadi);
 	}
 
-	.ovladani button {
+	.ovladani button[type='submit'] {
+		flex: 0 0 auto;
+		width: auto;
 		background: var(--barva-akcent);
 		color: #fff;
 		border-color: var(--barva-akcent);
@@ -573,7 +591,7 @@ const ZKRESLENI = (VYREZY.prehled.sirka / 10 / (VYREZY.prehled.bbox[2] - VYREZY.
 		margin-bottom: 1rem;
 	}
 
-	.prepinac button {
+	.prepinac :global(button) {
 		font: inherit;
 		font-size: 0.9rem;
 		padding: 0.35rem 0.75rem;
@@ -583,7 +601,7 @@ const ZKRESLENI = (VYREZY.prehled.sirka / 10 / (VYREZY.prehled.bbox[2] - VYREZY.
 		cursor: pointer;
 	}
 
-	.prepinac button.je-vybrany {
+	.prepinac :global(button.je-vybrany) {
 		background: var(--barva-akcent);
 		border-color: var(--barva-akcent);
 		color: #fff;
@@ -604,6 +622,7 @@ const ZKRESLENI = (VYREZY.prehled.sirka / 10 / (VYREZY.prehled.bbox[2] - VYREZY.
 	.platno :global(canvas) {
 		display: block;
 		max-width: 100%;
+		min-width: 0;
 		height: auto;
 	}
 
@@ -630,7 +649,7 @@ const ZKRESLENI = (VYREZY.prehled.sirka / 10 / (VYREZY.prehled.bbox[2] - VYREZY.
 	}
 
 	th,
-	td {
+	table :global(td) {
 		text-align: left;
 		padding: 0.5rem 0.75rem;
 		border-bottom: 1px solid var(--barva-linka);
