@@ -1,34 +1,24 @@
 ---
-import { parcely, pozemekUDomu, VYREZY, type Nabidka } from '../data/parcely';
+import { parcely, pozemekUDomu, VYREZY } from '../data/parcely';
 
 interface Props {
 	/** který výřez se vykresluje */
 	varianta: 'prehled' | 'detail';
 	/** popisek pod mapou, slouží zároveň jako přístupový název */
 	popis: string;
-	/** parcely mimo tuto nabídku se kreslí ztlumeně a nejsou interaktivní */
-	nabidka: Nabidka;
 }
 
-const { varianta, popis, nabidka } = Astro.props;
+const { varianta, popis } = Astro.props;
 
-const jeNase = (p: (typeof parcely)[number]) => p.nabidka === nabidka;
-
-/*
- * Nabídka ① má dvě úrovně: modrý je jen vymezený pozemek u domu, okolní louky
- * jsou bílé. Nabídka ② žádné dělení nemá, modré je v ní všechno.
- */
-const dvouurovnova = nabidka === 'dum';
+const jeNase = (p: (typeof parcely)[number]) => Boolean(p.cast);
 
 /*
  * Kreslí se vždy všechny parcely — soused je užitečný kontext. Ty mimo
  * nabídku ale dostanou třídu je-mimo: ztlumené, bez kliknutí i bez Tabu.
- * Louky navíc mají je-doplnek: bílé jako sousedi, ale klikací.
  */
 const trida = (p: (typeof parcely)[number]) => {
 	const zaklad = p.stavebni ? 'je-st' : 'je-poz';
-	if (!jeNase(p)) return `${zaklad} je-mimo`;
-	return dvouurovnova && !p.stavebni ? `${zaklad} je-doplnek` : zaklad;
+	return jeNase(p) ? zaklad : `${zaklad} je-mimo`;
 };
 const vyrez = VYREZY[varianta];
 const viewBox = `0 0 ${vyrez.sirka} ${vyrez.vyska}`;
@@ -47,7 +37,7 @@ const jeDetail = varianta === 'detail';
 const krok = Math.round(vyrez.sirka / 55);
 const idSraf = `srafy-${varianta}`;
 
-const pozemek = dvouurovnova ? pozemekUDomu[varianta] : null;
+const pozemek = pozemekUDomu[varianta];
 ---
 
 <figure class="mapa-fig">
@@ -80,23 +70,16 @@ const pozemek = dvouurovnova ? pozemekUDomu[varianta] : null;
 				}
 
 				{/*
-				 * Šrafy nesou modrou plochu nabídky. U domu je to jen vymezený
-				 * pozemek, u háječku všechny jeho parcely.
+				 * Šrafy nesou modrou plochu nabídky: vymezený pozemek u domu
+				 * a všechny parcely háječku. Obě stavební parcely u domu leží
+				 * uvnitř pozemku, šrafy přes ně už proto jdou.
 				 */}
+				<path class="vyplen je-pozemek" d={pozemek.d} />
+				<path class="srafy" d={pozemek.d} fill={`url(#${idSraf})`} />
 				{
-					!dvouurovnova &&
-						parcely
-							.filter(jeNase)
-							.map((p) => <path class="srafy" d={p[varianta].d} fill={`url(#${idSraf})`} />)
-				}
-
-				{
-					pozemek && (
-						<>
-							<path class="vyplen je-pozemek" d={pozemek.d} />
-							<path class="srafy" d={pozemek.d} fill={`url(#${idSraf})`} />
-						</>
-					)
+					parcely
+						.filter((p) => p.cast === 'hajecek')
+						.map((p) => <path class="srafy" d={p[varianta].d} fill={`url(#${idSraf})`} />)
 				}
 			</svg>
 
@@ -124,7 +107,7 @@ const pozemek = dvouurovnova ? pozemekUDomu[varianta] : null;
 						</path>
 					))
 				}
-				{pozemek && <path class="pozemek" d={pozemek.d} />}
+				<path class="pozemek" d={pozemek.d} />
 
 				{/*
 				 * V detailu má podklad čísla parcel vypálená v obrázku, takže se
@@ -229,8 +212,8 @@ const pozemek = dvouurovnova ? pozemekUDomu[varianta] : null;
 	 * průhlednost nemá — parcely by přes ortofoto vyšly jako plné plochy.
 	 */
 	/*
-	 * Nabízené pozemky jsou modré v obou nabídkách; stavební parcely jen sytěji,
-	 * protože jsou drobné a proti ortofotu by se ztratily.
+	 * Nabízené pozemky jsou modré; stavební parcely jen sytěji, protože jsou
+	 * drobné a proti ortofotu by se ztratily.
 	 */
 	.vyplen {
 		stroke: none;
@@ -266,7 +249,7 @@ const pozemek = dvouurovnova ? pozemekUDomu[varianta] : null;
 	}
 
 	/*
-	 * Vymezený pozemek u domu nese modrou plochu nabídky ①, proto vypadá jako
+	 * Vymezený pozemek u domu nese modrou plochu nabídky, proto vypadá jako
 	 * nabízená parcela — včetně obvodu. Že jedna jeho strana nemá oporu
 	 * v katastru, říká text pod mapou, ne odlišná čára.
 	 */
@@ -308,26 +291,6 @@ const pozemek = dvouurovnova ? pozemekUDomu[varianta] : null;
 		stroke-dasharray: calc(6px / var(--u)) calc(4px / var(--u));
 		pointer-events: none;
 		cursor: default;
-	}
-
-	/*
-	 * Louky navíc u nabídky ①. Bílé jako sousední parcely, aby modrá zůstala
-	 * jen pozemku u domu, ale plnou čarou a klikací — do nabídky patří.
-	 * Musí přebít .je-poz, proto stojí až za ním.
-	 */
-	.vyplen.je-doplnek {
-		fill: #fff;
-		fill-opacity: 0.06;
-	}
-
-	.obrys.je-doplnek {
-		stroke: rgba(255, 255, 255, 0.7);
-		stroke-width: calc(1.8px / var(--u));
-	}
-
-	/* bílá plocha při zvýraznění oslňuje, stačí jí menší krytí než modré */
-	.vyplen.je-doplnek.je-zvyraznena {
-		fill-opacity: 0.26;
 	}
 
 	.popisek.je-mimo text {

@@ -1,5 +1,6 @@
-// Jediné místo, kde se mění údaje o nabídce ①: dům, garáž, zahrada.
-// Údaje společné s háječkem (kontakt, lokalita, souřadnice) jsou v spolecne.ts.
+// Jediné místo, kde se mění údaje o domě, garáži a zahradě. Háječek, který se
+// prodává spolu s nimi v jedné nabídce, má vlastní soubor hajecek.ts; údaje
+// společné oběma částem (kontakt, lokalita, souřadnice) jsou v spolecne.ts.
 
 // Plochy místností opsané z legend na stavebních výkresech (A.J.A, 07/2004) —
 // listy „Půdorys přízemí“ a „Půdorys podkroví“, viz nakresy.ts. Čísla místností
@@ -48,18 +49,19 @@ export const nemovitost = {
 	nazev: 'Trojanovice 495',
 	podtitul: 'Rodinný dům se vzrostlou zahradou pod Radhoštěm',
 
-	// Cena za nabídku, tedy dům, garáž a vymezený pozemek kolem nich.
-	// Okolní louky v ceně nejsou, jdou dokoupit - viz parcely.ts.
-	cena: 24_900_000,
-	cenaPoznamka: 'za dům, garáž a pozemek ≈ 3 200 m²',
+	// Cena za celou nabídku: dům, garáž, vymezený pozemek kolem nich a háječek.
+	// Co přesně je v nabídce, rozepisuje parcely.ts.
+	cena: 26_900_000,
+	cenaPoznamka: 'za dům, garáž, pozemek ≈ 3 200 m² a háječek 2 642 m²',
 
 	perex:
 		'Na horním konci Trojanovic, kde zástavba přechází v louky a les, stojí rodinný dům ' +
 		'z roku 2006. Uvnitř je otevřená obytná hala s krbem a galerií přes dvě podlaží, ' +
 		'sedm pokojů a tři koupelny; teplo dodává tepelné čerpadlo země-voda do podlahového ' +
 		'vytápění. Zahrada kolem domu měla dvacet let na to, aby vzrostla — k domu patří ' +
-		'zhruba 3 200 m² pozemku a dokoupit se dají i okolní louky až k lesu. Dolní stanice ' +
-		'lanovky na Pustevny je odsud kilometr daleko.',
+		'zhruba 3 200 m² pozemku. Spolu s domem se v jedné nabídce prodává i sousední ' +
+		'háječek se stavebním pozemkem, dalších 2 642 m². Dolní stanice lanovky na ' +
+		'Pustevny je odsud kilometr daleko.',
 
 	// Úvodní fotka. Varianta na výšku je vlastní výřez pro úzké displeje —
 	// na nich by se z fotky na šířku ukázalo celé nebe i celá louka.
@@ -79,9 +81,9 @@ export const nemovitost = {
 		// V přehledu zaokrouhleno, přesný součet je v sekci Rozlohy místností.
 		{ nazev: 'Užitná plocha', hodnota: `${Math.round(uzitnaPlocha)} m²` },
 		// Pozemek je odměřený ze zákresu do katastrální mapy — viz parcely.ts.
-		{ nazev: 'Pozemek', hodnota: '≈ 3 200 m²' },
-		{ nazev: 'Louky k dokoupení', hodnota: '≈ 27 310 m² (2,73 ha)' },
-		{ nazev: 'Zastavěná plocha', hodnota: '299 m² (2 stavební parcely)' },
+		{ nazev: 'Pozemek u domu', hodnota: '≈ 3 200 m²' },
+		{ nazev: 'Háječek v nabídce', hodnota: '2 642 m²' },
+		{ nazev: 'Zastavěná plocha', hodnota: '299 m² (dům a garáž)' },
 		{ nazev: 'Rok výstavby', hodnota: '2006' },
 		{ nazev: 'Stav', hodnota: 'Původní, bez rekonstrukce' },
 		{ nazev: 'Fasáda', hodnota: 'Omítka, dřevem obložený štít' },

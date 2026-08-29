@@ -2,74 +2,59 @@
 import KatastralniMapa from './KatastralniMapa.astro';
 import {
 	pozemekUDomu,
-	proNabidku,
-	vymeraKDokoupeni,
+	proCast,
+	type Parcela,
+	vymeraHajecku,
+	vymeraKolemStaveb,
+	vymeraNabidky,
 	vymeraSlovy,
 	vymeraStaveb,
-	vymeraVNabidce,
-	type Nabidka,
 } from '../data/parcely';
 import { spolecne } from '../data/spolecne';
-
-interface Props {
-	/** kterou z nabídek sekce vypisuje */
-	nabidka: Nabidka;
-}
-
-const { nabidka } = Astro.props;
 
 const cislo = new Intl.NumberFormat('cs-CZ');
 
 /*
- * Nabídka ① neprodává celé parcely: kolem obou staveb se z luk teprve oddělí
- * vymezený pozemek a zbytek luk je jen k dokoupení. Nabídka ② je prostá —
- * jsou to tři celé parcely.
+ * Nabídka má dvě části. U domu se neprodávají celé parcely — kolem obou staveb
+ * se z luk teprve oddělí vymezený pozemek, a ten v tabulce stojí jako vlastní
+ * řádek bez čísla parcely. Háječek je prostý: tři celé parcely z katastru.
  */
-const vymezena = nabidka === 'dum';
+const uDomu = proCast('dum');
+const hajecek = proCast('hajecek');
 
-const nase = proNabidku(nabidka);
-const stavby = nase.filter((p) => p.stavebni);
-const vymera = vymeraVNabidce(nabidka);
-/* U domu je výměra odměřená ze zákresu, proto všude s „≈“. */
-const vymeraText = `${vymezena ? '≈ ' : ''}${vymeraSlovy(vymera)}`;
+/* Stavební parcely v pořadí dům, garáž, háječek — ne podle výpisu z katastru. */
+const stavby = [...uDomu, ...hajecek].filter((p) => p.stavebni);
 
-/** parcely, ze kterých se pozemek kolem staveb oddělí, a zbylé louky */
-const kDokoupeni = vymezena ? nase.filter((p) => !p.stavebni) : [];
+/* Pozemek u domu je odměřený ze zákresu, součet za nabídku proto všude s „≈“. */
+const vymeraText = `≈ ${vymeraSlovy(vymeraNabidky)}`;
 
-/* Zaokrouhleno na stovky — je to rozdíl dvou odměřených čísel, ne katastr. */
-const vymeraOkoli = Math.round((vymera - vymeraStaveb) / 100) * 100;
-
-const CISLOVKY = ['', 'Jedna', 'Dvě', 'Tři', 'Čtyři', 'Pět', 'Šest', 'Sedm', 'Osm', 'Devět'];
-const pocetSlovy = CISLOVKY[nase.length] ?? cislo.format(nase.length);
-const tvarParcely = nase.length === 1 ? 'parcela' : nase.length < 5 ? 'parcely' : 'parcel';
-
-/** „a“ místo poslední čárky: „St. 1878, St. 1879 a 2290“ */
+/** „a“ místo poslední čárky: „St. 1878, St. 1879 a St. 173/4“ */
 const vyjmenuj = (polozky: string[]) =>
 	polozky.length < 2 ? (polozky[0] ?? '') : `${polozky.slice(0, -1).join(', ')} a ${polozky.at(-1)}`;
 
-const nadpis = vymezena
-	? `Pozemek u domu, ${vymeraText}`
-	: `${pocetSlovy} ${tvarParcely} o celkové výměře ${vymeraText}`;
-
-const prehledPopis = vymezena
-	? `Přehled — modře pozemek v nabídce, ${vymeraText}; bíle okolní louky, které je možné ` +
-		'dokoupit. Čárkovaně sousední parcely mimo nabídku.'
-	: `Přehled — ${pocetSlovy.toLowerCase()} ${tvarParcely} této nabídky, ${vymeraText}. ` +
-		'Ztlumené parcely jsou sousední pozemky mimo nabídku.';
+const prehledPopis =
+	`Přehled — modře pozemky v nabídce, ${vymeraText}: vymezený pozemek u domu a vedle něj ` +
+	'všechny tři parcely háječku. Čárkovaně sousední parcely mimo nabídku.';
 
 const detailPopis =
 	'Detail zastavěné části — ' +
 	vyjmenuj(stavby.map((p) => `${p.cislo} (${p.stavba ?? 'bez stavby'})`)) +
-	(vymezena
-		? `. Modrá plocha je pozemek v nabídce, ${vymeraText}; jeho jihozápadní strana je nově ` +
-			`vyznačená, ${pozemekUDomu.delka} m přes louku.`
-		: '.');
+	'. Modré plochy jsou pozemky v nabídce; jihozápadní strana pozemku u domu je nově ' +
+	`vyznačená, ${pozemekUDomu.delka} m přes louku.`;
+
+/** čím se parcela vypíše v tabulce nabídky */
+const popisParcely = (p: Parcela) => p.poznamka ?? p.stavba ?? p.druh;
+
+const skupiny = [
+	{ nazev: 'U domu', vymera: `≈ ${cislo.format(pozemekUDomu.vymera)} m²`, parcely: uDomu },
+	{ nazev: 'Háječek', vymera: `${cislo.format(vymeraHajecku)} m²`, parcely: hajecek },
+];
 ---
 
 <section class="sekce" id="pozemky">
 	<div class="obsah">
 		<p class="nadpis-sekce">Pozemky</p>
-		<h2>{nadpis}</h2>
+		<h2>Pozemek u domu a háječek, {vymeraText}</h2>
 
 		<dl class="rozpiska">
 			<div><dt>Katastrální území</dt><dd>{spolecne.katastr.uzemi}</dd></div>
@@ -79,32 +64,21 @@ const detailPopis =
 				<dd>{stavby.length} <span>({cislo.format(vymeraStaveb)} m²)</span></dd>
 			</div>
 			<div>
-				<dt>{vymezena ? 'Výměra v nabídce' : 'Celková výměra'}</dt>
+				<dt>Výměra v nabídce</dt>
 				<dd>{vymeraText}</dd>
 			</div>
 		</dl>
 
 		<div class="ovladani">
 			<span class="legenda">
-				{
-					vymezena ? (
-						<>
-							<span><b class="tecka je-poz" /> pozemek v nabídce</span>
-							<span><b class="tecka je-doplnek" /> louky k dokoupení</span>
-						</>
-					) : (
-						<>
-							<span><b class="tecka je-st" /> stavební parcely</span>
-							<span><b class="tecka je-poz" /> pozemkové parcely</span>
-						</>
-					)
-				}
+				<span><b class="tecka je-st" /> stavební parcely</span>
+				<span><b class="tecka je-poz" /> pozemky v nabídce</span>
 			</span>
 		</div>
 
 		<div class="mapy">
-			<KatastralniMapa varianta="prehled" popis={prehledPopis} nabidka={nabidka} />
-			<KatastralniMapa varianta="detail" popis={detailPopis} nabidka={nabidka} />
+			<KatastralniMapa varianta="prehled" popis={prehledPopis} />
+			<KatastralniMapa varianta="detail" popis={detailPopis} />
 		</div>
 
 		<p class="napoveda">
@@ -115,91 +89,81 @@ const detailPopis =
 
 		<div class="tabulka">
 			<table>
-				<caption>{vymezena ? 'Co je v nabídce' : 'Parcely podle výpisu z katastru'}</caption>
+				<caption>Co je v nabídce</caption>
 				<thead>
 					<tr>
 						<th></th>
-						<th>{vymezena ? 'Předmět' : 'Parcela'}</th>
+						<th>Předmět</th>
 						<th class="v">Výměra&nbsp;(m²)</th>
-						<th>{vymezena ? 'Poznámka' : 'Druh pozemku'}</th>
+						<th>Poznámka</th>
 						<th></th>
 					</tr>
 				</thead>
-				<tbody>
-					{
-						(vymezena ? stavby : nase).map((p) => (
-							<tr data-p={p.cislo} class={p.stavebni ? 'je-st' : ''} tabindex="0">
-								<td class="pruh">
-									<i />
-								</td>
-								<td class="num">{p.cislo}</td>
-								<td class="v">{cislo.format(p.vymera)}</td>
-								<td class="druh">{vymezena ? (p.stavba ?? 'bez stavby') : p.druh}</td>
-								<td class="odkaz">
-									<a href={p.kn} target="_blank" rel="noopener">
-										KN&#8239;↗
-									</a>
-								</td>
+				{
+					skupiny.map((skupina) => (
+						<tbody>
+							<tr class="skupina">
+								<td class="pruh" />
+								<th colspan="4" scope="colgroup">
+									{skupina.nazev} <span>{skupina.vymera}</span>
+								</th>
 							</tr>
-						))
-					}
-					{/*
-					 * Pozemek kolem staveb není parcela — teprve se z luk oddělí, proto
-					 * nemá číslo ani odkaz do katastru a výměra je odměřená.
-					 */}
-					{
-						vymezena && (
-							<tr>
-								<td class="pruh">
-									<i />
-								</td>
-								<td class="num">Pozemek kolem staveb</td>
-								<td class="v">≈ {cislo.format(vymeraOkoli)}</td>
-								<td class="druh">
-									Oddělí se geometrickým plánem z {vyjmenuj([...pozemekUDomu.zParcel])}
-								</td>
-								<td class="odkaz" />
-							</tr>
-						)
-					}
-				</tbody>
+							{skupina.parcely.map((p) => (
+								<tr data-p={p.cislo} class={p.stavebni ? 'je-st' : ''} tabindex="0">
+									<td class="pruh">
+										<i />
+									</td>
+									<td class="num">{p.cislo}</td>
+									<td class="v">{cislo.format(p.vymera)}</td>
+									<td class="druh">{popisParcely(p)}</td>
+									<td class="odkaz">
+										<a href={p.kn} target="_blank" rel="noopener">
+											KN&#8239;↗
+										</a>
+									</td>
+								</tr>
+							))}
+							{/*
+							 * Pozemek kolem staveb není parcela — teprve se z luk oddělí, proto
+							 * nemá číslo ani odkaz do katastru a výměra je odměřená.
+							 */}
+							{skupina.parcely === uDomu && (
+								<tr>
+									<td class="pruh">
+										<i />
+									</td>
+									<td class="num">Pozemek kolem staveb</td>
+									<td class="v">≈ {cislo.format(vymeraKolemStaveb)}</td>
+									<td class="druh">
+										Oddělí se geometrickým plánem z {vyjmenuj([...pozemekUDomu.zParcel])}
+									</td>
+									<td class="odkaz" />
+								</tr>
+							)}
+						</tbody>
+					))
+				}
 				<tfoot>
 					<tr>
 						<td class="pruh"></td>
 						<td>Celkem</td>
-						<td class="v">{vymezena && '≈ '}{cislo.format(vymera)}</td>
-						<td class="druh">{vymezena ? 'odměřeno ze zákresu' : vymeraText}</td>
+						<td class="v">≈ {cislo.format(vymeraNabidky)}</td>
+						<td class="druh">
+							zaokrouhleno — pozemek u domu je odměřený ze zákresu, háječek podle katastru
+						</td>
 						<td></td>
 					</tr>
 				</tfoot>
 			</table>
 		</div>
 
-		{
-			vymezena && (
-				<p class="dokoupeni">
-					<strong>K domu je možné dokoupit i okolní louky</strong> — parcely{' '}
-					{kDokoupeni.map((p, i) => (
-						<>
-							{i > 0 && (i === kDokoupeni.length - 1 ? ' a ' : ', ')}
-							<a href={p.kn} target="_blank" rel="noopener">
-								{p.cislo}
-							</a>
-						</>
-					))}
-					{' '}bez části, která patří k domu, celkem ≈ {cislo.format(vymeraKDokoupeni)} m² ({
-						vymeraSlovy(vymeraKDokoupeni)
-					}). V mapách jsou bíle.
-				</p>
-			)
-		}
-
 		<p class="zdroj">
 			Geometrie parcel: RÚIAN, <a href="https://ags.cuzk.gov.cz/arcgis/rest/services/RUIAN/MapServer" target="_blank" rel="noopener">ČÚZK</a>.
 			Podklad obou map: ortofoto ČÚZK v rozlišení 12,5&nbsp;cm/px a WMS Katastrální mapa,
 			staženo 27.&nbsp;8.&nbsp;2026. Zobrazení je orientační a nenahrazuje
 			výpis z katastru nemovitostí ani geometrický plán.
-			{vymezena && ' Hranice pozemku u domu je zákres do katastrální mapy — výměra je odměřená, ne úřední, a oddělení parcel teprve čeká na geometrický plán.'}
+			Hranice pozemku u domu je zákres do katastrální mapy — výměra je odměřená, ne úřední,
+			a oddělení parcel teprve čeká na geometrický plán.
 		</p>
 	</div>
 </section>
@@ -296,61 +260,6 @@ const detailPopis =
 		background: #2e9bff;
 	}
 
-	/*
-	 * Louky navíc jsou v mapě bílé přes ortofoto. Na světlém panelu by bílá
-	 * zanikla, proto stejně jako u vymezení sedí na tmavém čtverečku.
-	 */
-	.tecka.je-doplnek {
-		background: #24303a;
-		box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.75);
-	}
-
-	.urovne {
-		display: grid;
-		grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr));
-		gap: 1px;
-		background: var(--barva-linka);
-		border: 1px solid var(--barva-linka);
-		border-radius: 2px;
-		margin: 0 0 1.5rem;
-	}
-
-	.urovne__polozka {
-		background: var(--barva-pozadi-blok);
-		padding: 0.85rem 0.9rem;
-	}
-
-	.urovne__polozka dt {
-		font-size: 0.7rem;
-		letter-spacing: 0.1em;
-		text-transform: uppercase;
-		color: var(--barva-text-tlumena);
-	}
-
-	.urovne__polozka dd {
-		margin: 0.15rem 0 0;
-	}
-
-	.urovne__polozka strong {
-		display: block;
-		font: 1.25rem/1.2 var(--pismo);
-		font-weight: 400;
-		font-variant-numeric: tabular-nums;
-	}
-
-	.urovne__polozka span {
-		display: block;
-		margin-top: 0.35rem;
-		font-size: 0.8rem;
-		line-height: 1.5;
-		color: var(--barva-text-tlumena);
-	}
-
-	/* základ nabídky nese stejnou modrou jako vymezený pozemek v mapě */
-	.urovne__polozka.je-zaklad {
-		box-shadow: inset 3px 0 0 #2e9bff;
-	}
-
 	.mapy {
 		display: grid;
 		gap: 1.25rem;
@@ -426,6 +335,34 @@ const detailPopis =
 		outline: none;
 	}
 
+	/* mezinadpis obou částí nabídky — jen popisek, nedá se vybrat */
+	.tabulka tr.skupina,
+	.tabulka tr.skupina:hover {
+		cursor: default;
+		background: none;
+	}
+
+	.tabulka tr.skupina th {
+		padding-top: 1rem;
+		font-size: 0.7rem;
+		letter-spacing: 0.1em;
+		text-transform: uppercase;
+		font-weight: 600;
+	}
+
+	.tabulka tr.skupina span {
+		font-family: ui-monospace, Consolas, monospace;
+		font-variant-numeric: tabular-nums;
+		letter-spacing: 0;
+		text-transform: none;
+		color: var(--barva-text-tlumena);
+	}
+
+	/* první skupina navazuje na hlavičku, druhá potřebuje vzduch nad sebou */
+	.tabulka tbody:first-of-type tr.skupina th {
+		padding-top: 0.55rem;
+	}
+
 	.tabulka td.pruh {
 		width: 6px;
 		padding: 0 0 0 6px;
@@ -469,22 +406,6 @@ const detailPopis =
 	.tabulka tfoot td {
 		font-weight: 600;
 		border-bottom: none;
-	}
-
-	.dokoupeni {
-		margin: 1rem 0 0;
-		padding: 0.85rem 1rem;
-		border: 1px solid var(--barva-linka);
-		border-left: 3px solid var(--barva-akcent);
-		border-radius: 2px;
-		background: var(--barva-pozadi-blok);
-		font-size: 0.9rem;
-		line-height: 1.6;
-		max-width: 52rem;
-	}
-
-	.dokoupeni strong {
-		font-weight: 600;
 	}
 
 	.zdroj {

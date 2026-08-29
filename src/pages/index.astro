@@ -1,73 +1,60 @@
 ---
 import Layout from '../layouts/Layout.astro';
+import Pozemky from '../components/Pozemky.astro';
+import Nakresy from '../components/Nakresy.astro';
+import PlochyMistnosti from '../components/PlochyMistnosti.astro';
+import Cena from '../components/Cena.astro';
 import { nemovitost } from '../data/nemovitost';
 import { hajecek } from '../data/hajecek';
-import { cenaSlovy, spolecne, telefonHref } from '../data/spolecne';
-import { vymeraKDokoupeni, vymeraSlovy, vymeraVNabidce } from '../data/parcely';
+import { spolecne, telefonHref } from '../data/spolecne';
 
-const { uvodniFoto } = nemovitost;
-const { kontakt } = spolecne;
-
-const cislo = new Intl.NumberFormat('cs-CZ');
-
-// Pořadí i názvy odpovídají tištěnému banneru.
-const nabidky = [
-	{
-		odkaz: '/dum',
-		nazev: 'Dům, garáž, zahrada',
-		vymera: `≈ ${cislo.format(vymeraVNabidce('dum'))} m² pozemku`,
-		cena: cenaSlovy(nemovitost.cena),
-		popis:
-			'Rodinný dům z roku 2006 se sedmi pokoji, garáží pro dva vozy a vzrostlou zahradou. ' +
-			`Dokoupit se dají i okolní louky, ${vymeraSlovy(vymeraKDokoupeni)}.`,
-	},
-	{
-		odkaz: '/hajecek',
-		nazev: hajecek.nazev,
-		vymera: `${cislo.format(vymeraVNabidce('hajecek'))} m²`,
-		cena: cenaSlovy(hajecek.cena),
-		popis: 'Volná stavební parcela se vzrostlou zelení kolem, na stejném svahu nad obcí.',
-	},
-];
-
-const titulek = 'Trojanovice 495 — dvě nabídky pod Radhoštěm';
-const popis =
-	'Na horním konci Trojanovic prodávám přímo bez realitní kanceláře dvě samostatné ' +
-	'nabídky: rodinný dům se vzrostlou zahradou, a stavební parcelu s háječkem.';
+const { nazev, podtitul, perex, cena, cenaPoznamka, uvodniFoto, parametry, rozlozeni, galerie } =
+	nemovitost;
+const { lokalita, kontakt } = spolecne;
 ---
 
-<Layout titulek={titulek} popis={popis}>
+<Layout titulek={`${nazev} — ${podtitul}`} popis={perex}>
 	<header class="hero">
-		<picture>
-			<source media="(max-width: 60rem)" srcset={`/fotky/${uvodniFoto.souborNaVysku}`} />
-			<img class="hero__foto" src={`/fotky/${uvodniFoto.soubor}`} alt={uvodniFoto.popis} fetchpriority="high" />
-		</picture>
-		<div class="hero__titulek">
-			<div class="obsah">
-				<p class="nadpis-sekce">Trojanovice pod Radhoštěm</p>
-				<h1>Trojanovice 495</h1>
+		<div class="hero__media">
+			<picture>
+				<source media="(max-width: 60rem)" srcset={`/fotky/${uvodniFoto.souborNaVysku}`} />
+				<img class="hero__foto" src={`/fotky/${uvodniFoto.soubor}`} alt={uvodniFoto.popis} fetchpriority="high" />
+			</picture>
+			<div class="hero__titulek">
+				<div class="obsah">
+					<p class="nadpis-sekce">{podtitul}</p>
+					<h1>{nazev}</h1>
+				</div>
 			</div>
+		</div>
+
+		<div class="obsah">
+			<p class="hero__perex">{perex}</p>
+			<Cena cena={cena} poznamka={cenaPoznamka} />
 		</div>
 	</header>
 
-	<section class="sekce">
+	<section class="sekce sekce--tlumena" id="parametry">
 		<div class="obsah">
-			<p class="uvod">{popis}</p>
-
-			<ul class="nabidky">
+			<p class="nadpis-sekce">Přehled</p>
+			<h2>Základní parametry</h2>
+			<dl class="parametry">
 				{
-					nabidky.map((n, i) => (
-						<li class="nabidka">
-							<a href={n.odkaz}>
-								<span class="nabidka__cislo" aria-hidden="true">
-									{i + 1}
-								</span>
-								<h2>{n.nazev}</h2>
-								<p class="nabidka__vymera">{n.vymera}</p>
-								<p class="nabidka__cena">{n.cena}</p>
-								<p class="nabidka__popis">{n.popis}</p>
-								<span class="nabidka__vice">Podrobnosti →</span>
-							</a>
+					parametry.map((polozka) => (
+						<div class="parametry__polozka">
+							<dt>{polozka.nazev}</dt>
+							<dd>{polozka.hodnota}</dd>
+						</div>
+					))
+				}
+			</dl>
+
+			<ul class="rozlozeni">
+				{
+					rozlozeni.map((podlazi) => (
+						<li>
+							<span>{podlazi.podlazi}</span>
+							<strong>{podlazi.mistnosti}</strong>
 						</li>
 					))
 				}
@@ -75,7 +62,73 @@ const popis =
 		</div>
 	</section>
 
-	<section class="sekce sekce--tlumena">
+	{
+		galerie.length > 0 && (
+			<section class="sekce" id="galerie">
+				<div class="obsah">
+					<p class="nadpis-sekce">Fotografie</p>
+					<h2>Prohlídka</h2>
+					<div class="galerie">
+						{galerie.map((fotka, index) => (
+							<figure class="galerie__polozka">
+								{/* poměr stran drží CSS, fotky jsou na výšku i na šířku */}
+								<img
+									src={`/fotky/${fotka.soubor}`}
+									alt={fotka.popis}
+									loading={index === 0 ? 'eager' : 'lazy'}
+								/>
+								<figcaption>{fotka.popis}</figcaption>
+							</figure>
+						))}
+					</div>
+				</div>
+			</section>
+		)
+	}
+
+	<PlochyMistnosti />
+
+	<Nakresy />
+
+	<section class="sekce sekce--tlumena" id="hajecek">
+		<div class="obsah">
+			<p class="nadpis-sekce">{hajecek.podtitul}</p>
+			<h2>{hajecek.nazev}</h2>
+			<p class="hajecek__perex">{hajecek.perex}</p>
+			<dl class="parametry">
+				{
+					hajecek.parametry.map((polozka) => (
+						<div class="parametry__polozka">
+							<dt>{polozka.nazev}</dt>
+							<dd>{polozka.hodnota}</dd>
+						</div>
+					))
+				}
+			</dl>
+		</div>
+	</section>
+
+	<Pozemky />
+
+	<section class="sekce sekce--tlumena" id="lokalita">
+		<div class="obsah">
+			<p class="nadpis-sekce">Okolí</p>
+			<h2>Lokalita</h2>
+			<p class="lokalita__popis">{lokalita.popis}</p>
+			<ul class="vzdalenosti">
+				{
+					lokalita.vzdalenosti.map((polozka) => (
+						<li>
+							<span>{polozka.misto}</span>
+							<strong>{polozka.hodnota}</strong>
+						</li>
+					))
+				}
+			</ul>
+		</div>
+	</section>
+
+	<section class="sekce" id="kontakt">
 		<div class="obsah">
 			<p class="nadpis-sekce">Máte zájem?</p>
 			<h2>Kontakt přímo na majitele</h2>
@@ -85,7 +138,8 @@ const popis =
 				<a href={`mailto:${kontakt.email}`}>{kontakt.email}</a>
 			</p>
 			<p class="kontakt__poznamka">
-				Prodávám sám, bez realitní kanceláře — ozvěte se mi přímo.
+				Prodávám sám, bez realitní kanceláře — ozvěte se mi přímo. Dům i háječek se
+				prodávají dohromady, jako jeden celek.
 			</p>
 		</div>
 	</section>
@@ -93,27 +147,41 @@ const popis =
 
 <style>
 	.hero {
+		padding-bottom: clamp(2.5rem, 7vw, 4.5rem);
+		border-bottom: 1px solid var(--barva-linka);
+	}
+
+	.hero__media {
 		position: relative;
 	}
 
-	.hero picture {
+	.hero__media picture {
 		display: block;
 	}
 
 	.hero__foto {
 		display: block;
 		width: 100%;
-		height: clamp(18rem, 52vh, 30rem);
+		height: clamp(21rem, 66vh, 38rem);
 		object-fit: cover;
+		/*
+		 * Nižší hodnota ukazuje horní část fotky a tlačí dům v záběru dolů
+		 * k nadpisu, vyšší ho zvedá a přidává trávu pod ním. Hřeben střechy
+		 * je ve 32 % výšky fotky; 45 % ho na běžných šířkách okna nechá
+		 * těsně u horní hrany a pod nadpisem udrží travnatý pás.
+		 */
 		object-position: 50% 45%;
 	}
 
+	/* varianta na výšku je oříznutá už v souboru, stačí ji držet u středu */
 	@media (max-width: 60rem) {
 		.hero__foto {
 			object-position: 50% 50%;
 		}
 	}
 
+	/* Ztmavení jde jen zespodu a nahoře doběhne do průhledna, aby fotka
+	   zůstala fotkou a text na ní přesto držel kontrast. */
 	.hero__titulek {
 		position: absolute;
 		inset-inline: 0;
@@ -131,84 +199,113 @@ const popis =
 		margin-bottom: 0.5rem;
 	}
 
-	.uvod {
+	.hero__perex {
 		max-width: 42rem;
-		margin: 0 0 clamp(2rem, 5vw, 3rem);
+		margin-top: clamp(2rem, 5vw, 3rem);
 		font-size: 1.125rem;
 		color: var(--barva-text-tlumena);
 	}
 
-	.nabidky {
-		list-style: none;
-		padding: 0;
-		margin: 0;
+	.parametry {
 		display: grid;
-		gap: 1.5rem;
-		grid-template-columns: 1fr;
+		grid-template-columns: repeat(auto-fit, minmax(13rem, 1fr));
+		gap: 1.5rem 2rem;
+		margin: 0;
 	}
 
-	@media (min-width: 48rem) {
-		.nabidky {
-			grid-template-columns: 1fr 1fr;
-		}
+	.parametry__polozka {
+		border-top: 1px solid var(--barva-linka);
+		padding-top: 0.75rem;
 	}
 
-	.nabidka a {
-		display: block;
-		height: 100%;
-		padding: 1.75rem;
-		border: 1px solid var(--barva-linka);
-		border-radius: 2px;
-		background: var(--barva-pozadi-blok);
-		color: inherit;
-		text-decoration: none;
-		transition: border-color 0.15s, transform 0.15s;
-	}
-
-	.nabidka a:hover,
-	.nabidka a:focus-visible {
-		border-color: var(--barva-akcent);
-		transform: translateY(-2px);
-	}
-
-	.nabidka__cislo {
-		display: flex;
-		align-items: center;
-		justify-content: center;
-		width: 2rem;
-		height: 2rem;
-		border-radius: 50%;
-		background: var(--barva-akcent);
-		color: var(--barva-pozadi);
-		font: 600 0.9rem/1 var(--pismo-ui);
-		margin-bottom: 1rem;
-	}
-
-	.nabidka h2 {
-		margin: 0 0 0.35rem;
-		font-size: clamp(1.35rem, 2.5vw, 1.75rem);
-	}
-
-	.nabidka__vymera {
-		margin: 0 0 0.5rem;
-		font: 0.9rem/1.3 ui-monospace, Consolas, monospace;
-		font-variant-numeric: tabular-nums;
+	.parametry dt {
+		font-size: 0.8rem;
+		letter-spacing: 0.08em;
+		text-transform: uppercase;
 		color: var(--barva-text-tlumena);
 	}
 
-	.nabidka__cena {
-		margin: 0 0 0.9rem;
-		font: 1.35rem/1.2 var(--pismo);
-		font-variant-numeric: tabular-nums;
+	.parametry dd {
+		margin: 0.25rem 0 0;
+		font-family: var(--pismo);
+		font-size: 1.375rem;
 	}
 
-	.nabidka__popis {
-		margin: 0 0 1.25rem;
+	.rozlozeni {
+		list-style: none;
+		padding: 0;
+		margin: 2rem 0 0;
+		max-width: 44rem;
 	}
 
-	.nabidka__vice {
-		color: var(--barva-akcent);
-		font-size: 0.9rem;
+	.rozlozeni li {
+		display: grid;
+		grid-template-columns: 7rem 1fr;
+		gap: 1rem;
+		padding: 0.6rem 0;
+		border-bottom: 1px solid var(--barva-linka);
+	}
+
+	.rozlozeni span {
+		font-size: 0.8rem;
+		letter-spacing: 0.08em;
+		text-transform: uppercase;
+		color: var(--barva-text-tlumena);
+		padding-top: 0.15rem;
+	}
+
+	.rozlozeni strong {
+		font-weight: 400;
+	}
+
+	.galerie {
+		display: grid;
+		grid-template-columns: repeat(auto-fit, minmax(20rem, 1fr));
+		gap: 1.5rem;
+	}
+
+	.galerie__polozka {
+		margin: 0;
+	}
+
+	.galerie__polozka img {
+		width: 100%;
+		aspect-ratio: 3 / 2;
+		object-fit: cover;
+		background: var(--barva-pozadi-blok);
+		border-radius: 2px;
+	}
+
+	.galerie figcaption {
+		margin-top: 0.5rem;
+		font-size: 0.875rem;
+		color: var(--barva-text-tlumena);
+	}
+
+	.hajecek__perex {
+		max-width: 42rem;
+		margin: 0 0 clamp(1.5rem, 4vw, 2.25rem);
+		color: var(--barva-text-tlumena);
+	}
+
+	.lokalita__popis {
+		max-width: 42rem;
+		margin-top: 0;
+	}
+
+	.vzdalenosti {
+		list-style: none;
+		padding: 0;
+		margin: 2rem 0 0;
+		max-width: 32rem;
+	}
+
+	.vzdalenosti li {
+		display: flex;
+		justify-content: space-between;
+		gap: 1rem;
+		padding: 0.75rem 0;
+		border-bottom: 1px solid var(--barva-linka);
 	}
 
 	.kontakt {

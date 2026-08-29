@@ -1,4 +1,4 @@
-// Údaje společné oběma nabídkám i rozcestníku.
+// Údaje společné oběma částem nabídky — domu i háječku.
 
 export const spolecne = {
 	// Adresní bod č.p. 495 podle RÚIAN (ČÚZK), leží na parcele St. 1878.

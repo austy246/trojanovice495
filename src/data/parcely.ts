@@ -10,12 +10,13 @@ import { POZEMEK_ZAKRES, VYREZY, ZAKRESY, type Zakres } from './zakresy';
 export { VYREZY, type Zakres };
 
 /*
- * Pozemky se prodávají ve dvou samostatných nabídkách. U háječku jsou v nabídce
- * celé tři parcely; u domu se prodává jen pozemek vymezený kolem staveb (viz
- * pozemekUDomu níže) a okolní louky jsou k dokoupení nad rámec nabídky.
- * `nabidka` proto říká, ke které nabídce parcela patří — ne že je celá na prodej.
+ * Prodává se jedna nabídka o dvou částech: pozemek vymezený kolem domu
+ * a garáže, a vedle něj celý háječek. `cast` říká, do které z nich parcela
+ * patří — a parcely bez ní do nabídky nepatří vůbec. Jsou to okolní louky;
+ * pozemek u domu se z nich teprve oddělí (viz pozemekUDomu níž), samy se
+ * ale neprodávají a na webu se o nich nemluví.
  */
-export type Nabidka = 'dum' | 'hajecek';
+export type Cast = 'dum' | 'hajecek';
 
 export interface Parcela extends Udaje {
 	prehled: Zakres;
@@ -27,9 +28,12 @@ interface Udaje {
 	vymera: number;
 	druh: string;
 	stavebni: boolean;
-	nabidka: Nabidka;
+	/** chybí u parcel mimo nabídku */
+	cast?: Cast;
 	/** co na stavební parcele stojí; chybí, když je parcela volná */
 	stavba?: string;
+	/** čím se parcela vypíše v tabulce nabídky; jinak stačí stavba nebo druh */
+	poznamka?: string;
 	kn: string;
 }
 
@@ -39,7 +43,7 @@ const udaje: Udaje[] = [
 		vymera: 220,
 		druh: 'zastavěná plocha a nádvoří',
 		stavebni: true,
-		nabidka: 'dum',
+		cast: 'dum',
 		stavba: 'dům č.p. 495',
 		kn: 'https://nahlizenidokn.cuzk.gov.cz/ZobrazObjekt.aspx?typ=parcela&id=3018265804',
 	},
@@ -48,7 +52,8 @@ const udaje: Udaje[] = [
 		vymera: 180,
 		druh: 'zastavěná plocha a nádvoří',
 		stavebni: true,
-		nabidka: 'hajecek',
+		cast: 'hajecek',
+		poznamka: 'zastavěná plocha, stavba už nestojí',
 		kn: 'https://nahlizenidokn.cuzk.gov.cz/ZobrazObjekt.aspx?typ=parcela&id=2196233804',
 	},
 	{
@@ -56,7 +61,7 @@ const udaje: Udaje[] = [
 		vymera: 79,
 		druh: 'zastavěná plocha a nádvoří',
 		stavebni: true,
-		nabidka: 'dum',
+		cast: 'dum',
 		stavba: 'garáž',
 		kn: 'https://nahlizenidokn.cuzk.gov.cz/ZobrazObjekt.aspx?typ=parcela&id=3018266804',
 	},
@@ -65,7 +70,6 @@ const udaje: Udaje[] = [
 		vymera: 18794,
 		druh: 'trvalý travní porost',
 		stavebni: false,
-		nabidka: 'dum',
 		kn: 'https://nahlizenidokn.cuzk.gov.cz/ZobrazObjekt.aspx?typ=parcela&id=2797220804',
 	},
 	{
@@ -73,7 +77,6 @@ const udaje: Udaje[] = [
 		vymera: 9175,
 		druh: 'trvalý travní porost',
 		stavebni: false,
-		nabidka: 'dum',
 		kn: 'https://nahlizenidokn.cuzk.gov.cz/ZobrazObjekt.aspx?typ=parcela&id=2797217804',
 	},
 	{
@@ -81,7 +84,7 @@ const udaje: Udaje[] = [
 		vymera: 2178,
 		druh: 'trvalý travní porost',
 		stavebni: false,
-		nabidka: 'hajecek',
+		cast: 'hajecek',
 		kn: 'https://nahlizenidokn.cuzk.gov.cz/ZobrazObjekt.aspx?typ=parcela&id=2200251804',
 	},
 	{
@@ -89,7 +92,6 @@ const udaje: Udaje[] = [
 		vymera: 1172,
 		druh: 'trvalý travní porost',
 		stavebni: false,
-		nabidka: 'dum',
 		kn: 'https://nahlizenidokn.cuzk.gov.cz/ZobrazObjekt.aspx?typ=parcela&id=2797218804',
 	},
 	{
@@ -97,7 +99,6 @@ const udaje: Udaje[] = [
 		vymera: 1070,
 		druh: 'ostatní plocha',
 		stavebni: false,
-		nabidka: 'dum',
 		kn: 'https://nahlizenidokn.cuzk.gov.cz/ZobrazObjekt.aspx?typ=parcela&id=2797219804',
 	},
 	{
@@ -105,7 +106,8 @@ const udaje: Udaje[] = [
 		vymera: 284,
 		druh: 'ostatní plocha',
 		stavebni: false,
-		nabidka: 'hajecek',
+		cast: 'hajecek',
+		poznamka: 'ostatní plocha — přístupová cesta',
 		kn: 'https://nahlizenidokn.cuzk.gov.cz/ZobrazObjekt.aspx?typ=parcela&id=2202030804',
 	},
 ];
@@ -117,7 +119,7 @@ export const parcely: Parcela[] = udaje.map((p) => {
 });
 
 /*
- * Pozemek u domu — to, co se u nabídky ① skutečně prodává. Hranici tvoří
+ * Pozemek u domu — to, co se u domu a garáže skutečně prodává. Hranici tvoří
  * z většiny katastrální linie; jediná nová vede úhlopříčkou přes louku 2260/8
  * a je dlouhá 70 m. Plocha je odměřená ze zákresu, ne z katastru: vychází na
  * 3 235 m², na webu se uvádí zaokrouhlená. Rozpad po parcelách:
@@ -159,29 +161,35 @@ export const pozemekUDomu = {
 	...POZEMEK_ZAKRES,
 } as const;
 
-export const celkovaVymera = parcely.reduce((s, p) => s + p.vymera, 0);
-
-/** Parcely jedné nabídky, v pořadí podle výpisu z katastru. */
-export const proNabidku = (nabidka: Nabidka) => parcely.filter((p) => p.nabidka === nabidka);
-
-export const vymeraNabidky = (nabidka: Nabidka) =>
-	proNabidku(nabidka).reduce((s, p) => s + p.vymera, 0);
+/** Parcely, které do nabídky patří, v pořadí podle výpisu z katastru. */
+const vNabidce = parcely.filter((p) => p.cast);
 
 /**
- * Co nabídka skutečně obsahuje. U háječku jsou to celé parcely, u domu jen
- * vymezený pozemek — okolní louky se k němu dají dokoupit, ale součástí
- * nabídky nejsou.
+ * Parcely jedné části nabídky. U domu jsou to jen obě stavební parcely —
+ * zbytek pozemku kolem nich se z luk teprve oddělí, parcela z něj ještě není.
  */
-export const vymeraVNabidce = (nabidka: Nabidka) =>
-	nabidka === 'dum' ? pozemekUDomu.vymera : vymeraNabidky(nabidka);
+export const proCast = (cast: Cast) => parcely.filter((p) => p.cast === cast);
 
-/** Louky kolem domu, které jsou k dokoupení nad rámec nabídky. */
-export const vymeraKDokoupeni = vymeraNabidky('dum') - pozemekUDomu.vymera;
+const vymeraCasti = (cast: Cast) => proCast(cast).reduce((s, p) => s + p.vymera, 0);
+
+/** Háječek se prodává jako celé parcely, jeho výměra je tedy úřední. */
+export const vymeraHajecku = vymeraCasti('hajecek');
+
+/**
+ * Výměra celé nabídky: vymezený pozemek u domu (obě stavební parcely jsou
+ * v něm) plus celý háječek. Pozemek u domu je odměřený, proto se i součet
+ * zaokrouhluje na stovky a všude se uvádí s „≈".
+ */
+export const vymeraNabidky = Math.round((pozemekUDomu.vymera + vymeraHajecku) / 100) * 100;
 
 /** Stavby v nabídce jsou celé parcely, zbytek pozemku se teprve oddělí. */
-export const vymeraStaveb = proNabidku('dum')
-	.filter((p) => p.stavebni)
-	.reduce((s, p) => s + p.vymera, 0);
+export const vymeraStaveb = vNabidce.filter((p) => p.stavebni).reduce((s, p) => s + p.vymera, 0);
+
+/*
+ * Pozemek kolem domu a garáže bez obou stavebních parcel — to, co se z luk
+ * teprve oddělí. Zaokrouhleno na stovky, je to rozdíl dvou odměřených čísel.
+ */
+export const vymeraKolemStaveb = Math.round((pozemekUDomu.vymera - vymeraCasti('dum')) / 100) * 100;
 
 /**
  * Výměra k zobrazení. Hektary dávají smysl až u velkých celků — z háječku
