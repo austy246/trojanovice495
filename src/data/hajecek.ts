@@ -10,7 +10,7 @@ export const hajecek = {
 	podtitul: 'Druhá část nabídky, hned vedle domu',
 
 	perex:
-		'Součástí nabídky je i sousední pozemek na stejném svahu, hned vedle pozemků domu: ' +
+		'Součástí nabídky je i sousední pozemek hned vedle pozemků domu: ' +
 		'stavební parcela St. 173/4, přilehlý háječek a přístupová cesta k němu. Stavba, ' +
 		'kterou na parcele eviduje katastr, už fyzicky nestojí — je to tedy volné místo ' +
 		'ke stavbě se vzrostlou zelení kolem a s vlastním přístupem.',
