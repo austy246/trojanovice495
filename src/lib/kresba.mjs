@@ -120,3 +120,66 @@ export function shoda(a, b) {
 	}
 	return sjednoceni ? prunik / sjednoceni : 0;
 }
+
+/**
+ * Vzdálenost každého pixelu k nejbližší čáře kresby, v pixelech. Chamfer 3-4 ve
+ * dvou průchodech: na měření, jestli zákres leží na kresbě, je to dost přesné
+ * a nestojí to za přesnou euklidovskou transformaci.
+ */
+export function vzdalenostiKKresbe(alfa, w, h) {
+	const dist = new Float32Array(w * h);
+	for (let i = 0; i < dist.length; i += 1) dist[i] = alfa[i] >= 128 ? 0 : Infinity;
+
+	const pruchod = (sousedi, zpet) => {
+		for (let i = 0; i < h; i += 1) {
+			const y = zpet ? h - 1 - i : i;
+			for (let j = 0; j < w; j += 1) {
+				const x = zpet ? w - 1 - j : j;
+				const p = y * w + x;
+				let d = dist[p];
+				for (const [dx, dy, cena] of sousedi) {
+					const nx = x + dx;
+					const ny = y + dy;
+					if (nx < 0 || ny < 0 || nx >= w || ny >= h) continue;
+					d = Math.min(d, dist[ny * w + nx] + cena);
+				}
+				dist[p] = d;
+			}
+		}
+	};
+	pruchod([[-1, -1, 4], [0, -1, 3], [1, -1, 4], [-1, 0, 3]], false);
+	pruchod([[1, 1, 4], [0, 1, 3], [-1, 1, 4], [1, 0, 3]], true);
+
+	for (let i = 0; i < dist.length; i += 1) dist[i] /= 3;
+	return dist;
+}
+
+/**
+ * Leží zákres na kresbě? Body jsou vzorky hran v pixelech rastru. Vrací medián
+ * odchylky a k tomu posun, který by ji srazil nejníž — souvislý posun celého
+ * zákresu je poznávací znamení špatného transformačního klíče, ne nepřesnosti
+ * v datech.
+ */
+export function souladZakresu(alfa, w, h, body, dosah = 0) {
+	const dist = vzdalenostiKKresbe(alfa, w, h);
+	const median = (dx, dy) => {
+		const ds = [];
+		for (const [x, y] of body) {
+			const px = Math.round(x + dx);
+			const py = Math.round(y + dy);
+			if (px >= 0 && py >= 0 && px < w && py < h) ds.push(dist[py * w + px]);
+		}
+		if (!ds.length) return Infinity;
+		ds.sort((a, b) => a - b);
+		return ds[ds.length >> 1];
+	};
+
+	const odchylka = median(0, 0);
+	let nej = { dx: 0, dy: 0, poPosunu: odchylka };
+	for (let dx = -dosah; dx <= dosah; dx += 1)
+		for (let dy = -dosah; dy <= dosah; dy += 1) {
+			const po = median(dx, dy);
+			if (po < nej.poPosunu) nej = { dx, dy, poPosunu: po };
+		}
+	return { odchylka, ...nej };
+}

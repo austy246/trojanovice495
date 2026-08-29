@@ -33,12 +33,28 @@ překreslit.
   víc pixelů už jen dopočítává; výřez se proto počítá na nativní rozlišení dat,
   ne na kulaté číslo pixelů. Požadavek nezarovnaný uvnitř téže úrovně keše stojí
   ostrost.
-- **Kresba** je WMS vrstva `KN_I` přebarvená na žlutou z Nahlížení — černá na
-  tmavém ortofotu zaniká. WMS nejde přes 4096 px, přehled se proto ořezává
+- **Kresba** je WMS přebarvená na žlutou z Nahlížení — černá na tmavém ortofotu
+  zaniká. Bere se vrstva hranic **bez čísel parcel** (`VRSTVY_KRESBY`), popisky
+  kreslí SVG: rastrový popisek má velikost v terénu a v přehledu by vyšel na pár
+  pixelů. Skupinová `KN_I` čísla nese a zůstává jen jako záloha — skript pak
+  hlásí, že se popisky zdvojí. WMS nejde přes 4096 px, přehled se proto ořezává
   (skládat kresbu z dílů nelze, popisky u švu se ořežou).
+- **Každou hranici kreslí mapa jednou.** Čáry jsou z podkladu, SVG nad ním je
+  jen zvýraznění nabídky — sousední parcely obrys nedostávají vůbec. Zvýraznění
+  má spodní mez šířky v jednotkách mapy (7 dm), aby žlutou čáru přikrylo
+  i v přiblížení, kdy rastr roste a čára počítaná na pixely displeje ne.
 - **`src/data/zakresy.ts` je generovaný soubor — needitovat ručně.** Geometrie
   parcel se bere z RÚIAN, `src/data/parcely.ts` drží jen čísla, výměry a odkazy
   do KN.
+- **Zákres se ověřuje proti kresbě, ne proti oku.** RÚIAN vrací S-JTSK a výchozí
+  klíč převodní služby ArcGIS do Web Mercatoru míjel katastrální mapu o 2,40 m —
+  vypadalo to jako věrohodná mapa, jen o dva a půl metru vedle. Skript proto měří
+  medián odchylky zákresu od stažené kresby (`souladZakresu` v
+  `src/lib/kresba.mjs`), nad `TOLERANCE` zkusí ostatní klíče z `findTransformations`
+  a když neuspěje ani jeden, skončí chybou. Stejně se kontroluje `hranice`
+  v `parcely.ts` — ruční zákres pozemku u domu leží na katastrálních bodech,
+  takže se s opravou geometrie musí posunout taky; skript rovnou nabídne, co
+  do souboru zapsat.
 - **Srovnání zdrojů kresby** (WMS proti dlaždicové WMTS): lokálně
   `npm run srovnani`, nebo stránka `/srovnani-podkladu`, která totéž počítá
   v prohlížeči nad daty staženými přímo z ČÚZK. Přebarvení a metriky jsou

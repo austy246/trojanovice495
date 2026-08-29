@@ -20,15 +20,29 @@ const trida = (p: (typeof parcely)[number]) => {
 	const zaklad = p.stavebni ? 'je-st' : 'je-poz';
 	return jeNase(p) ? zaklad : `${zaklad} je-mimo`;
 };
+
+/*
+ * Hranice kreslí podklad z katastru. SVG je nad ním jen zvýraznění nabídky,
+ * takže obrys dostanou pouze naše parcely — jinak by každá čára v mapě ležela
+ * dvakrát, jednou žlutě z podkladu a jednou modře z RÚIAN.
+ */
+const sObrysem = parcely.filter(jeNase);
+
 const vyrez = VYREZY[varianta];
 const viewBox = `0 0 ${vyrez.sirka} ${vyrez.vyska}`;
 const pomer = ((vyrez.vyska / vyrez.sirka) * 100).toFixed(3);
 
 /*
- * Obě mapy se skládají stejně: ortofoto ČÚZK a nad ním katastrální kresba jako
- * samostatná průhledná vrstva. Oboje generuje scripts/podklady.mjs.
+ * Popisky nese SVG, ne podklad. V přehledu se čísluje i okolí, v detailu jen
+ * nabídka — ten je o ní a čísla sousedů by se do něj tlačila od kraje. Parcela
+ * navíc může z výřezu vybíhat; její popisek míří na střed celé parcely, takže
+ * by u hrany zůstal viset jako útržek.
  */
-const jeDetail = varianta === 'detail';
+const sPopiskem = parcely.filter((p) => {
+	const z = p[varianta];
+	if (z.x < 0 || z.y < 0 || z.x > vyrez.sirka || z.y > vyrez.vyska) return false;
+	return varianta === 'prehled' || jeNase(p);
+});
 
 /*
  * Rozteč šrafů se odvozuje od šířky výřezu, aby byly v obou mapách stejně
@@ -44,6 +58,10 @@ const pozemek = pozemekUDomu[varianta];
 	<div class="mapa" data-mapa={varianta} data-sirka={vyrez.sirka}>
 		<div class="mapa__pomer" style={`padding-top:${pomer}%`}></div>
 
+		{/*
+		 * Obě mapy se skládají stejně: ortofoto ČÚZK a nad ním katastrální kresba
+		 * jako samostatná průhledná vrstva. Oboje generuje scripts/podklady.mjs.
+		 */}
 		<div class="mapa__scena">
 			<picture>
 				<source srcset={`/katastr/${varianta}-orto.avif`} type="image/avif" />
@@ -93,42 +111,39 @@ const pozemek = pozemekUDomu[varianta];
 
 			<svg class="mapa__vrstva" viewBox={viewBox} preserveAspectRatio="none" role="img" aria-label={popis}>
 				{
-					parcely.map((p) => (
+					sObrysem.map((p) => (
 						<path
 							class={`obrys ${trida(p)}`}
 							data-p={p.cislo}
 							d={p[varianta].d}
-							tabindex={jeNase(p) ? '0' : undefined}
-							role={jeNase(p) ? 'button' : undefined}
-							aria-hidden={jeNase(p) ? undefined : 'true'}
-							aria-label={jeNase(p) ? `${p.cislo}, ${p.vymera} m², ${p.druh}` : undefined}
+							tabindex="0"
+							role="button"
+							aria-label={`${p.cislo}, ${p.vymera} m², ${p.druh}`}
 						>
-							{jeNase(p) && <title>{`${p.cislo} · ${p.vymera} m² · ${p.druh}`}</title>}
+							<title>{`${p.cislo} · ${p.vymera} m² · ${p.druh}`}</title>
 						</path>
 					))
 				}
 				<path class="pozemek" d={pozemek.d} />
 
 				{/*
-				 * V detailu má podklad čísla parcel vypálená v obrázku, takže se
-				 * kreslí jen stavební parcely nabídky — v podkladu jsou bez předpony
-				 * „St.“ a jsou to ty, na kterých v této mapě záleží. V přehledu
-				 * podklad popisky nemá, tam se kreslí všechny.
+				 * Podklad se stahuje bez čísel (vrstva hranic místo skupinové KN_I),
+				 * protože rastrový popisek má velikost v terénu — v přehledu by
+				 * vyšel na pár pixelů. Tenhle drží velikost na obrazovce a schová
+				 * se, až když se do parcely přestane vejít.
 				 */}
 				<g class="mapa__popisky">
 					{
-						parcely
-							.filter((p) => (jeDetail ? jeNase(p) && p.stavebni : true))
-							.map((p) => (
-								<g class={`popisek ${jeNase(p) ? '' : 'je-mimo'}`} data-p={p.cislo} data-fit={p[varianta].fit}>
-									<text x={p[varianta].x} y={p[varianta].y} class="halo">
-										{p.cislo}
-									</text>
-									<text x={p[varianta].x} y={p[varianta].y}>
-										{p.cislo}
-									</text>
-								</g>
-							))
+						sPopiskem.map((p) => (
+							<g class={`popisek ${jeNase(p) ? '' : 'je-mimo'}`} data-p={p.cislo} data-fit={p[varianta].fit}>
+								<text x={p[varianta].x} y={p[varianta].y} class="halo">
+									{p.cislo}
+								</text>
+								<text x={p[varianta].x} y={p[varianta].y}>
+									{p.cislo}
+								</text>
+							</g>
+						))
 					}
 				</g>
 			</svg>
@@ -232,9 +247,18 @@ const pozemek = pozemekUDomu[varianta];
 		opacity: 0.32;
 	}
 
+	/*
+	 * Šířka čáry má dvě spodní meze. calc(…/ --u) drží stálou tloušťku na
+	 * obrazovce, ta ale při přiblížení klesá v jednotkách mapy — a žlutá čára
+	 * podkladu roste s přiblížením, protože je součástí rastru. Druhý člen je
+	 * proto pevný v jednotkách viewBoxu. Kresba KN je čtvrt metru široká, ale
+	 * roztažený rastr ji rozmaže do zhruba půl metru; 7 dm ji i s tolerancí
+	 * zákresu přikryje v každém přiblížení, takže hranice zůstane jedna čára,
+	 * ne dvě vedle sebe.
+	 */
 	.obrys {
 		fill: none;
-		stroke-width: calc(2.6px / var(--u));
+		stroke-width: max(calc(2.6px / var(--u)), 7px);
 		stroke-linejoin: round;
 		cursor: pointer;
 		outline: none;
@@ -262,14 +286,14 @@ const pozemek = pozemekUDomu[varianta];
 		fill: none;
 		pointer-events: none;
 		stroke: #35a4ff;
-		stroke-width: calc(2.6px / var(--u));
+		stroke-width: max(calc(2.6px / var(--u)), 7px);
 		stroke-linejoin: round;
 	}
 
 	.obrys:hover,
 	.obrys.je-zvyraznena,
 	.obrys:focus-visible {
-		stroke-width: calc(5px / var(--u));
+		stroke-width: max(calc(5px / var(--u)), 10px);
 	}
 
 	.vyplen.je-zvyraznena {
@@ -277,20 +301,13 @@ const pozemek = pozemekUDomu[varianta];
 	}
 
 	/*
-	 * Parcely mimo nabídku. Zůstávají vidět jako kontext, ale nejsou barevné,
-	 * nedají se kliknout ani chytit Tabem a nereagují na zvýraznění.
+	 * Parcely mimo nabídku. Hranici jim kreslí podklad, SVG přidává jen slabé
+	 * zašednutí a v přehledu číslo — nedají se kliknout ani chytit Tabem
+	 * a nereagují na zvýraznění.
 	 */
 	.vyplen.je-mimo {
 		fill: #fff;
 		fill-opacity: 0.06;
-	}
-
-	.obrys.je-mimo {
-		stroke: rgba(255, 255, 255, 0.45);
-		stroke-width: calc(1.4px / var(--u));
-		stroke-dasharray: calc(6px / var(--u)) calc(4px / var(--u));
-		pointer-events: none;
-		cursor: default;
 	}
 
 	.popisek.je-mimo text {

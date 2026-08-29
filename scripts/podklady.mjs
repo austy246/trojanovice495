@@ -22,7 +22,7 @@ import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import sharp from 'sharp';
-import { BARVA_KRESBY } from '../src/lib/kresba.mjs';
+import { BARVA_KRESBY, alfaKanal, naZlutou, pokryti, souladZakresu } from '../src/lib/kresba.mjs';
 
 const KOREN = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 
@@ -53,6 +53,26 @@ const PREVOD = 'https://ags.cuzk.gov.cz/arcgis/rest/services/Utilities/Geometry/
 
 /** ArcGIS neposkytne širší snímek, přehled se proto skládá ze dvou dílů. */
 export const MAX_SIRKA = 4096;
+
+/**
+ * Kresba se bere bez čísel parcel — popisky kreslí SVG, aby byly čitelné i v
+ * přehledu, kde by rastrová čísla vyšla na pár pixelů. `KN_I` je skupinová
+ * vrstva, která čísla nese; slouží jako záloha, kdyby samotné hranice služba
+ * nenabídla. Co která vrstva umí, řekne GetCapabilities:
+ * services.cuzk.gov.cz/wms/wms.asp?service=WMS&request=GetCapabilities
+ */
+export const VRSTVY_KRESBY = ['hranice_parcel', 'KN_I'];
+
+/**
+ * Klíč pro převod S-JTSK → Web Mercator. `null` znamená výchozí klíč služby;
+ * ten ale zákres míjel katastrální mapu o 2,4 m, takže se výsledek vždycky měří
+ * proti stažené kresbě a při nesouladu se zkusí i ostatní klíče, které služba
+ * pro tuhle dvojici zná. Až se jeden osvědčí, dá se sem zapsat natvrdo.
+ */
+export const TRANSFORMACE = null;
+
+/** Nad tuhle odchylku zákresu od kresby (v metrech) skript raději skončí. */
+export const TOLERANCE = 0.3;
 
 /* ---------- pomůcky ---------- */
 
@@ -154,14 +174,14 @@ async function ortofoto({ bbox, px }) {
  * ořežou. Je to samostatná vrstva, kterou CSS stejně roztáhne na stejný rám,
  * takže o osm procent hrubší čáry nikdo nepozná.
  */
-export async function kresba({ bbox, px }) {
+export async function kresba({ bbox, px }, vrstvy = VRSTVY_KRESBY[0]) {
 	const sirka = Math.min(px[0], MAX_SIRKA);
 	const vyska = Math.round((sirka * px[1]) / px[0]);
-	return stahniBuffer(KATASTR, {
+	const odpoved = await stahni(KATASTR, {
 		service: 'WMS',
 		version: '1.3.0',
 		request: 'GetMap',
-		layers: 'KN_I',
+		layers: vrstvy,
 		styles: '',
 		crs: 'EPSG:3857',
 		bbox: bbox.map((n) => n.toFixed(2)).join(','),
@@ -170,22 +190,41 @@ export async function kresba({ bbox, px }) {
 		format: 'image/png',
 		transparent: true,
 	});
+
+	// Neznámou vrstvu WMS neodmítne stavovým kódem, vrátí XML se ServiceException.
+	const typ = odpoved.headers.get('content-type') ?? '';
+	if (!typ.startsWith('image/')) throw new Error(`WMS nevrátil obrázek pro vrstvy "${vrstvy}": ${typ}`);
+	return Buffer.from(await odpoved.arrayBuffer());
 }
 
 /**
- * Vrstva KN_I je bílá na průhledném pozadí, ale vyhlazení má schované v barvě,
- * ne v alfě — alfa je jen 0/255. Přebarvení proto luminanci přesouvá do alfy,
- * jinak by čáry vyšly zubaté.
+ * Kresba z první vrstvy, kterou služba umí a která něco nakreslí. Prázdný rastr
+ * je stejná porucha jako chybějící vrstva, jen tišší — proto se měří pokrytí.
+ */
+async function stahniKresbu(r) {
+	for (const [i, vrstvy] of VRSTVY_KRESBY.entries()) {
+		try {
+			const data = await obarvi(await kresba(r, vrstvy), BARVA_KRESBY);
+			const podil = pokryti(alfaKanal((await sharp(data).ensureAlpha().raw().toBuffer({ resolveWithObject: true })).data));
+			if (podil < 0.001) throw new Error(`vrstvy "${vrstvy}" nic nenakreslily (pokrytí ${(podil * 100).toFixed(3)} %)`);
+			if (i > 0) console.log(`  ! kresba jen jako "${vrstvy}" — nese čísla parcel, ta se pak v mapě zdvojí s popisky SVG`);
+			return { data, vrstvy };
+		} catch (chyba) {
+			if (i === VRSTVY_KRESBY.length - 1) throw chyba;
+			console.log(`  ! vrstvy "${vrstvy}" nepoužitelné (${chyba.message}), zkouším "${VRSTVY_KRESBY[i + 1]}"`);
+		}
+	}
+}
+
+/**
+ * Přebarvení řeší src/lib/kresba.mjs, protože stejná úvaha platí i pro stránku
+ * srovnání. Podstatné je, že každá vrstva nese vyhlazení jinde: KN_I je bílá na
+ * průhledné a vyhlazení má v barvě (alfa jen 0/255), vrstva bez čísel kreslí
+ * tmavě a vyhlazení má poctivě v alfě. Režim se pozná z dat, ne z názvu vrstvy.
  */
 export async function obarvi(data, barva) {
 	const { data: px, info } = await sharp(data).ensureAlpha().raw().toBuffer({ resolveWithObject: true });
-	for (let i = 0; i < px.length; i += 4) {
-		const jas = (px[i] + px[i + 1] + px[i + 2]) / 3 / 255;
-		px[i] = barva[0];
-		px[i + 1] = barva[1];
-		px[i + 2] = barva[2];
-		px[i + 3] = Math.round(px[i + 3] * jas);
-	}
+	naZlutou(px, barva);
 	return sharp(px, { raw: { width: info.width, height: info.height, channels: 4 } }).png().toBuffer();
 }
 
@@ -211,13 +250,14 @@ async function seznamParcel() {
 }
 
 /** RÚIAN vrací geometrii v S-JTSK; do Mercatoru ji převede transformační služba ČÚZK. */
-async function doMercatoru(body) {
+async function doMercatoru(body, transformace = TRANSFORMACE) {
 	const hotovo = [];
 	for (let i = 0; i < body.length; i += 400) {
 		const { geometries } = await odesliJson(PREVOD, {
 			inSR: 5514,
 			outSR: 3857,
 			f: 'json',
+			...(transformace ? { transformation: typeof transformace === 'object' ? JSON.stringify(transformace) : transformace } : {}),
 			geometries: JSON.stringify({
 				geometryType: 'esriGeometryPoint',
 				geometries: body.slice(i, i + 400).map(([x, y]) => ({ x, y })),
@@ -227,6 +267,26 @@ async function doMercatoru(body) {
 	}
 	return hotovo;
 }
+
+/**
+ * Klíče, které služba pro dvojici S-JTSK → Web Mercator zná, od nejvhodnějšího.
+ * Výchozí (bez klíče) je tříprvkový a v Česku míjí o jednotky metrů, přesný je
+ * až sedmiprvkový nebo tabulkový — který to je, rozhodne měření proti kresbě.
+ */
+async function klice(bbox) {
+	const { transformations = [] } = await stahniJson(`${PREVOD.replace(/\/project$/, '')}/findTransformations`, {
+		inSR: 5514,
+		outSR: 3857,
+		extentOfInterest: JSON.stringify({ xmin: bbox[0], ymin: bbox[1], xmax: bbox[2], ymax: bbox[3], spatialReference: { wkid: 3857 } }),
+		numOfResults: 6,
+		f: 'json',
+	});
+	return transformations;
+}
+
+/** Jak se klíč jmenuje v logu; složené klíče mají jméno až uvnitř. */
+const jmenoKlice = (klic) =>
+	klic ? (klic.name ?? klic.wkid ?? klic.geoTransforms?.map((t) => t.name ?? t.wkid).join(' + ') ?? JSON.stringify(klic)) : 'výchozí klíč služby';
 
 async function geometrieParcel(parcely) {
 	const odpoved = await stahniJson(RUIAN, {
@@ -241,18 +301,126 @@ async function geometrieParcel(parcely) {
 	const chybi = parcely.filter((p) => !podleId.has(p.id));
 	if (chybi.length) throw new Error(`RÚIAN nezná parcely: ${chybi.map((p) => p.cislo).join(', ')}`);
 
-	// všechny vrcholy najednou, ať se transformační služba volá co nejméně
+	return parcely.map((p) => ({
+		...p,
+		vymeraKn: podleId.get(p.id).attributes.vymeraparcely,
+		rings: podleId.get(p.id).geometry.rings,
+	}));
+}
+
+/* ---------- soulad zákresu s kresbou ---------- */
+
+/** Hrany zákresu jako body v pixelech rastru, po jednom pixelu. */
+function vzorkyHran(rings, { bbox }, [w, h]) {
+	const doPx = ([x, y]) => [
+		((x - bbox[0]) / (bbox[2] - bbox[0])) * w,
+		((bbox[3] - y) / (bbox[3] - bbox[1])) * h,
+	];
+	const body = [];
+	for (const ring of rings) {
+		for (let i = 0; i < ring.length; i += 1) {
+			const [ax, ay] = doPx(ring[i]);
+			const [bx, by] = doPx(ring[(i + 1) % ring.length]);
+			const kroku = Math.max(1, Math.ceil(Math.hypot(bx - ax, by - ay)));
+			for (let k = 0; k <= kroku; k += 1) body.push([ax + ((bx - ax) * k) / kroku, ay + ((by - ay) * k) / kroku]);
+		}
+	}
+	return body;
+}
+
+/**
+ * Odchylka zákresu od stažené kresby, v metrech. Kresba je měřítko pravdy:
+ * vzniká u ČÚZK ze stejných dat jako ortofoto a v mapě leží na něm.
+ */
+async function zmerSoulad(rings, r, kresbaData, hledatPosun = false) {
+	const { data, info } = await sharp(kresbaData).ensureAlpha().raw().toBuffer({ resolveWithObject: true });
+	const { width: w, height: h } = info;
+	// v metrech na zemi, ne v jednotkách Mercatoru — ty jsou tady nadsazené o 1/cos φ
+	const mNaPx = r.jednotek[0] / JEDNOTEK_NA_METR / w;
+	const dosah = hledatPosun ? Math.ceil(3 / mNaPx) : 0;
+	const s = souladZakresu(alfaKanal(data), w, h, vzorkyHran(rings, r, [w, h]), dosah);
+	return {
+		odchylka: s.odchylka * mNaPx,
+		poPosunu: s.poPosunu * mNaPx,
+		posun: [s.dx * mNaPx, -s.dy * mNaPx],
+	};
+}
+
+/**
+ * Převede geometrii do Mercatoru klíčem, který sedne na kresbu. Výchozí klíč
+ * ArcGISu odsouval celý zákres o 2,4 m k jihovýchodu — chyba se nepozná jinak
+ * než měřením, protože sama o sobě vypadá jako věrohodná mapa.
+ */
+async function vMercatoru(geometrie, r, kresbaData) {
 	const plocho = [];
-	const rozvrh = parcely.map((p) => {
-		const rings = podleId.get(p.id).geometry.rings;
-		return {
-			...p,
-			vymeraKn: podleId.get(p.id).attributes.vymeraparcely,
-			rings: rings.map((r) => r.map((bod) => (plocho.push(bod), plocho.length - 1))),
-		};
-	});
-	const merc = await doMercatoru(plocho);
-	return rozvrh.map((p) => ({ ...p, rings: p.rings.map((r) => r.map((i) => merc[i])) }));
+	const rozvrh = geometrie.map((p) => ({ ...p, rings: p.rings.map((ring) => ring.map((bod) => (plocho.push(bod), plocho.length - 1))) }));
+	const slozit = (merc) => rozvrh.map((p) => ({ ...p, rings: p.rings.map((ring) => ring.map((i) => merc[i])) }));
+
+	const zkusit = TRANSFORMACE ? [TRANSFORMACE] : [null, ...(await klice(r.bbox))];
+	let nejlepsi = null;
+
+	for (const klic of zkusit) {
+		const parcely = slozit(await doMercatoru(plocho, klic));
+		const { odchylka } = await zmerSoulad(parcely.flatMap((p) => p.rings), r, kresbaData);
+		console.log(`  ${jmenoKlice(klic)}: odchylka od kresby ${odchylka.toFixed(2)} m`);
+		if (!nejlepsi || odchylka < nejlepsi.odchylka) nejlepsi = { klic, parcely, odchylka };
+		if (odchylka <= TOLERANCE) break;
+	}
+
+	if (nejlepsi.odchylka > TOLERANCE) {
+		const { poPosunu, posun } = await zmerSoulad(nejlepsi.parcely.flatMap((p) => p.rings), r, kresbaData, true);
+		throw new Error(
+			`zákres neleží na katastrální kresbě: nejlepší klíč (${jmenoKlice(nejlepsi.klic)}) má odchylku ` +
+				`${nejlepsi.odchylka.toFixed(2)} m, tolerance je ${TOLERANCE} m.\n` +
+				`Posun o ${posun[0].toFixed(2)} m na východ a ${posun[1].toFixed(2)} m na sever by ji srazil na ` +
+				`${poPosunu.toFixed(2)} m — souvislý posun znamená špatný transformační klíč, ne chybu v datech.\n` +
+				`Zkus jiný klíč z findTransformations a zapiš ho do TRANSFORMACE.`,
+		);
+	}
+	if (nejlepsi.klic) console.log(`  → zapiš do TRANSFORMACE: ${JSON.stringify(nejlepsi.klic)}`);
+	return nejlepsi.parcely;
+}
+
+/**
+ * Obvod pozemku u domu je ruční zákres, ale deset z jedenácti vrcholů leží na
+ * katastrálních bodech. Když se hne geometrie parcel, musí se hnout i on —
+ * jinak by nabídka vedla hranici vedle katastrální čáry.
+ */
+function zkontrolujObvod(pozemek, geometrie) {
+	const vrcholy = geometrie.flatMap((p) => p.rings.flat());
+	// vzdálenosti v metrech na zemi; Mercator je nadsazuje o 1/cos φ, viz ramec()
+	const k = zkresleni(pozemek[0][1]);
+	const nejblizsi = (bod) => {
+		let nej = { d: Infinity, bod: null };
+		for (const v of vrcholy) {
+			const d = Math.hypot(v[0] - bod[0], v[1] - bod[1]) * k;
+			if (d < nej.d) nej = { d, bod: v };
+		}
+		return nej;
+	};
+
+	const nalezy = pozemek.map(nejblizsi);
+	const daleko = nalezy.filter((n) => n.d > TOLERANCE).length;
+	// jeden vrchol je volný konec nové hranice, ten oporu v katastru nemá
+	if (daleko <= 1) return;
+
+	/*
+	 * Vrcholy na katastrálních bodech se přisadí na ně. Volný konec oporu nemá,
+	 * ten se posune o tolik co ostatní — jinak by zůstal viset na starém místě.
+	 */
+	const drzene = nalezy.map((n, i) => ({ ...n, i })).filter((n) => n.d <= 3);
+	if (!drzene.length)
+		throw new Error(`obvod pozemku v parcely.ts neleží u žádného katastrálního bodu — zkontroluj hranice ručně.`);
+	const posun = [0, 1].map((os) => drzene.reduce((s, n) => s + (n.bod[os] - pozemek[n.i][os]), 0) / drzene.length);
+	const opraveny = pozemek.map((bod, i) =>
+		nalezy[i].d <= 3 ? nalezy[i].bod : [bod[0] + posun[0], bod[1] + posun[1]],
+	);
+	const blok = opraveny.map((b) => `\t\t[${b[0].toFixed(2)}, ${b[1].toFixed(2)}],`).join('\n');
+	throw new Error(
+		`obvod pozemku v parcely.ts nesedí na katastrální body: ${daleko} z ${pozemek.length} vrcholů je dál ` +
+			`než ${TOLERANCE} m (nejdál ${Math.max(...nalezy.map((n) => n.d)).toFixed(2)} m).\n` +
+			`Přepiš hranice v src/data/parcely.ts tímhle a pusť skript znovu:\n\thranice: [\n${blok}\n\t],`,
+	);
 }
 
 /* ---------- popisky ---------- */
@@ -338,10 +506,29 @@ async function main() {
 	const { parcely, pozemek } = await seznamParcel();
 	console.log(`parcel v parcely.ts: ${parcely.length}, vrcholů zákresu pozemku: ${pozemek.length}`);
 
-	const geometrie = await geometrieParcel(parcely);
-	for (const p of geometrie) console.log(`  ${p.cislo.padEnd(10)} ${p.vymeraKn} m² podle RÚIAN`);
-
 	const ramce = Object.fromEntries(Object.entries(VYREZY).map(([k, v]) => [k, ramec(v)]));
+
+	/*
+	 * Kresba jde první: je malá a slouží jako měřítko pravdy pro zákres. Ortofoto
+	 * se stahuje až po kontrolách, ať se megabajty netahají zbytečně.
+	 */
+	const kresby = {};
+	for (const [varianta, r] of Object.entries(ramce)) {
+		kresby[varianta] = await stahniKresbu(r);
+		console.log(`kresba ${varianta}: vrstvy "${kresby[varianta].vrstvy}"`);
+	}
+
+	const vJtsk = await geometrieParcel(parcely);
+	for (const p of vJtsk) console.log(`  ${p.cislo.padEnd(10)} ${p.vymeraKn} m² podle RÚIAN`);
+
+	console.log('\npřevod do Mercatoru:');
+	const geometrie = await vMercatoru(vJtsk, ramce.detail, kresby.detail.data);
+	for (const [varianta, r] of Object.entries(ramce)) {
+		const { odchylka } = await zmerSoulad(geometrie.flatMap((p) => p.rings), r, kresby[varianta].data);
+		console.log(`  soulad s kresbou (${varianta}): ${odchylka.toFixed(2)} m`);
+	}
+	zkontrolujObvod(pozemek, geometrie);
+
 	const zakresy = {};
 
 	for (const p of geometrie) {
@@ -370,14 +557,14 @@ async function main() {
 		await sharp(orto).avif({ quality: 55, effort: 6 }).toFile(resolve(KOREN, `public/katastr/${varianta}-orto.avif`));
 		await sharp(orto).webp({ quality: 74, effort: 6 }).toFile(resolve(KOREN, `public/katastr/${varianta}-orto.webp`));
 
-		const cary = await obarvi(await kresba(r), BARVA_KRESBY);
-		await sharp(cary)
+		await sharp(kresby[varianta].data)
 			.webp({ lossless: true, effort: 6 })
 			.toFile(resolve(KOREN, `public/katastr/${varianta}-kresba.webp`));
 	}
 
 	const soubor = `// GENEROVÁNO skriptem scripts/podklady.mjs — needitovat ručně.
-// Podklady staženy z ČÚZK ${dnes()}, ortofoto v nativním rozlišení ${ROZLISENI} m/px.
+// Podklady staženy z ČÚZK ${dnes()}, ortofoto v nativním rozlišení ${ROZLISENI} m/px,
+// kresba z vrstev "${kresby.detail.vrstvy}", zákres ověřený proti ní na ${TOLERANCE} m.
 //
 // Obě mapy stojí v EPSG:3857, takže sever je v nich doopravdy nahoře. Jednotka
 // viewBoxu je 1 dm v terénu — měřítková úsečka i práh pro skrývání popisků se
