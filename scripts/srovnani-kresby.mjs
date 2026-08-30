@@ -108,9 +108,9 @@ export async function mozaika({ vrstva, sada, uroven, bbox, cil, restem = false 
  * Sharp jen dekóduje a zakóduje, samotné přebarvení i měření dělá src/lib/kresba.mjs,
  * takže stránka /srovnani-podkladu počítá v prohlížeči přesně totéž.
  */
-export async function naZlutou(data, barva = BARVA_KRESBY) {
+export async function prebarvi(data, barva = BARVA_KRESBY) {
 	const { data: px, info } = await sharp(data).ensureAlpha().raw().toBuffer({ resolveWithObject: true });
-	const rezim = kresbaLib.naZlutou(px, barva);
+	const rezim = kresbaLib.prebarvi(px, barva);
 	return {
 		rezim,
 		data: await sharp(px, { raw: { width: info.width, height: info.height, channels: 4 } }).png().toBuffer(),
@@ -171,7 +171,7 @@ async function main() {
 	const varianty = [];
 
 	// WMS tak, jak ho web používá dnes — včetně stropu 4096 px u přehledu
-	const wms = await naZlutou(await kresba(r));
+	const wms = await prebarvi(await kresba(r));
 	const wmsCil = await sharp(wms.data).resize(r.px[0], r.px[1], { fit: 'fill', kernel: 'lanczos3' }).png().toBuffer();
 	const wmsMetriky = await metriky(wmsCil, null);
 	varianty.push({ jmeno: 'wms', popis: `WMS KN_I, ${Math.min(r.px[0], MAX_SIRKA)} px`, rezim: wms.rezim, data: wmsCil, ...wmsMetriky });
@@ -227,7 +227,7 @@ async function main() {
 						.png()
 						.toBuffer();
 
-		const obarveno = await naZlutou(slozeno);
+		const obarveno = await prebarvi(slozeno);
 		const m = await metriky(obarveno.data, wmsMetriky.hruba);
 		varianty.push({
 			jmeno: `wmts-${cislo}`,

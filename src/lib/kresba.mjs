@@ -4,8 +4,13 @@
  * i na stránce /srovnani-podkladu, aby čísla z obou míst šla porovnat.
  */
 
-/** Žlutá z Nahlížení do KN — odměřeno z jeho snímku (medián 245, 250, 50). */
-export const BARVA_KRESBY = [245, 250, 50];
+/*
+ * Kresba je bílá a v mapě se ještě ztlumí krytím. Dřív byla žlutá jako
+ * v Nahlížení do KN, jenže pak soupeřila s modrou nabídky — a hranice parcel
+ * kreslily obě vrstvy naráz, každá jinou barvou a stejně silně. Barvu má
+ * v mapě jedině nabídka; kresba je podklad.
+ */
+export const BARVA_KRESBY = [255, 255, 255];
 
 /** Nad tímhle už běh není čára, ale výplň nebo popisek. */
 const NEJDELSI_CARA = 64;
@@ -32,7 +37,7 @@ export function rezimKresby(px) {
 }
 
 /** Přebarví kresbu na zadanou barvu a vyhlazení přesune do alfy. Mění pole na místě. */
-export function naZlutou(px, barva = BARVA_KRESBY, rezim = rezimKresby(px)) {
+export function prebarvi(px, barva = BARVA_KRESBY, rezim = rezimKresby(px)) {
 	for (let i = 0; i < px.length; i += 4) {
 		const jas = (px[i] + px[i + 1] + px[i + 2]) / 3 / 255;
 		const alfa =

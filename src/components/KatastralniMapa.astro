@@ -30,13 +30,6 @@ const pomer = ((vyrez.vyska / vyrez.sirka) * 100).toFixed(3);
  */
 const jeDetail = varianta === 'detail';
 
-/*
- * Rozteč šrafů se odvozuje od šířky výřezu, aby byly v obou mapách stejně
- * husté na obrazovce, ne v jednotkách viewBoxu.
- */
-const krok = Math.round(vyrez.sirka / 55);
-const idSraf = `srafy-${varianta}`;
-
 const pozemek = pozemekUDomu[varianta];
 ---
 
@@ -57,12 +50,6 @@ const pozemek = pozemekUDomu[varianta];
 			</picture>
 
 			<svg class="mapa__vrstva mapa__vyplne" viewBox={viewBox} preserveAspectRatio="none" aria-hidden="true">
-				<defs>
-					<pattern id={idSraf} width={krok} height={krok} patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
-						<line x1="0" y1="0" x2="0" y2={krok} stroke="#8ecbff" stroke-width={krok / 5} />
-					</pattern>
-				</defs>
-
 				{
 					parcely.map((p) => (
 						<path class={`vyplen ${trida(p)}`} data-p={p.cislo} d={p[varianta].d} />
@@ -70,17 +57,10 @@ const pozemek = pozemekUDomu[varianta];
 				}
 
 				{/*
-				 * Šrafy nesou modrou plochu nabídky: vymezený pozemek u domu
-				 * a všechny parcely háječku. Obě stavební parcely u domu leží
-				 * uvnitř pozemku, šrafy přes ně už proto jdou.
+				 * Vymezený pozemek u domu se v katastru zatím nekreslí, tady ale
+				 * plochu nabídky nese — obě stavební parcely u domu leží uvnitř něj.
 				 */}
 				<path class="vyplen je-pozemek" d={pozemek.d} />
-				<path class="srafy" d={pozemek.d} fill={`url(#${idSraf})`} />
-				{
-					parcely
-						.filter((p) => p.cast === 'hajecek')
-						.map((p) => <path class="srafy" d={p[varianta].d} fill={`url(#${idSraf})`} />)
-				}
 			</svg>
 
 			<img
@@ -110,17 +90,18 @@ const pozemek = pozemekUDomu[varianta];
 				<path class="pozemek" d={pozemek.d} />
 
 				{/*
-				 * V detailu má podklad čísla parcel vypálená v obrázku, takže se
-				 * kreslí jen stavební parcely nabídky — v podkladu jsou bez předpony
-				 * „St.“ a jsou to ty, na kterých v této mapě záleží. V přehledu
-				 * podklad popisky nemá, tam se kreslí všechny.
+				 * Popisky nese jen nabídka. Čísla ostatních parcel má vypálená
+				 * podklad a druhý popisek přes ně by je jen ztížil.
+				 *
+				 * V detailu se kreslí ještě míň — jen stavební parcely: podklad je
+				 * uvádí bez předpony „St.“ a v této mapě jsou to ty, na kterých záleží.
 				 */}
 				<g class="mapa__popisky">
 					{
 						parcely
-							.filter((p) => (jeDetail ? jeNase(p) && p.stavebni : true))
+							.filter((p) => jeNase(p) && (jeDetail ? p.stavebni : true))
 							.map((p) => (
-								<g class={`popisek ${jeNase(p) ? '' : 'je-mimo'}`} data-p={p.cislo} data-fit={p[varianta].fit}>
+								<g class="popisek" data-p={p.cislo} data-fit={p[varianta].fit}>
 									<text x={p[varianta].x} y={p[varianta].y} class="halo">
 										{p.cislo}
 									</text>
@@ -206,6 +187,15 @@ const pozemek = pozemekUDomu[varianta];
 	}
 
 	/*
+	 * Katastrální kresba je podklad, ne sdělení. Bílá se proto ještě ztlumí,
+	 * aby hranice a čísla byly čitelné, když je člověk hledá, ale nepřetahovaly
+	 * pozornost z modré nabídky, když je nehledá.
+	 */
+	.mapa__km {
+		opacity: 0.55;
+	}
+
+	/*
 	 * Barvu výplně a barvu obrysu drž v oddělených pravidlech. Sloučené
 	 * `.vyplen.je-st, .obrys.je-st { fill: … }` má vyšší specificitu než
 	 * `.obrys { fill: none }` a obarvilo by i obrysovou vrstvu, která žádnou
@@ -226,55 +216,54 @@ const pozemek = pozemekUDomu[varianta];
 		fill-opacity: 0.42;
 	}
 
-	/* Šrafy leží nad výplní a nesmí brát kliknutí obrysové vrstvě pod sebou. */
-	.srafy {
-		pointer-events: none;
-		opacity: 0.32;
-	}
-
+	/*
+	 * V klidu je obrys neviditelný. Hranice parcel kreslí katastrální podklad
+	 * pod ním — obrys by je jen zdvojil druhou barvou. Zůstává tu kvůli
+	 * ovládání: nese kliknutí, Tab i bublinu s výměrou, a ukáže se teprve
+	 * při najetí nebo výběru, kde je odpovědí na to, co dělá uživatel.
+	 *
+	 * pointer-events: all znamená, že se parcela chytá celou plochou, ne jen
+	 * namalovanou čarou. Díry ve výplni (vyňaté stavební parcely) zůstávají
+	 * dírami i pro myš, takže se kliknutí nepřebíjejí.
+	 */
 	.obrys {
 		fill: none;
+		stroke: transparent;
 		stroke-width: calc(2.6px / var(--u));
 		stroke-linejoin: round;
+		pointer-events: all;
 		cursor: pointer;
 		outline: none;
 	}
 
-	.obrys.je-st {
-		stroke: #c7e9ff;
-	}
-
-	.obrys.je-poz {
-		stroke: #35a4ff;
-	}
-
-	/* Obrys vybrané parcely jde s výplní — sytější modrá, ne jen tlustší čára. */
-	.obrys.je-zvyraznena {
+	.obrys:hover,
+	.obrys:focus-visible {
 		stroke: #9fd4ff;
+		stroke-width: calc(4px / var(--u));
 	}
 
-	/*
-	 * Vymezený pozemek u domu nese modrou plochu nabídky, proto vypadá jako
-	 * nabízená parcela — včetně obvodu. Že jedna jeho strana nemá oporu
-	 * v katastru, říká text pod mapou, ne odlišná čára.
-	 */
+	.obrys.je-zvyraznena {
+		stroke: #cfe9ff;
+		stroke-width: calc(5px / var(--u));
+	}
+
 	.vyplen.je-pozemek {
 		fill: var(--barva-nabidka);
 		fill-opacity: 0.2;
 	}
 
+	/*
+	 * Jediná čára, kterou mapa kreslí sama od sebe. Hranice pozemku u domu se
+	 * teprve oddělí geometrickým plánem, takže v katastrálním podkladu není
+	 * — a je proto to jediné, co obtažením něco přidává, ne zdvojuje.
+	 * Že jedna její strana nemá oporu v katastru, říká text pod mapou.
+	 */
 	.pozemek {
 		fill: none;
 		pointer-events: none;
 		stroke: #35a4ff;
 		stroke-width: calc(2.6px / var(--u));
 		stroke-linejoin: round;
-	}
-
-	.obrys:hover,
-	.obrys.je-zvyraznena,
-	.obrys:focus-visible {
-		stroke-width: calc(5px / var(--u));
 	}
 
 	/*
@@ -292,24 +281,18 @@ const pozemek = pozemekUDomu[varianta];
 	}
 
 	/*
-	 * Parcely mimo nabídku. Zůstávají vidět jako kontext, ale nejsou barevné,
-	 * nedají se kliknout ani chytit Tabem a nereagují na zvýraznění.
+	 * Parcely mimo nabídku se nekreslí vůbec — hranici i číslo jim dává
+	 * katastrální podklad a druhá vrstva by je jen zdvojila. Třídy zůstávají,
+	 * protože podle je-mimo pozná skript, že se nemají zvýrazňovat.
 	 */
 	.vyplen.je-mimo {
-		fill: #fff;
-		fill-opacity: 0.06;
+		fill: none;
 	}
 
 	.obrys.je-mimo {
-		stroke: rgba(255, 255, 255, 0.45);
-		stroke-width: calc(1.4px / var(--u));
-		stroke-dasharray: calc(6px / var(--u)) calc(4px / var(--u));
+		stroke: none;
 		pointer-events: none;
 		cursor: default;
-	}
-
-	.popisek.je-mimo text {
-		fill: rgba(255, 255, 255, 0.5);
 	}
 
 	.mapa__popisky text {
