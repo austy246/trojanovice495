@@ -49,7 +49,6 @@ export { BARVA_KRESBY };
 const ORTOFOTO = 'https://ags.cuzk.gov.cz/arcgis1/rest/services/ORTOFOTO_WM/MapServer/export';
 const KATASTR = 'https://services.cuzk.gov.cz/wms/wms.asp';
 const RUIAN = 'https://ags.cuzk.gov.cz/arcgis/rest/services/RUIAN/MapServer/5/query';
-const PREVOD = 'https://ags.cuzk.gov.cz/arcgis/rest/services/Utilities/Geometry/GeometryServer/project';
 
 /** ArcGIS neposkytne širší snímek, přehled se proto skládá ze dvou dílů. */
 export const MAX_SIRKA = 4096;
@@ -69,17 +68,6 @@ async function stahni(url, hledani) {
 
 const stahniBuffer = async (url, hledani) => Buffer.from(await (await stahni(url, hledani)).arrayBuffer());
 const stahniJson = async (url, hledani) => (await stahni(url, hledani)).json();
-
-/** Souřadnice se posílají POSTem — v adrese by se stovky bodů nevešly a server vrátí 400. */
-async function odesliJson(url, telo) {
-	const odpoved = await fetch(url, {
-		method: 'POST',
-		headers: { ...HLAVICKY, 'Content-Type': 'application/x-www-form-urlencoded' },
-		body: new URLSearchParams(telo),
-	});
-	if (!odpoved.ok) throw new Error(`${odpoved.status} ${odpoved.statusText} — ${url}`);
-	return odpoved.json();
-}
 
 /**
  * Web Mercator natahuje vzdálenosti o 1/cos(šířky). Přes 383 m se ten poměr
@@ -210,30 +198,19 @@ async function seznamParcel() {
 	return { parcely, pozemek: body };
 }
 
-/** RÚIAN vrací geometrii v S-JTSK; do Mercatoru ji převede transformační služba ČÚZK. */
-async function doMercatoru(body) {
-	const hotovo = [];
-	for (let i = 0; i < body.length; i += 400) {
-		const { geometries } = await odesliJson(PREVOD, {
-			inSR: 5514,
-			outSR: 3857,
-			f: 'json',
-			geometries: JSON.stringify({
-				geometryType: 'esriGeometryPoint',
-				geometries: body.slice(i, i + 400).map(([x, y]) => ({ x, y })),
-			}),
-		});
-		hotovo.push(...geometries.map((g) => [g.x, g.y]));
-	}
-	return hotovo;
-}
-
+/*
+ * Geometrie se žádá rovnou v Mercatoru, ne v S-JTSK s dodatečným převodem.
+ * Transformační služba totiž bez parametru `transformation` volí hrubý
+ * tříprvkový Helmert a zákres pak ležel o 2,2 m jihovýchodně od kresby —
+ * ortofoto i WMS kresba se žádají s bboxem v EPSG:3857, takže reprojekci
+ * dělá server sám a správně. Takhle ji dělá i tady a vrstvy sedí na sebe.
+ */
 async function geometrieParcel(parcely) {
 	const odpoved = await stahniJson(RUIAN, {
 		where: `id IN (${parcely.map((p) => p.id).join(',')})`,
 		outFields: 'id,cisloparcely,vymeraparcely,druhcislovanikod',
 		returnGeometry: true,
-		outSR: 5514,
+		outSR: 3857,
 		f: 'json',
 	});
 
@@ -241,18 +218,11 @@ async function geometrieParcel(parcely) {
 	const chybi = parcely.filter((p) => !podleId.has(p.id));
 	if (chybi.length) throw new Error(`RÚIAN nezná parcely: ${chybi.map((p) => p.cislo).join(', ')}`);
 
-	// všechny vrcholy najednou, ať se transformační služba volá co nejméně
-	const plocho = [];
-	const rozvrh = parcely.map((p) => {
-		const rings = podleId.get(p.id).geometry.rings;
-		return {
-			...p,
-			vymeraKn: podleId.get(p.id).attributes.vymeraparcely,
-			rings: rings.map((r) => r.map((bod) => (plocho.push(bod), plocho.length - 1))),
-		};
-	});
-	const merc = await doMercatoru(plocho);
-	return rozvrh.map((p) => ({ ...p, rings: p.rings.map((r) => r.map((i) => merc[i])) }));
+	return parcely.map((p) => ({
+		...p,
+		vymeraKn: podleId.get(p.id).attributes.vymeraparcely,
+		rings: podleId.get(p.id).geometry.rings,
+	}));
 }
 
 /* ---------- popisky ---------- */
