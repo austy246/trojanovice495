@@ -48,6 +48,12 @@ const vymeraStavby = (co: string) => staveb.find((p) => p.stavba?.startsWith(co)
 const zastavenoDum = vymeraStavby('dům');
 const zastavenoGaraz = vymeraStavby('garáž');
 
+/*
+ * St. 173/4 — stavební parcela v háječku. V katastru je vedená jako zastavěná
+ * plocha, ale stavba na ní už nestojí, takže je volná k zastavění.
+ */
+const stavebniVHajecku = proCast('hajecek').find((p) => p.stavebni);
+
 // Plochy místností opsané z legend na stavebních výkresech (A.J.A, 07/2004) —
 // listy „Půdorys přízemí“ a „Půdorys podkroví“, viz nakresy.ts. Čísla místností
 // odpovídají popiskům ve výkresech, ať se dají v legendě dohledat.
@@ -137,6 +143,10 @@ export const nemovitost = {
 		// Pozemek je odměřený ze zákresu do katastrální mapy — viz parcely.ts.
 		{ nazev: 'Pozemek u domu', hodnota: '≈ 3 200 m²' },
 		{ nazev: 'Háječek v nabídce', hodnota: '2 642 m²' },
+		{
+			nazev: 'Volná stavební parcela',
+			hodnota: `${stavebniVHajecku?.vymera ?? 0} m² v háječku`,
+		},
 		{ nazev: 'Rok výstavby', hodnota: '2006' },
 		{ nazev: 'Stav', hodnota: 'Původní, bez rekonstrukce' },
 		{ nazev: 'Fasáda', hodnota: 'Omítka, dřevem obložený štít' },
