@@ -31,6 +31,9 @@ const pomer = ((vyrez.vyska / vyrez.sirka) * 100).toFixed(3);
 const jeDetail = varianta === 'detail';
 
 const pozemek = pozemekUDomu[varianta];
+
+/** id musí být jedinečné přes celou stránku, výřezy na ní můžou být dva */
+const idNabidky = `nabidka-${varianta}`;
 ---
 
 <figure class="mapa-fig">
@@ -38,16 +41,40 @@ const pozemek = pozemekUDomu[varianta];
 		<div class="mapa__pomer" style={`padding-top:${pomer}%`}></div>
 
 		<div class="mapa__scena">
-			<picture>
-				<source srcset={`/katastr/${varianta}-orto.avif`} type="image/avif" />
-				<img
-					class="mapa__vrstva mapa__orto"
-					src={`/katastr/${varianta}-orto.webp`}
-					alt="Ortofoto ČÚZK"
-					draggable="false"
-					loading="lazy"
+			{/*
+			 * Ortofoto je v mapě dvakrát, ale stahuje se jednou — obě vrstvy míří
+			 * na týž soubor. Spodní je odbarvená, horní se ořízne na plochu nabídky
+			 * a barvu si nechá. Okolí tím zůstane trvale černobílé a co se prodává,
+			 * je poznat na první pohled i bez jediné čáry navíc.
+			 */}
+			<img
+				class="mapa__vrstva mapa__orto"
+				src={`/katastr/${varianta}-orto.webp`}
+				alt="Ortofoto ČÚZK"
+				draggable="false"
+				loading="lazy"
+			/>
+
+			<svg class="mapa__vrstva" viewBox={viewBox} preserveAspectRatio="none" aria-hidden="true">
+				<defs>
+					<clipPath id={idNabidky}>
+						{/* překryv tvarů nevadí, clipPath je sjednocuje */}
+						<path d={pozemek.d} />
+						{parcely.filter(jeNase).map((p) => (
+							<path d={p[varianta].d} />
+						))}
+					</clipPath>
+				</defs>
+				<image
+					href={`/katastr/${varianta}-orto.webp`}
+					x="0"
+					y="0"
+					width={vyrez.sirka}
+					height={vyrez.vyska}
+					preserveAspectRatio="none"
+					clip-path={`url(#${idNabidky})`}
 				/>
-			</picture>
+			</svg>
 
 			<svg class="mapa__vrstva mapa__vyplne" viewBox={viewBox} preserveAspectRatio="none" aria-hidden="true">
 				{
@@ -203,6 +230,11 @@ const pozemek = pozemekUDomu[varianta];
 		user-select: none;
 	}
 
+	/* Spodní ortofoto je celé odbarvené; barvu vrací až oříznutá vrstva nad ním. */
+	.mapa__orto {
+		filter: grayscale(1);
+	}
+
 	/*
 	 * Katastrální kresba je podklad, ne sdělení. Bílá se proto ještě ztlumí,
 	 * aby hranice a čísla byly čitelné, když je člověk hledá, ale nepřetahovaly
@@ -213,24 +245,18 @@ const pozemek = pozemekUDomu[varianta];
 	}
 
 	/*
+	 * V klidu nemá výplň žádná parcela. Že je pozemek v nabídce, říká barva
+	 * proti černobílému okolí — modrá přes ni by jen ubrala na tom, co je pod ní.
+	 * Modrá zůstává jediné věci: vybrané položce.
+	 *
 	 * Barvu výplně a barvu obrysu drž v oddělených pravidlech. Sloučené
 	 * `.vyplen.je-st, .obrys.je-st { fill: … }` má vyšší specificitu než
 	 * `.obrys { fill: none }` a obarvilo by i obrysovou vrstvu, která žádnou
 	 * průhlednost nemá — parcely by přes ortofoto vyšly jako plné plochy.
 	 */
-	/*
-	 * Nabízené pozemky jsou modré; stavební parcely jen sytěji, protože jsou
-	 * drobné a proti ortofotu by se ztratily.
-	 */
 	.vyplen {
 		stroke: none;
-		fill: var(--barva-nabidka);
-		fill-opacity: 0.14;
-	}
-
-	.vyplen.je-st {
-		fill: var(--barva-nabidka-syta);
-		fill-opacity: 0.42;
+		fill: none;
 	}
 
 	/*
@@ -276,10 +302,6 @@ const pozemek = pozemekUDomu[varianta];
 		outline: none;
 	}
 
-	.vyplen.je-pozemek {
-		fill: var(--barva-nabidka);
-		fill-opacity: 0.2;
-	}
 
 	/*
 	 * V klidu se ani pozemek neobtahuje — v mapě nemá čáru žádná plocha nabídky
@@ -318,10 +340,6 @@ const pozemek = pozemekUDomu[varianta];
 	 * katastrální podklad a druhá vrstva by je jen zdvojila. Třídy zůstávají,
 	 * protože podle je-mimo pozná skript, že se nemají zvýrazňovat.
 	 */
-	.vyplen.je-mimo {
-		fill: none;
-	}
-
 	.obrys.je-mimo {
 		stroke: none;
 		pointer-events: none;

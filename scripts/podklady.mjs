@@ -336,8 +336,12 @@ async function main() {
 	for (const [varianta, r] of Object.entries(ramce)) {
 		console.log(`\n${varianta}: ${r.px[0]}×${r.px[1]} px, viewBox ${r.jednotek[0]}×${r.jednotek[1]}`);
 
+		/*
+		 * Jen WebP. Mapa ukazuje ortofoto ve dvou vrstvách — odbarvené a barevný
+		 * ořez nabídky — a obě musí mířit na týž soubor, aby se stáhl jednou.
+		 * SVG <image> nezvládne <picture>, takže by AVIF vedl k druhému stažení.
+		 */
 		const orto = await ortofoto(r);
-		await sharp(orto).avif({ quality: 55, effort: 6 }).toFile(resolve(KOREN, `public/katastr/${varianta}-orto.avif`));
 		await sharp(orto).webp({ quality: 74, effort: 6 }).toFile(resolve(KOREN, `public/katastr/${varianta}-orto.webp`));
 
 		const cary = await obarvi(await kresba(r), BARVA_KRESBY);

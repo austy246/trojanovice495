@@ -32,15 +32,11 @@ const vymeraText = `≈ ${vymeraSlovy(vymeraNabidky)}`;
 const vyjmenuj = (polozky: string[]) =>
 	polozky.length < 2 ? (polozky[0] ?? '') : `${polozky.slice(0, -1).join(', ')} a ${polozky.at(-1)}`;
 
-const prehledPopis =
-	`Přehled — modře pozemky v nabídce, ${vymeraText}: vymezený pozemek u domu a vedle něj ` +
-	'všechny tři parcely háječku. Bíle katastrální mapa s okolními parcelami.';
-
 const detailPopis =
-	'Detail zastavěné části — ' +
+	`Barevně je nabídka, ${vymeraText} — vymezený pozemek u domu se stavbami ` +
 	vyjmenuj(stavby.map((p) => `${p.cislo} (${p.stavba ?? 'bez stavby'})`)) +
-	'. Modré plochy jsou pozemky v nabídce; jihozápadní strana pozemku u domu je nově ' +
-	`vyznačená, ${pozemekUDomu.delka} m přes louku.`;
+	' a vedle něj všechny tři parcely háječku; okolí je černobílé. Jihozápadní strana ' +
+	`pozemku u domu je nově vyznačená, ${pozemekUDomu.delka} m přes louku.`;
 
 /** čím se parcela vypíše v tabulce nabídky */
 const popisParcely = (p: Parcela) => p.poznamka ?? p.stavba ?? p.druh;
@@ -71,15 +67,7 @@ const casti = [uDomu, hajecek];
 			</div>
 		</dl>
 
-		<div class="ovladani">
-			<span class="legenda">
-				<span><b class="tecka je-st" /> stavební parcely</span>
-				<span><b class="tecka je-poz" /> pozemky v nabídce</span>
-			</span>
-		</div>
-
 		<div class="mapy">
-			<KatastralniMapa varianta="prehled" popis={prehledPopis} />
 			<KatastralniMapa varianta="detail" popis={detailPopis} />
 		</div>
 
@@ -155,7 +143,7 @@ const casti = [uDomu, hajecek];
 
 		<p class="zdroj">
 			Geometrie parcel: RÚIAN, <a href="https://ags.cuzk.gov.cz/arcgis/rest/services/RUIAN/MapServer" target="_blank" rel="noopener">ČÚZK</a>.
-			Podklad obou map: ortofoto ČÚZK v rozlišení 12,5&nbsp;cm/px a WMS Katastrální mapa,
+			Podklad mapy: ortofoto ČÚZK v rozlišení 12,5&nbsp;cm/px a WMS Katastrální mapa,
 			staženo 27.&nbsp;8.&nbsp;2026. Zobrazení je orientační a nenahrazuje
 			výpis z katastru nemovitostí ani geometrický plán.
 			Hranice pozemku u domu je zákres do katastrální mapy — výměra je odměřená, ne úřední,
@@ -201,72 +189,12 @@ const casti = [uDomu, hajecek];
 		color: var(--barva-text-tlumena);
 	}
 
-	.ovladani {
-		display: flex;
-		flex-wrap: wrap;
-		align-items: center;
-		gap: 0.6rem 1.4rem;
-		padding: 0.6rem 0.9rem;
-		margin-bottom: 1.25rem;
-		border: 1px solid var(--barva-linka);
-		border-radius: 2px;
-		background: var(--barva-pozadi-blok);
-		font-size: 0.875rem;
-	}
-
-	.ovladani label {
-		display: flex;
-		align-items: center;
-		gap: 0.45rem;
-		cursor: pointer;
-	}
-
-	.ovladani input {
-		width: 16px;
-		height: 16px;
-		accent-color: var(--barva-akcent);
-	}
-
-	.legenda {
-		display: flex;
-		flex-wrap: wrap;
-		align-items: center;
-		gap: 0.4rem 1.1rem;
-		color: var(--barva-text-tlumena);
-	}
-
-	.legenda > span {
-		display: flex;
-		align-items: center;
-		gap: 0.45rem;
-	}
-
-	.tecka {
-		width: 11px;
-		height: 11px;
-		border-radius: 2px;
-		display: inline-block;
-	}
-
-	.tecka.je-st {
-		background: var(--barva-nabidka-syta);
-	}
-
-	.tecka.je-poz {
-		background: var(--barva-nabidka);
-	}
-
+	/*
+	 * Mapa je na výšku (122 × 152,5 m), takže roztažená na celou šířku obsahu
+	 * by byla přes tisíc pixelů vysoká. Šířka se proto omezuje.
+	 */
 	.mapy {
-		display: grid;
-		gap: 1.25rem;
-		grid-template-columns: 1fr;
-	}
-
-	@media (min-width: 900px) {
-		.mapy {
-			grid-template-columns: 1.62fr 1fr;
-			align-items: start;
-		}
+		max-width: 36rem;
 	}
 
 	.napoveda {
