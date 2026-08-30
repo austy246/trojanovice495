@@ -115,8 +115,9 @@ export const nemovitost = {
 		'sedm pokojů a tři koupelny; teplo dodává tepelné čerpadlo země-voda do podlahového ' +
 		'vytápění. Zahrada kolem domu měla dvacet let na to, aby vzrostla — k domu patří ' +
 		'zhruba 3 200 m² pozemku. Spolu s domem se v jedné nabídce prodává i sousední ' +
-		'háječek se stavebním pozemkem, dalších 2 642 m². Dolní stanice lanovky na ' +
-		'Pustevny je odsud kilometr daleko.',
+		'háječek, dalších 2 642 m² s vlastní přístupovou cestou a s volnou stavební ' +
+		'parcelou — stavba, kterou na ní katastr eviduje, už fyzicky nestojí. Dolní ' +
+		'stanice lanovky na Pustevny je odsud kilometr daleko.',
 
 	// Úvodní fotka. Varianta na výšku je vlastní výřez pro úzké displeje —
 	// na nich by se z fotky na šířku ukázalo celé nebe i celá louka.
@@ -142,10 +143,10 @@ export const nemovitost = {
 		},
 		// Pozemek je odměřený ze zákresu do katastrální mapy — viz parcely.ts.
 		{ nazev: 'Pozemek u domu', hodnota: '≈ 3 200 m²' },
-		{ nazev: 'Háječek v nabídce', hodnota: '2 642 m²' },
+		{ nazev: 'Háječek v nabídce', hodnota: '2 642 m² s vlastní přístupovou cestou' },
 		{
 			nazev: 'Volná stavební parcela',
-			hodnota: `${stavebniVHajecku?.vymera ?? 0} m² v háječku`,
+			hodnota: `${stavebniVHajecku?.vymera ?? 0} m² v háječku (${stavebniVHajecku?.cislo ?? ''})`,
 		},
 		{ nazev: 'Rok výstavby', hodnota: '2006' },
 		{ nazev: 'Stav', hodnota: 'Původní, bez rekonstrukce' },

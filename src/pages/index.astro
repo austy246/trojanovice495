@@ -7,7 +7,6 @@ import Cena from '../components/Cena.astro';
 import { existsSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { energie, nemovitost } from '../data/nemovitost';
-import { hajecek } from '../data/hajecek';
 import { spolecne, telefonHref } from '../data/spolecne';
 
 const { nazev, podtitul, perex, cena, cenaPoznamka, uvodniFoto, parametry, rozlozeni, galerie } =
@@ -127,24 +126,6 @@ const maPrukaz = existsSync(
 	<PlochyMistnosti />
 
 	<Nakresy />
-
-	<section class="sekce sekce--tlumena" id="hajecek">
-		<div class="obsah">
-			<p class="nadpis-sekce">{hajecek.podtitul}</p>
-			<h2>{hajecek.nazev}</h2>
-			<p class="hajecek__perex">{hajecek.perex}</p>
-			<dl class="parametry">
-				{
-					hajecek.parametry.map((polozka) => (
-						<div class="parametry__polozka">
-							<dt>{polozka.nazev}</dt>
-							<dd>{polozka.hodnota}</dd>
-						</div>
-					))
-				}
-			</dl>
-		</div>
-	</section>
 
 	<Pozemky />
 
@@ -370,12 +351,6 @@ const maPrukaz = existsSync(
 	.galerie figcaption {
 		margin-top: 0.5rem;
 		font-size: 0.875rem;
-		color: var(--barva-text-tlumena);
-	}
-
-	.hajecek__perex {
-		max-width: 42rem;
-		margin: 0 0 clamp(1.5rem, 4vw, 2.25rem);
 		color: var(--barva-text-tlumena);
 	}
 
