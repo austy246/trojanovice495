@@ -5,7 +5,6 @@ import {
 	pozemekUDomu,
 	proCast,
 	type Parcela,
-	vymeraHajecku,
 	vymeraKolemStaveb,
 	vymeraNabidky,
 	vymeraSlovy,
@@ -35,7 +34,7 @@ const vyjmenuj = (polozky: string[]) =>
 
 const prehledPopis =
 	`Přehled — modře pozemky v nabídce, ${vymeraText}: vymezený pozemek u domu a vedle něj ` +
-	'všechny tři parcely háječku. Čárkovaně sousední parcely mimo nabídku.';
+	'všechny tři parcely háječku. Bíle katastrální mapa s okolními parcelami.';
 
 const detailPopis =
 	'Detail zastavěné části — ' +
@@ -46,10 +45,12 @@ const detailPopis =
 /** čím se parcela vypíše v tabulce nabídky */
 const popisParcely = (p: Parcela) => p.poznamka ?? p.stavba ?? p.druh;
 
-const skupiny = [
-	{ nazev: 'U domu', vymera: `≈ ${cislo.format(pozemekUDomu.vymera)} m²`, parcely: uDomu },
-	{ nazev: 'Háječek', vymera: `${cislo.format(vymeraHajecku)} m²`, parcely: hajecek },
-];
+/*
+ * Tabulka je jeden plochý seznam: nejdřív stavby u domu a pozemek kolem nich,
+ * pak háječek. Mezinadpisy obou částí odpadly — výměry za obě části stojí
+ * v rozpisce nad mapami a co ke které patří, říká poznámka u řádku.
+ */
+const casti = [uDomu, hajecek];
 ---
 
 <section class="sekce" id="pozemky">
@@ -101,15 +102,9 @@ const skupiny = [
 					</tr>
 				</thead>
 				{
-					skupiny.map((skupina) => (
+					casti.map((cast) => (
 						<tbody>
-							<tr class="skupina">
-								<td class="pruh" />
-								<th colspan="4" scope="colgroup">
-									{skupina.nazev} <span>{skupina.vymera}</span>
-								</th>
-							</tr>
-							{skupina.parcely.map((p) => (
+							{cast.map((p) => (
 								<tr data-p={p.cislo} class={`je-nabidka${p.stavebni ? ' je-st' : ''}`} tabindex="0">
 									<td class="pruh">
 										<i />
@@ -128,7 +123,7 @@ const skupiny = [
 							 * Pozemek kolem staveb není parcela — teprve se z luk oddělí, proto
 							 * nemá číslo ani odkaz do katastru a výměra je odměřená.
 							 */}
-							{skupina.parcely === uDomu && (
+							{cast === uDomu && (
 								<tr class="je-nabidka" data-p={KLIC_POZEMKU} tabindex="0">
 									<td class="pruh">
 										<i />
@@ -354,34 +349,6 @@ const skupiny = [
 	.tabulka tbody tr.je-zvyraznena:focus-visible {
 		background: color-mix(in srgb, var(--barva-nabidka-vybrana) 26%, transparent);
 		outline: none;
-	}
-
-	/* mezinadpis obou částí nabídky — jen popisek, nedá se vybrat */
-	.tabulka tr.skupina,
-	.tabulka tr.skupina:hover {
-		cursor: default;
-		background: none;
-	}
-
-	.tabulka tr.skupina th {
-		padding-top: 1rem;
-		font-size: 0.7rem;
-		letter-spacing: 0.1em;
-		text-transform: uppercase;
-		font-weight: 600;
-	}
-
-	.tabulka tr.skupina span {
-		font-family: ui-monospace, Consolas, monospace;
-		font-variant-numeric: tabular-nums;
-		letter-spacing: 0;
-		text-transform: none;
-		color: var(--barva-text-tlumena);
-	}
-
-	/* první skupina navazuje na hlavičku, druhá potřebuje vzduch nad sebou */
-	.tabulka tbody:first-of-type tr.skupina th {
-		padding-top: 0.55rem;
 	}
 
 	.tabulka td.pruh {

@@ -85,6 +85,8 @@ const udaje: Udaje[] = [
 		druh: 'trvalý travní porost',
 		stavebni: false,
 		cast: 'hajecek',
+		// Tabulka nemá mezinadpisy částí, háječek se proto jmenuje u své hlavní parcely.
+		poznamka: 'háječek — trvalý travní porost',
 		kn: 'https://nahlizenidokn.cuzk.gov.cz/ZobrazObjekt.aspx?typ=parcela&id=2200251804',
 	},
 	{
