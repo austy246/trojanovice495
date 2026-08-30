@@ -217,12 +217,12 @@ const pozemek = pozemekUDomu[varianta];
 	 */
 	.vyplen {
 		stroke: none;
-		fill: #2e9bff;
+		fill: var(--barva-nabidka);
 		fill-opacity: 0.14;
 	}
 
 	.vyplen.je-st {
-		fill: #0f7ae5;
+		fill: var(--barva-nabidka-syta);
 		fill-opacity: 0.42;
 	}
 
@@ -248,13 +248,18 @@ const pozemek = pozemekUDomu[varianta];
 		stroke: #35a4ff;
 	}
 
+	/* Obrys vybrané parcely jde s výplní — sytější modrá, ne jen tlustší čára. */
+	.obrys.je-zvyraznena {
+		stroke: #9fd4ff;
+	}
+
 	/*
 	 * Vymezený pozemek u domu nese modrou plochu nabídky, proto vypadá jako
 	 * nabízená parcela — včetně obvodu. Že jedna jeho strana nemá oporu
 	 * v katastru, říká text pod mapou, ne odlišná čára.
 	 */
 	.vyplen.je-pozemek {
-		fill: #2e9bff;
+		fill: var(--barva-nabidka);
 		fill-opacity: 0.2;
 	}
 
@@ -272,8 +277,18 @@ const pozemek = pozemekUDomu[varianta];
 		stroke-width: calc(5px / var(--u));
 	}
 
+	/*
+	 * Vybraná parcela nemění jen průhlednost, ale i odstín. Samotná průhlednost
+	 * by u stavebních parcel skoro nebyla vidět — začínají na 0.42, takže mezi
+	 * klidem a výběrem by zbyl jen nepatrný rozdíl.
+	 *
+	 * Krytí zůstává pod polovinou schválně: výš už modrá překryje porost
+	 * a z parcely se stane jednolitá plocha. Výběr nese odstín a silnější
+	 * obrys, ne neprůhlednost — kupující má pořád vidět, co kupuje.
+	 */
 	.vyplen.je-zvyraznena {
-		fill-opacity: 0.6;
+		fill: var(--barva-nabidka-vybrana);
+		fill-opacity: 0.45;
 	}
 
 	/*

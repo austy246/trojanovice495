@@ -109,7 +109,7 @@ const skupiny = [
 								</th>
 							</tr>
 							{skupina.parcely.map((p) => (
-								<tr data-p={p.cislo} class={p.stavebni ? 'je-st' : ''} tabindex="0">
+								<tr data-p={p.cislo} class={`je-nabidka${p.stavebni ? ' je-st' : ''}`} tabindex="0">
 									<td class="pruh">
 										<i />
 									</td>
@@ -128,7 +128,7 @@ const skupiny = [
 							 * nemá číslo ani odkaz do katastru a výměra je odměřená.
 							 */}
 							{skupina.parcely === uDomu && (
-								<tr>
+								<tr class="je-nabidka">
 									<td class="pruh">
 										<i />
 									</td>
@@ -253,11 +253,11 @@ const skupiny = [
 	}
 
 	.tecka.je-st {
-		background: #0f7ae5;
+		background: var(--barva-nabidka-syta);
 	}
 
 	.tecka.je-poz {
-		background: #2e9bff;
+		background: var(--barva-nabidka);
 	}
 
 	.mapy {
@@ -324,14 +324,34 @@ const skupiny = [
 		white-space: nowrap;
 	}
 
-	.tabulka tbody tr {
+	/* Kliknout jde jen řádek s parcelou; pozemek kolem staveb v katastru není. */
+	.tabulka tbody tr[data-p] {
 		cursor: pointer;
 	}
 
-	.tabulka tbody tr:hover,
-	.tabulka tbody tr:focus-visible,
-	.tabulka tbody tr.je-zvyraznena {
-		background: color-mix(in srgb, var(--barva-text) 8%, transparent);
+	/*
+	 * Modrá v tabulce má tři stupně a odpovídá mapě: co je v nabídce, je lehce
+	 * modré, co je pod myší o něco víc, a vybraná položka nejvíc — a mění i
+	 * odstín, aby výběr nešlo splést s pouhým najetím.
+	 */
+	.tabulka tbody tr.je-nabidka {
+		background: color-mix(in srgb, var(--barva-nabidka) 8%, transparent);
+	}
+
+	.tabulka tbody tr.je-nabidka:hover,
+	.tabulka tbody tr.je-nabidka:focus-visible {
+		background: color-mix(in srgb, var(--barva-nabidka) 17%, transparent);
+		outline: none;
+	}
+
+	/*
+	 * Musí přebít pravidlo pro najetí, které má o třídu vyšší specificitu —
+	 * jinak by vybraný řádek pod myší zesvětlal zpátky na barvu najetí.
+	 */
+	.tabulka tbody tr.je-zvyraznena,
+	.tabulka tbody tr.je-zvyraznena:hover,
+	.tabulka tbody tr.je-zvyraznena:focus-visible {
+		background: color-mix(in srgb, var(--barva-nabidka-vybrana) 26%, transparent);
 		outline: none;
 	}
 
@@ -373,11 +393,15 @@ const skupiny = [
 		width: 4px;
 		height: 26px;
 		border-radius: 2px;
-		background: #2e9bff;
+		background: var(--barva-nabidka);
 	}
 
 	.tabulka tr.je-st td.pruh i {
-		background: #0f7ae5;
+		background: var(--barva-nabidka-syta);
+	}
+
+	.tabulka tr.je-zvyraznena td.pruh i {
+		background: var(--barva-nabidka-vybrana);
 	}
 
 	.tabulka td.num {

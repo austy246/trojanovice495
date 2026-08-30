@@ -5,6 +5,16 @@
 	--barva-pozadi-blok: #f2ede5;
 	--barva-akcent: #7a6a4f;
 	--barva-linka: #e0d8cb;
+	/*
+	 * Modrá nabídky. Drží pohromadě mapu a tabulku, proto stojí tady a ne
+	 * v komponentách: co je v mapě modré, je i v tabulce modré.
+	 *   -nabidka       pozemky v nabídce
+	 *   -nabidka-syta  stavební parcely — jsou drobné a potřebují víc síly
+	 *   -nabidka-vybrana  vybraná položka v mapě i v tabulce
+	 */
+	--barva-nabidka: #2e9bff;
+	--barva-nabidka-syta: #0f7ae5;
+	--barva-nabidka-vybrana: #0a6ad2;
 	--sirka-obsahu: 68rem;
 	--mezera-sekce: 5rem;
 	--pismo: 'Georgia', 'Times New Roman', serif;
