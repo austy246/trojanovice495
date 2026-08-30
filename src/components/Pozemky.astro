@@ -439,6 +439,12 @@ const casti = [uDomu, hajecek];
 		el.addEventListener('blur', () => najeti(klic, false));
 
 		const vyber = (e: Event) => {
+			/*
+			 * Odkaz do katastru leží uvnitř řádku, takže jeho kliknutí probublá sem.
+			 * Bez téhle výjimky by ho preventDefault níž zrušil a odkaz by nefungoval.
+			 */
+			if ((e.target as Element | null)?.closest('a')) return;
+
 			// tažení mapy nesmí skončit výběrem parcely
 			const mapa = el.closest<HTMLElement>('.mapa');
 			if (mapa && mapa.dataset.tazeno === '1') return;
