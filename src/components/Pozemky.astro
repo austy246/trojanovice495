@@ -116,7 +116,7 @@ const casti = [uDomu, hajecek];
 									<td class="pruh">
 										<i />
 									</td>
-									<td class="num">Pozemek kolem staveb</td>
+									<td class="nazev">Pozemek kolem staveb</td>
 									<td class="v">≈ {cislo.format(vymeraKolemStaveb)}</td>
 									<td class="druh">
 										Oddělí se geometrickým plánem z {vyjmenuj([...pozemekUDomu.zParcel])}
@@ -130,7 +130,7 @@ const casti = [uDomu, hajecek];
 				<tfoot>
 					<tr>
 						<td class="pruh"></td>
-						<td>Celkem</td>
+						<td class="nazev">Celkem</td>
 						<td class="v">≈ {cislo.format(vymeraNabidky)}</td>
 						<td class="druh">
 							zaokrouhleno — pozemek u domu je odměřený ze zákresu, háječek podle katastru
@@ -305,6 +305,15 @@ const casti = [uDomu, hajecek];
 		white-space: nowrap;
 	}
 
+	/*
+	 * Popisek, ne číslo parcely: běžné písmo a smí se zalomit. V monospace
+	 * s nowrap roztahoval sloupec Předmět na 187 px a tabulka se pak na mobilu
+	 * nevešla ani do vodorovného posuvu.
+	 */
+	.tabulka td.nazev {
+		font-weight: 600;
+	}
+
 	.tabulka td.druh {
 		color: var(--barva-text-tlumena);
 	}
@@ -326,6 +335,99 @@ const casti = [uDomu, hajecek];
 	.tabulka tfoot td {
 		font-weight: 600;
 		border-bottom: none;
+	}
+
+	/*
+	 * Na úzkém displeji se z každého řádku stane karta. Pět sloupců, z nichž
+	 * dva nesou věty, se na 375 px nevejde ani po zúžení — vodorovný posuv
+	 * tabulky je sice pojistka, ale číst se v něm nedá.
+	 *
+	 * Řádek je mřížka: název a výměra vedle sebe, poznámka a odkaz pod nimi
+	 * přes celou šířku. Modrý proužek drží polohu absolutně, aby si v mřížce
+	 * nebral sloupec.
+	 */
+	@media (max-width: 34rem) {
+		.tabulka {
+			overflow-x: visible;
+		}
+
+		.tabulka table,
+		.tabulka tbody,
+		.tabulka tfoot,
+		.tabulka tr,
+		.tabulka td {
+			display: block;
+		}
+
+		/* hlavička popisuje sloupce, které v kartě nejsou */
+		.tabulka thead {
+			display: none;
+		}
+
+		.tabulka tr {
+			position: relative;
+			display: grid;
+			grid-template-columns: 1fr auto;
+			gap: 0.1rem 0.7rem;
+			padding: 0.7rem 0.9rem 0.7rem 1.3rem;
+			border-bottom: 1px solid var(--barva-linka);
+		}
+
+		.tabulka td {
+			padding: 0;
+			border: none;
+		}
+
+		.tabulka td.pruh {
+			position: absolute;
+			left: 6px;
+			top: 0.8rem;
+			width: 4px;
+			padding: 0;
+		}
+
+		.tabulka td.num,
+		.tabulka td.nazev {
+			grid-column: 1;
+		}
+
+		.tabulka td.v {
+			grid-column: 2;
+			text-align: right;
+		}
+
+		/* hlavička je pryč, jednotku proto nese hodnota */
+		.tabulka td.v::after {
+			content: ' m²';
+			color: var(--barva-text-tlumena);
+		}
+
+		.tabulka td.druh,
+		.tabulka td.odkaz {
+			grid-column: 1 / -1;
+		}
+
+		.tabulka td.druh {
+			font-size: 0.85rem;
+			line-height: 1.5;
+		}
+
+		/* prázdné buňky by v mřížce dělaly mezeru */
+		.tabulka td:empty {
+			display: none;
+		}
+
+		.tabulka td.odkaz {
+			margin-top: 0.15rem;
+		}
+
+		.tabulka caption {
+			padding-bottom: 0.6rem;
+		}
+
+		.tabulka tfoot tr {
+			border-bottom: none;
+		}
 	}
 
 	.zdroj {
