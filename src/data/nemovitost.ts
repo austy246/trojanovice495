@@ -2,6 +2,23 @@
 // prodává spolu s nimi v jedné nabídce, má vlastní soubor hajecek.ts; údaje
 // společné oběma částem (kontakt, lokalita, souřadnice) jsou v spolecne.ts.
 
+import { proCast } from './parcely';
+
+/*
+ * Zastavěná plocha se dopočítává z výměr obou stavebních parcel u domu —
+ * obrysem stavební parcely je sama stavba. Opsané číslo by se rozešlo
+ * s katastrem, jakmile by se výměra opravila.
+ *
+ * Pozor na rozdíl proti užitné ploše níž: ta je součtem místností a je jen
+ * za dům, kdežto zastavěná plocha je půdorys domu i garáže. Čísla vycházejí
+ * skoro stejná (297 a 299 m²), a přitom měří něco jiného — proto jsou
+ * v přehledu vedle sebe a s rozpisem, ne každé jinde.
+ */
+const staveb = proCast('dum').filter((p) => p.stavebni);
+const vymeraStavby = (co: string) => staveb.find((p) => p.stavba?.startsWith(co))?.vymera ?? 0;
+const zastavenoDum = vymeraStavby('dům');
+const zastavenoGaraz = vymeraStavby('garáž');
+
 // Plochy místností opsané z legend na stavebních výkresech (A.J.A, 07/2004) —
 // listy „Půdorys přízemí“ a „Půdorys podkroví“, viz nakresy.ts. Čísla místností
 // odpovídají popiskům ve výkresech, ať se dají v legendě dohledat.
@@ -78,12 +95,16 @@ export const nemovitost = {
 	parametry: [
 		{ nazev: 'Dispozice', hodnota: '7+1' },
 		{ nazev: 'Koupelny', hodnota: '3' },
+		// Obě plochy stojí vedle sebe schválně — viz poznámka u zastavenoDum výš.
 		// V přehledu zaokrouhleno, přesný součet je v sekci Rozlohy místností.
-		{ nazev: 'Užitná plocha', hodnota: `${Math.round(uzitnaPlocha)} m²` },
+		{ nazev: 'Užitná plocha domu', hodnota: `${Math.round(uzitnaPlocha)} m² ve dvou podlažích` },
+		{
+			nazev: 'Zastavěná plocha',
+			hodnota: `${zastavenoDum + zastavenoGaraz} m² — dům ${zastavenoDum}, garáž ${zastavenoGaraz}`,
+		},
 		// Pozemek je odměřený ze zákresu do katastrální mapy — viz parcely.ts.
 		{ nazev: 'Pozemek u domu', hodnota: '≈ 3 200 m²' },
 		{ nazev: 'Háječek v nabídce', hodnota: '2 642 m²' },
-		{ nazev: 'Zastavěná plocha', hodnota: '299 m² (dům a garáž)' },
 		{ nazev: 'Rok výstavby', hodnota: '2006' },
 		{ nazev: 'Stav', hodnota: 'Původní, bez rekonstrukce' },
 		{ nazev: 'Fasáda', hodnota: 'Omítka, dřevem obložený štít' },
