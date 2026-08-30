@@ -1,6 +1,7 @@
 ---
 import KatastralniMapa from './KatastralniMapa.astro';
 import {
+	KLIC_POZEMKU,
 	pozemekUDomu,
 	proCast,
 	type Parcela,
@@ -128,7 +129,7 @@ const skupiny = [
 							 * nemá číslo ani odkaz do katastru a výměra je odměřená.
 							 */}
 							{skupina.parcely === uDomu && (
-								<tr class="je-nabidka">
+								<tr class="je-nabidka" data-p={KLIC_POZEMKU} tabindex="0">
 									<td class="pruh">
 										<i />
 									</td>

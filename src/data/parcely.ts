@@ -128,6 +128,14 @@ export const parcely: Parcela[] = udaje.map((p) => {
  * Pozor: kromě obou stavebních parcel nejde o celé parcely — pozemek kolem
  * domu se z 2260/8, 3587/5 a 1888/18 teprve oddělí geometrickým plánem.
  */
+/*
+ * Klíč pro provázání mapy s tabulkou. Pozemek nemá číslo parcely, protože
+ * v katastru zatím není — potřebuje ale vlastní jméno, aby se na něm mapa
+ * a tabulka domluvily stejně jako na parcelách. Mezera v něm zaručuje, že
+ * se nesrazí s žádným katastrálním číslem.
+ */
+export const KLIC_POZEMKU = 'pozemek u staveb';
+
 export const pozemekUDomu = {
 	/** zaokrouhleno na stovky — zdroj je zákres, ne geometrický plán */
 	vymera: 3200,

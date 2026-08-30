@@ -1,5 +1,5 @@
 ---
-import { parcely, pozemekUDomu, VYREZY } from '../data/parcely';
+import { KLIC_POZEMKU, parcely, pozemekUDomu, VYREZY } from '../data/parcely';
 
 interface Props {
 	/** který výřez se vykresluje */
@@ -60,7 +60,7 @@ const pozemek = pozemekUDomu[varianta];
 				 * Vymezený pozemek u domu se v katastru zatím nekreslí, tady ale
 				 * plochu nabídky nese — obě stavební parcely u domu leží uvnitř něj.
 				 */}
-				<path class="vyplen je-pozemek" d={pozemek.d} />
+				<path class="vyplen je-pozemek" data-p={KLIC_POZEMKU} d={pozemek.d} />
 			</svg>
 
 			<img
@@ -72,6 +72,23 @@ const pozemek = pozemekUDomu[varianta];
 			/>
 
 			<svg class="mapa__vrstva" viewBox={viewBox} preserveAspectRatio="none" role="img" aria-label={popis}>
+				{/*
+				 * Plocha, kterou se chytá pozemek u staveb. Stojí před obrysy parcel
+				 * schválně: obě stavební parcely leží uvnitř něj a při shodě vyhrává
+				 * ta, která se kreslí později — takže dům i garáž zůstanou klikatelné
+				 * a pozemek bere jen zbytek své plochy.
+				 */}
+				<path
+					class="chyt"
+					data-p={KLIC_POZEMKU}
+					d={pozemek.d}
+					tabindex="0"
+					role="button"
+					aria-label={`Pozemek kolem staveb, přibližně ${pozemekUDomu.vymera} m²`}
+				>
+					<title>{`Pozemek kolem staveb · ≈ ${pozemekUDomu.vymera} m²`}</title>
+				</path>
+
 				{
 					parcely.map((p) => (
 						<path
@@ -87,7 +104,7 @@ const pozemek = pozemekUDomu[varianta];
 						</path>
 					))
 				}
-				<path class="pozemek" d={pozemek.d} />
+				<path class="pozemek" data-p={KLIC_POZEMKU} d={pozemek.d} />
 
 				{/*
 				 * Popisky nese jen nabídka. Čísla ostatních parcel má vypálená
@@ -239,12 +256,24 @@ const pozemek = pozemekUDomu[varianta];
 	.obrys:hover,
 	.obrys:focus-visible {
 		stroke: #9fd4ff;
-		stroke-width: calc(4px / var(--u));
+		stroke-width: calc(2.2px / var(--u));
 	}
 
 	.obrys.je-zvyraznena {
 		stroke: #cfe9ff;
-		stroke-width: calc(5px / var(--u));
+		stroke-width: calc(3px / var(--u));
+	}
+
+	/*
+	 * Chytací plocha pozemku je celá průhledná — vidět je na něm výplň a obrys,
+	 * které kreslí jiné vrstvy. Sama jen sbírá myš a Tab.
+	 */
+	.chyt {
+		fill: transparent;
+		stroke: none;
+		pointer-events: all;
+		cursor: pointer;
+		outline: none;
 	}
 
 	.vyplen.je-pozemek {
@@ -253,17 +282,21 @@ const pozemek = pozemekUDomu[varianta];
 	}
 
 	/*
-	 * Jediná čára, kterou mapa kreslí sama od sebe. Hranice pozemku u domu se
-	 * teprve oddělí geometrickým plánem, takže v katastrálním podkladu není
-	 * — a je proto to jediné, co obtažením něco přidává, ne zdvojuje.
+	 * V klidu se ani pozemek neobtahuje — v mapě nemá čáru žádná plocha nabídky
+	 * a výjimka jen pro něj by mátla. Kudy hranice vede, ukazuje okraj výplně.
 	 * Že jedna její strana nemá oporu v katastru, říká text pod mapou.
 	 */
 	.pozemek {
 		fill: none;
 		pointer-events: none;
-		stroke: #35a4ff;
-		stroke-width: calc(2.6px / var(--u));
+		stroke: none;
 		stroke-linejoin: round;
+	}
+
+	/* Vybraný pozemek se obtáhne stejně jako parcela — chová se v mapě jako ony. */
+	.pozemek.je-zvyraznena {
+		stroke: #cfe9ff;
+		stroke-width: calc(3px / var(--u));
 	}
 
 	/*
