@@ -4,8 +4,8 @@ import Pozemky from '../components/Pozemky.astro';
 import Nakresy from '../components/Nakresy.astro';
 import PlochyMistnosti from '../components/PlochyMistnosti.astro';
 import Cena from '../components/Cena.astro';
-import { existsSync } from 'node:fs';
-import { fileURLToPath } from 'node:url';
+import { existsSync, statSync } from 'node:fs';
+import { resolve } from 'node:path';
 import { energie, nemovitost } from '../data/nemovitost';
 import { spolecne, telefonHref } from '../data/spolecne';
 
@@ -19,9 +19,13 @@ const cisloCZ = new Intl.NumberFormat('cs-CZ');
  * Odkaz na průkaz se ukáže, jen když soubor v public/ opravdu leží. Mrtvý
  * odkaz ke stažení je horší než žádný, a tohle se pozná při buildu.
  */
-const maPrukaz = existsSync(
-	fileURLToPath(new URL(`../../public${energie.prukaz.soubor}`, import.meta.url)),
-);
+const cestaPrukazu = resolve(process.cwd(), `public${energie.prukaz.soubor}`);
+const maPrukaz = existsSync(cestaPrukazu);
+
+/** U odkazu ke stažení patří velikost — ať člověk ví, do čeho jde, než klikne. */
+const velikostPrukazu = maPrukaz
+	? `${(statSync(cestaPrukazu).size / 1024 / 1024).toFixed(1).replace('.', ',')} MB`
+	: '';
 ---
 
 <Layout titulek={`${nazev} — ${podtitul}`} popis={perex}>
@@ -72,29 +76,28 @@ const maPrukaz = existsSync(
 			</ul>
 
 			<div class="provoz">
-				<p class="provoz__stitek" aria-hidden="true">{energie.trida}</p>
-				<div class="provoz__text">
-					<h3>Za provoz se platí jedna položka</h3>
-					<p>
-						Dům je celý na elektřině — tepelné čerpadlo země-voda topí i ohřívá vodu,
-						vaří se také elektřinou. Plyn zaveden není a voda teče z vlastní studny,
-						takže <strong>měsíčně odchází {cisloCZ.format(energie.mesicne)} Kč za elektřinu</strong>
-						{' '}a nic dalšího.
-					</p>
-					<p class="provoz__prukaz">
-						Energetická třída <strong>{energie.trida}</strong> — {energie.tridaSlovy}.
-						Průkaz energetické náročnosti ev.&nbsp;č. {energie.prukaz.evidencni},
-						vyhotoven {energie.prukaz.vyhotoven}, platný do {energie.prukaz.platnyDo}.
-						{
-							maPrukaz && (
-								<>
-									{' '}
-									<a href={energie.prukaz.soubor} download>Stáhnout celý průkaz (PDF)&nbsp;↓</a>
-								</>
-							)
-						}
-					</p>
-				</div>
+				<p class="stitek">
+					<span class="stitek__trida">{energie.trida}</span>
+					Energetická třída {energie.trida} — {energie.tridaSlovy}
+				</p>
+				<p class="provoz__text">
+					Dům je celý na elektřině — tepelné čerpadlo země-voda topí i ohřívá vodu,
+					vaří se také elektřinou. Plyn zaveden není a voda teče z vlastní studny,
+					takže měsíčně odchází <strong>{cisloCZ.format(energie.mesicne)} Kč za elektřinu</strong>
+					{' '}a nic dalšího.
+				</p>
+				<p class="provoz__prukaz">
+					Průkaz energetické náročnosti ev.&nbsp;č. {energie.prukaz.evidencni}, vyhotovil
+					{' '}{energie.prukaz.specialista} {energie.prukaz.vyhotoven}, platný do {energie.prukaz.platnyDo}.
+					{
+						maPrukaz && (
+							<>
+								{' '}
+								<a href={energie.prukaz.soubor} download>Stáhnout průkaz (PDF, {velikostPrukazu})&nbsp;↓</a>
+							</>
+						)
+					}
+				</p>
 			</div>
 		</div>
 	</section>
@@ -258,100 +261,63 @@ const maPrukaz = existsSync(
 	}
 
 	/*
-	 * Provozní náklady. Třída se ukazuje jako štítek vlevo — je to jediné číslo
-	 * v přehledu, které se dá porovnat napříč inzeráty, tak ať je vidět.
+	 * Provozní náklady. Nedělá se z nich vlastní ostrůvek s rámečkem a jiným
+	 * pozadím — v sekci už je rozpiska i rozložení podlaží a třetí krabice by
+	 * působila jako cizí prvek. Drží se proto stejné vodorovné linky jako
+	 * položky přehledu nad ní.
 	 */
 	.provoz {
-		display: flex;
-		align-items: flex-start;
-		gap: 1.1rem;
-		margin: 2rem 0 0;
+		margin: 2.5rem 0 0;
 		max-width: 44rem;
-		padding: 1.1rem 1.2rem;
-		border: 1px solid var(--barva-linka);
-		border-radius: 2px;
-		background: var(--barva-pozadi);
+		border-top: 1px solid var(--barva-linka);
+		padding-top: 1.25rem;
 	}
 
-	.provoz__stitek {
-		flex: none;
-		width: 2.6rem;
-		height: 2.6rem;
-		margin: 0;
+	/*
+	 * Štítek energetické třídy. Písmeno je jediné, co jde porovnat napříč
+	 * inzeráty, tak ať je vidět — zelená je ale ztlumená do teplé palety webu,
+	 * aby vedle krémového podkladu nekřičela.
+	 */
+	.stitek {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.55rem;
+		margin: 0 0 0.9rem;
+		padding: 0.3rem 0.8rem 0.3rem 0.35rem;
+		border: 1px solid var(--barva-linka);
+		border-radius: 999px;
+		background: var(--barva-pozadi);
+		font-family: var(--pismo-ui);
+		font-size: 0.8rem;
+		letter-spacing: 0.06em;
+		color: var(--barva-text-tlumena);
+	}
+
+	.stitek__trida {
 		display: grid;
 		place-items: center;
-		border-radius: 3px;
-		background: #1d8f4e;
+		width: 1.6rem;
+		height: 1.6rem;
+		border-radius: 999px;
+		background: #3f7d54;
 		color: #fff;
-		font: 700 1.5rem/1 var(--pismo-ui);
+		font-weight: 700;
+		font-size: 0.95rem;
+		letter-spacing: 0;
 	}
 
-	.provoz__text h3 {
-		margin: 0 0 0.4rem;
-		font-size: 1rem;
-	}
-
-	.provoz__text p {
+	.provoz__text {
 		margin: 0;
-		font-size: 0.9rem;
-		line-height: 1.6;
+		max-width: 42rem;
+		line-height: 1.7;
 	}
 
 	.provoz__prukaz {
-		margin-top: 0.6rem !important;
+		margin: 0.7rem 0 0;
+		max-width: 42rem;
 		color: var(--barva-text-tlumena);
-		font-size: 0.8rem !important;
-	}
-
-	@media (max-width: 30rem) {
-		.provoz {
-			flex-direction: column;
-			gap: 0.8rem;
-		}
-	}
-
-	.rozlozeni li {
-		display: grid;
-		grid-template-columns: 7rem 1fr;
-		gap: 1rem;
-		padding: 0.6rem 0;
-		border-bottom: 1px solid var(--barva-linka);
-	}
-
-	.rozlozeni span {
-		font-size: 0.8rem;
-		letter-spacing: 0.08em;
-		text-transform: uppercase;
-		color: var(--barva-text-tlumena);
-		padding-top: 0.15rem;
-	}
-
-	.rozlozeni strong {
-		font-weight: 400;
-	}
-
-	.galerie {
-		display: grid;
-		grid-template-columns: repeat(auto-fit, minmax(20rem, 1fr));
-		gap: 1.5rem;
-	}
-
-	.galerie__polozka {
-		margin: 0;
-	}
-
-	.galerie__polozka img {
-		width: 100%;
-		aspect-ratio: 3 / 2;
-		object-fit: cover;
-		background: var(--barva-pozadi-blok);
-		border-radius: 2px;
-	}
-
-	.galerie figcaption {
-		margin-top: 0.5rem;
-		font-size: 0.875rem;
-		color: var(--barva-text-tlumena);
+		font-size: 0.85rem;
+		line-height: 1.6;
 	}
 
 	.lokalita__popis {
