@@ -14,6 +14,35 @@ import { proCast } from './parcely';
  * skoro stejná (297 a 299 m²), a přitom měří něco jiného — proto jsou
  * v přehledu vedle sebe a s rozpisem, ne každé jinde.
  */
+const cislo = new Intl.NumberFormat('cs-CZ');
+
+/*
+ * Průkaz energetické náročnosti budovy, ev. č. 879101.0, vyhotovil
+ * Ing. Tomáš Brückner (oprávnění č. 896) 28. 8. 2026 s platností deset let.
+ * Čísla jsou z protokolu průkazu, ne odhad — třídu A přiznává i sám protokol
+ * („objekt spadá do energetické třídy A“), a proto v něm nejsou navržena
+ * žádná úsporná opatření.
+ */
+export const energie = {
+	trida: 'A',
+	tridaSlovy: 'mimořádně úsporná',
+	/** neobnovitelná primární energie, kWh/m² za rok — podle ní se třída určuje */
+	primarni: 19,
+	/** celková dodaná energie, kWh/m² za rok */
+	dodana: 101,
+	prumernyProstup: 0.27,
+	prukaz: {
+		evidencni: '879101.0',
+		vyhotoven: '28. 8. 2026',
+		platnyDo: '28. 8. 2036',
+		specialista: 'Ing. Tomáš Brückner',
+		/** doplní se do public/; odkaz ke stažení se ukáže, až soubor existuje */
+		soubor: '/dokumenty/energeticky-prukaz.pdf',
+	},
+	/** skutečné náklady majitele, ne výpočet z průkazu */
+	mesicne: 5500,
+};
+
 const staveb = proCast('dum').filter((p) => p.stavebni);
 const vymeraStavby = (co: string) => staveb.find((p) => p.stavba?.startsWith(co))?.vymera ?? 0;
 const zastavenoDum = vymeraStavby('dům');
@@ -69,7 +98,10 @@ export const nemovitost = {
 	// Cena za celou nabídku: dům, garáž, vymezený pozemek kolem nich a háječek.
 	// Co přesně je v nabídce, rozepisuje parcely.ts.
 	cena: 26_900_000,
-	cenaPoznamka: 'za dům, garáž, pozemek ≈ 3 200 m² a háječek 2 642 m²',
+	// Stavební pozemek v háječku je parcela St. 173/4 — zastavěná plocha, na které
+	// už žádná stavba nestojí. Viz parcely.ts.
+	cenaPoznamka:
+		'za dům, garáž, pozemek ≈ 3 200 m² a háječek 2 642 m² se stavebním pozemkem 180 m²',
 
 	perex:
 		'Na horním konci Trojanovic, kde zástavba přechází v louky a les, stojí rodinný dům ' +
@@ -110,6 +142,8 @@ export const nemovitost = {
 		{ nazev: 'Fasáda', hodnota: 'Omítka, dřevem obložený štít' },
 		{ nazev: 'Vytápění', hodnota: 'Tepelné čerpadlo země-voda' },
 		{ nazev: 'Otopná soustava', hodnota: 'Podlahové vytápění' },
+		{ nazev: 'Energetická třída', hodnota: `${energie.trida} — ${energie.tridaSlovy}` },
+		{ nazev: 'Náklady na energie', hodnota: `${cislo.format(energie.mesicne)} Kč měsíčně` },
 		{ nazev: 'Garáž', hodnota: 'Pro dva vozy, s dílnou a podkrovím' },
 		{ nazev: 'Parkování', hodnota: '3 místa před garáží' },
 	],

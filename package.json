@@ -11,7 +11,8 @@
     "podklady": "node scripts/podklady.mjs",
     "srovnani": "node scripts/srovnani-kresby.mjs",
     "preview": "astro preview",
-    "astro": "astro"
+    "astro": "astro",
+    "vykresy": "node scripts/vykresy.mjs"
   },
   "dependencies": {
     "astro": "^7.2.2"

@@ -4,13 +4,25 @@ import Pozemky from '../components/Pozemky.astro';
 import Nakresy from '../components/Nakresy.astro';
 import PlochyMistnosti from '../components/PlochyMistnosti.astro';
 import Cena from '../components/Cena.astro';
-import { nemovitost } from '../data/nemovitost';
+import { existsSync } from 'node:fs';
+import { fileURLToPath } from 'node:url';
+import { energie, nemovitost } from '../data/nemovitost';
 import { hajecek } from '../data/hajecek';
 import { spolecne, telefonHref } from '../data/spolecne';
 
 const { nazev, podtitul, perex, cena, cenaPoznamka, uvodniFoto, parametry, rozlozeni, galerie } =
 	nemovitost;
 const { lokalita, kontakt } = spolecne;
+
+const cisloCZ = new Intl.NumberFormat('cs-CZ');
+
+/*
+ * Odkaz na průkaz se ukáže, jen když soubor v public/ opravdu leží. Mrtvý
+ * odkaz ke stažení je horší než žádný, a tohle se pozná při buildu.
+ */
+const maPrukaz = existsSync(
+	fileURLToPath(new URL(`../../public${energie.prukaz.soubor}`, import.meta.url)),
+);
 ---
 
 <Layout titulek={`${nazev} — ${podtitul}`} popis={perex}>
@@ -59,6 +71,32 @@ const { lokalita, kontakt } = spolecne;
 					))
 				}
 			</ul>
+
+			<div class="provoz">
+				<p class="provoz__stitek" aria-hidden="true">{energie.trida}</p>
+				<div class="provoz__text">
+					<h3>Za provoz se platí jedna položka</h3>
+					<p>
+						Dům je celý na elektřině — tepelné čerpadlo země-voda topí i ohřívá vodu,
+						vaří se také elektřinou. Plyn zaveden není a voda teče z vlastní studny,
+						takže <strong>měsíčně odchází {cisloCZ.format(energie.mesicne)} Kč za elektřinu</strong>
+						{' '}a nic dalšího.
+					</p>
+					<p class="provoz__prukaz">
+						Energetická třída <strong>{energie.trida}</strong> — {energie.tridaSlovy}.
+						Průkaz energetické náročnosti ev.&nbsp;č. {energie.prukaz.evidencni},
+						vyhotoven {energie.prukaz.vyhotoven}, platný do {energie.prukaz.platnyDo}.
+						{
+							maPrukaz && (
+								<>
+									{' '}
+									<a href={energie.prukaz.soubor} download>Stáhnout celý průkaz (PDF)&nbsp;↓</a>
+								</>
+							)
+						}
+					</p>
+				</div>
+			</div>
 		</div>
 	</section>
 
@@ -236,6 +274,59 @@ const { lokalita, kontakt } = spolecne;
 		padding: 0;
 		margin: 2rem 0 0;
 		max-width: 44rem;
+	}
+
+	/*
+	 * Provozní náklady. Třída se ukazuje jako štítek vlevo — je to jediné číslo
+	 * v přehledu, které se dá porovnat napříč inzeráty, tak ať je vidět.
+	 */
+	.provoz {
+		display: flex;
+		align-items: flex-start;
+		gap: 1.1rem;
+		margin: 2rem 0 0;
+		max-width: 44rem;
+		padding: 1.1rem 1.2rem;
+		border: 1px solid var(--barva-linka);
+		border-radius: 2px;
+		background: var(--barva-pozadi);
+	}
+
+	.provoz__stitek {
+		flex: none;
+		width: 2.6rem;
+		height: 2.6rem;
+		margin: 0;
+		display: grid;
+		place-items: center;
+		border-radius: 3px;
+		background: #1d8f4e;
+		color: #fff;
+		font: 700 1.5rem/1 var(--pismo-ui);
+	}
+
+	.provoz__text h3 {
+		margin: 0 0 0.4rem;
+		font-size: 1rem;
+	}
+
+	.provoz__text p {
+		margin: 0;
+		font-size: 0.9rem;
+		line-height: 1.6;
+	}
+
+	.provoz__prukaz {
+		margin-top: 0.6rem !important;
+		color: var(--barva-text-tlumena);
+		font-size: 0.8rem !important;
+	}
+
+	@media (max-width: 30rem) {
+		.provoz {
+			flex-direction: column;
+			gap: 0.8rem;
+		}
 	}
 
 	.rozlozeni li {
