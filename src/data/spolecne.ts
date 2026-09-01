@@ -9,11 +9,14 @@ export const spolecne = {
 	// Vzdálenosti jsou po silnici, spočítané z adresního bodu domu.
 	lokalita: {
 		popis:
-			'Trojanovice se táhnou po severním úbočí Radhoště a dům stojí v jejich horní části, ' +
-			'kde už zástavbu střídají louky a les. Hřeben s Pustevnami a Radhoštěm je odsud ' +
-			'vzdušnou čarou tři kilometry a nahoru se dá vyjet lanovkou z Ráztoky, jejíž dolní ' +
-			'stanice je kousek po cestě. Veškerou občanskou vybavenost — obchody, školy i vlakové ' +
-			'nádraží — nabízí Frenštát pod Radhoštěm pět minut autem.',
+			'Trojanovice se rozprostírají na úpatí Radhoště a dům se nachází v jejich klidné ' +
+			'horní části, kde zástavba postupně přechází v louky a lesy. Lokalita tak nabízí ' +
+			'příjemné spojení soukromí, přírody a zároveň dobré dostupnosti. Hřeben Beskyd ' +
+			's Pustevnami a Radhoštěm je vzdálen přibližně tři kilometry vzdušnou čarou; ' +
+			'pohodlný přístup do hor nabízí také lanovka z Ráztoky, jejíž dolní stanice je ' +
+			'nedaleko. Kompletní občanská vybavenost je přitom na dosah. Frenštát pod ' +
+			'Radhoštěm s obchody, školami, službami i vlakovým nádražím je vzdálen přibližně ' +
+			'pět minut jízdy autem.',
 		vzdalenosti: [
 			{ misto: 'Lanovka na Pustevny (Ráztoka)', hodnota: '1 km' },
 			{ misto: 'Frenštát pod Radhoštěm', hodnota: '5 km' },

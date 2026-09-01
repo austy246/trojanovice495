@@ -81,10 +81,11 @@ const velikostPrukazu = maPrukaz
 					Energetická třída {energie.trida} — {energie.tridaSlovy}
 				</p>
 				<p class="provoz__text">
-					Dům je celý na elektřině — tepelné čerpadlo země-voda topí i ohřívá vodu,
-					vaří se také elektřinou. Plyn zaveden není a voda teče z vlastní studny,
-					takže měsíčně odchází <strong>{cisloCZ.format(energie.mesicne)} Kč za elektřinu</strong>
-					{' '}a nic dalšího.
+					Dům má velmi úsporný a jednoduchý provoz. Vytápění i ohřev vody zajišťuje
+					tepelné čerpadlo země–voda a veškeré ostatní technologie včetně vaření jsou
+					rovněž na elektřinu. Plyn není do domu zaveden a voda je čerpána z vlastní
+					studny. Pravidelné měsíční náklady na energie tak představují pouze
+					elektřinu, aktuálně přibližně <strong>{cisloCZ.format(energie.mesicne)} Kč měsíčně</strong>.
 				</p>
 				<p class="provoz__prukaz">
 					Průkaz energetické náročnosti ev.&nbsp;č. {energie.prukaz.evidencni}, vyhotovil
@@ -258,6 +259,32 @@ const velikostPrukazu = maPrukaz
 		padding: 0;
 		margin: 2rem 0 0;
 		max-width: 44rem;
+	}
+
+	/* Stejná sazba jako položky přehledu výše — popisek podlaží nad výčtem místností. */
+	.rozlozeni li {
+		border-top: 1px solid var(--barva-linka);
+		padding-top: 0.75rem;
+	}
+
+	.rozlozeni li + li {
+		margin-top: 1.25rem;
+	}
+
+	.rozlozeni span {
+		display: block;
+		font-size: 0.8rem;
+		letter-spacing: 0.08em;
+		text-transform: uppercase;
+		color: var(--barva-text-tlumena);
+	}
+
+	.rozlozeni strong {
+		display: block;
+		margin-top: 0.25rem;
+		font-family: var(--pismo);
+		font-size: 1.375rem;
+		font-weight: normal;
 	}
 
 	/*

@@ -160,7 +160,7 @@ export const nemovitost = {
 	],
 
 	rozlozeni: [
-		{ podlazi: 'Přízemí', mistnosti: 'Ložnice, dva pokoje, obývák a kuchyň, dvě koupelny' },
+		{ podlazi: 'Přízemí', mistnosti: 'Ložnice, dva pokoje, obývací pokoj a kuchyň, dvě koupelny' },
 		{ podlazi: 'Patro', mistnosti: 'Tři pokoje a koupelna' },
 	],
 
