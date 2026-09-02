@@ -1,0 +1,450 @@
+---
+/*
+ * Schéma podlaží, jaké bývá v realitních nabídkách: světlé plochy místností
+ * s názvem a výměrou, mezi nimi tmavé zdi. Geometrie je v src/data/pudorys.ts,
+ * názvy a plochy se berou z rozpisu v nemovitost.ts podle čísla místnosti.
+ *
+ * Každá místnost nese data-m se svým číslem; totéž mají položky v seznamu
+ * ploch. Kdo je zvýrazňuje a jak, řeší skript v PlochyMistnosti.astro —
+ * schéma samo jen kreslí a nabízí místnosti k najetí, Tabu a kliknutí.
+ */
+import { nemovitost } from '../data/nemovitost';
+import type { Bod, PudorysSchema } from '../data/pudorys';
+
+interface Props {
+	schema: PudorysSchema;
+	/** název podlaží do přístupového popisku */
+	podlazi: string;
+}
+
+const { schema, podlazi } = Astro.props;
+
+const rozpis = new Map(
+	nemovitost.plochy.flatMap((p) => p.mistnosti).map((m) => [m.cislo, m] as const),
+);
+
+/** stejná sazba čísla jako v seznamu vedle, ať se schéma a seznam dají srovnat od oka */
+const cislo = (n: number) => n.toFixed(2).replace('.', ',');
+const body = (b: Bod[]) => b.map((p) => p.join(',')).join(' ');
+
+const mistnosti = schema.mistnosti.map((m) => {
+	const r = rozpis.get(m.cislo);
+	if (!r) throw new Error(`Místnost ${m.cislo} ve schématu není v rozpisu ploch`);
+	return { ...m, nazev: r.nazev, plocha: r.plocha };
+});
+
+const [vx, vy, vs, vv] = schema.viewBox;
+
+/* schodiště se kreslí jako vodorovné pruhy, stupně od spodní hrany nahoru */
+const s = schema.schodiste;
+const stupne = Array.from({ length: s.stupnu - 1 }, (_, i) => s.y + ((i + 1) * s.vyska) / s.stupnu);
+
+/*
+ * Dveře. Otvor je obdélník kolem osy zdi o něco silnější než zeď — přesah
+ * do místností zakryjí jejich plochy, které se kreslí až po něm. Křídlo
+ * a oblouk se kreslí nad místnostmi: křídlo stojí kolmo na zeď v závěsu,
+ * oblouk jde od jeho konce k druhé zárubni. Posuvné mají křídlo odsunuté
+ * vedle zdi, nebo kapsu ve zdi a křídlo napůl zasunuté, když do ní
+ * zajíždějí; pevné zasklení čáru v ose zdi, průchod jen otvor.
+ */
+const dvere = schema.dvere.map((d) => {
+	const [ax, ay] = d.od;
+	const [bx, by] = d.do;
+	const dx = bx - ax;
+	const dy = by - ay;
+	const delka = Math.hypot(dx, dy);
+	/* normála vlevo od směru od→do (osa y roste dolů) */
+	const nx = dy / delka;
+	const ny = -dx / delka;
+	const s = d.strana === 'vpravo' ? -1 : 1;
+	const pul = (d.sila ?? 12) / 2 + 3;
+	const otvor: Bod[] = [
+		[ax + nx * pul, ay + ny * pul],
+		[bx + nx * pul, by + ny * pul],
+		[bx - nx * pul, by - ny * pul],
+		[ax - nx * pul, ay - ny * pul],
+	];
+	const typ = d.typ ?? 'kridlove';
+	const kridlo: Bod = [ax + s * nx * delka, ay + s * ny * delka];
+	/* oblouk od konce křídla k zárubni; vlevo je po směru hodin, vpravo proti */
+	const oblouk = `M ${kridlo[0]} ${kridlo[1]} A ${delka} ${delka} 0 0 ${s > 0 ? 1 : 0} ${bx} ${by}`;
+	const odsazeni = 9;
+	const posuv: [Bod, Bod] = [
+		[ax + dx * 0.1 + s * nx * odsazeni, ay + dy * 0.1 + s * ny * odsazeni],
+		[bx + dx * 0.9 + s * nx * odsazeni, by + dy * 0.9 + s * ny * odsazeni],
+	];
+	/* kapsa ve zdi za druhou zárubní, stejně dlouhá jako otvor; křídlo je napůl zasunuté */
+	const kapsa: Bod[] = [
+		[bx + nx * 3, by + ny * 3],
+		[bx + dx + nx * 3, by + dy + ny * 3],
+		[bx + dx - nx * 3, by + dy - ny * 3],
+		[bx - nx * 3, by - ny * 3],
+	];
+	const zasunute: [Bod, Bod] = [
+		[ax + dx * 0.5, ay + dy * 0.5],
+		[bx + dx * 0.5, by + dy * 0.5],
+	];
+	return { typ, doZdi: d.doZdi, otvor, kridlo, oblouk, posuv, kapsa, zasunute, od: d.od, do: d.do };
+});
+
+/* okno: světlý pruh přesně v síle zdi, s čarou skla v ose; kreslí se až nad místnostmi */
+const okna = schema.okna.map((o) => {
+	const [ax, ay] = o.od;
+	const [bx, by] = o.do;
+	const dx = bx - ax;
+	const dy = by - ay;
+	const delka = Math.hypot(dx, dy);
+	const nx = dy / delka;
+	const ny = -dx / delka;
+	const pul = (o.sila ?? 30) / 2;
+	const pruh: Bod[] = [
+		[ax + nx * pul, ay + ny * pul],
+		[bx + nx * pul, by + ny * pul],
+		[bx - nx * pul, by - ny * pul],
+		[ax - nx * pul, ay - ny * pul],
+	];
+	return { pruh, od: o.od, do: o.do };
+});
+
+const krb = schema.krb;
+---
+
+<figure class="pudorys">
+	<svg
+		viewBox={`${vx} ${vy} ${vs} ${vv}`}
+		role="group"
+		aria-label={`Schéma podlaží ${podlazi}`}
+	>
+		{
+			schema.terasy.map((t) => (
+				<g class="terasa">
+					<polygon points={body(t.body)} />
+					<text class="popisek" x={t.popisek[0]} y={t.popisek[1]} text-anchor="middle">
+						<tspan class="popisek__cislo" x={t.popisek[0]} dy="-1.1em">
+							{t.cislo}
+						</tspan>
+						<tspan class="popisek__nazev" x={t.popisek[0]} dy="1.15em">
+							{t.nazev}
+						</tspan>
+						{t.plocha !== undefined && (
+							<tspan class="popisek__plocha" x={t.popisek[0]} dy="1.15em">
+								{cislo(t.plocha)} m²
+							</tspan>
+						)}
+					</text>
+				</g>
+			))
+		}
+
+		{/* obvodové zdi: tmavý obrys domu, ze kterého místnosti níž vykrojí světlé plochy */}
+		<polygon class="zdi" points={body(schema.obrys)} />
+		{dvere.map((d) => <polygon class="otvor" points={body(d.otvor)} />)}
+		{dvere.filter((d) => d.doZdi).map((d) => <polygon class="otvor" points={body(d.kapsa)} />)}
+
+		{
+			mistnosti.map((m) => (
+				<g
+					class="mistnost"
+					data-m={m.cislo}
+					tabindex="0"
+					role="button"
+					aria-label={`${m.cislo} ${m.nazev}, ${cislo(m.plocha)} m²`}
+				>
+					<polygon points={body(m.body)} />
+					<text
+						class:list={['popisek', { 'popisek--jen-cislo': m.jenCislo }]}
+						x={m.popisek[0]}
+						y={m.popisek[1]}
+						text-anchor="middle"
+					>
+						<tspan class="popisek__cislo" x={m.popisek[0]} dy={m.jenCislo ? '0.35em' : '-1.1em'}>
+							{m.cislo}
+						</tspan>
+						{!m.jenCislo && (
+							<>
+								<tspan class="popisek__nazev" x={m.popisek[0]} dy="1.15em">
+									{m.nazev}
+								</tspan>
+								<tspan class="popisek__plocha" x={m.popisek[0]} dy="1.15em">
+									{cislo(m.plocha)} m²
+								</tspan>
+							</>
+						)}
+					</text>
+				</g>
+			))
+		}
+
+		<g class="dvere" aria-hidden="true">
+			{
+				dvere.map((d) =>
+					d.typ === 'kridlove' ? (
+						<>
+							<line x1={d.od[0]} y1={d.od[1]} x2={d.kridlo[0]} y2={d.kridlo[1]} />
+							<path d={d.oblouk} />
+						</>
+					) : d.typ === 'posuvne' && d.doZdi ? (
+						<line class="posuvne" x1={d.zasunute[0][0]} y1={d.zasunute[0][1]} x2={d.zasunute[1][0]} y2={d.zasunute[1][1]} />
+					) : d.typ === 'posuvne' ? (
+						<line class="posuvne" x1={d.posuv[0][0]} y1={d.posuv[0][1]} x2={d.posuv[1][0]} y2={d.posuv[1][1]} />
+					) : d.typ === 'pevne' ? (
+						<line x1={d.od[0]} y1={d.od[1]} x2={d.do[0]} y2={d.do[1]} />
+					) : null,
+				)
+			}
+		</g>
+
+		<g class="okna" aria-hidden="true">
+			{
+				okna.map((o) => (
+					<>
+						<polygon points={body(o.pruh)} />
+						<line x1={o.od[0]} y1={o.od[1]} x2={o.do[0]} y2={o.do[1]} />
+					</>
+				))
+			}
+		</g>
+
+		{
+			krb && (
+				<g class="krb" aria-label="Krb">
+					<rect class="krb__teleso" x={krb.x} y={krb.y} width={krb.sirka} height={krb.hloubka} />
+					<rect
+						class="krb__vlozka"
+						x={krb.x + krb.sirka * 0.2}
+						y={krb.y + krb.hloubka * 0.45}
+						width={krb.sirka * 0.6}
+						height={krb.hloubka * 0.55}
+					/>
+					<path
+						class="krb__ohniste"
+						d={`M ${krb.x + krb.sirka / 2 - krb.ohniste} ${krb.y + krb.hloubka} A ${krb.ohniste} ${krb.ohniste} 0 0 0 ${krb.x + krb.sirka / 2 + krb.ohniste} ${krb.y + krb.hloubka}`}
+					/>
+					<text x={krb.x + krb.sirka / 2} y={krb.y + krb.hloubka + krb.ohniste * 0.72} text-anchor="middle">
+						Krb
+					</text>
+				</g>
+			)
+		}
+
+		<g class="schodiste" aria-hidden="true">
+			<rect x={s.x} y={s.y} width={s.sirka} height={s.vyska} />
+			{stupne.map((y) => (
+				<line x1={s.x} y1={y} x2={s.x + s.sirka} y2={y} />
+			))}
+		</g>
+
+		<g class="vstup" aria-hidden="true">
+			<line x1={schema.vstup.x} y1={schema.vstup.y - 62} x2={schema.vstup.x} y2={schema.vstup.y - 10} />
+			<polygon
+				points={`${schema.vstup.x - 9},${schema.vstup.y - 24} ${schema.vstup.x + 9},${schema.vstup.y - 24} ${schema.vstup.x},${schema.vstup.y - 6}`}
+			/>
+			<text x={schema.vstup.x} y={schema.vstup.y - 74} text-anchor="middle">
+				Vstup
+			</text>
+		</g>
+	</svg>
+	<figcaption>
+		<slot />
+	</figcaption>
+</figure>
+
+<style>
+	.pudorys {
+		margin: 0;
+	}
+
+	.pudorys svg {
+		display: block;
+		width: 100%;
+		height: auto;
+		font-family: var(--pismo-ui);
+	}
+
+	/*
+	 * Zdi nevznikají čarou, ale tím, co zbude: tmavý obrys domu pod světlými
+	 * plochami místností. Mezera mezi dvěma místnostmi je zeď, sdílená hrana
+	 * průchod. Obrys je o něco měkčí než text, aby při síle obvodové zdi
+	 * nepřebil popisky.
+	 */
+	.zdi {
+		fill: #3d372f;
+	}
+
+	.otvor,
+	.mistnost polygon {
+		fill: var(--barva-pozadi);
+	}
+
+	.dvere {
+		pointer-events: none;
+	}
+
+	.dvere line,
+	.dvere path {
+		fill: none;
+		stroke: var(--barva-text-tlumena);
+		stroke-width: 2.5;
+		stroke-linecap: round;
+	}
+
+	.dvere .posuvne {
+		stroke-width: 5;
+	}
+
+	.mistnost polygon {
+		transition: fill 0.12s;
+	}
+
+	/*
+	 * Stejná modrá a stejné tři stupně jako v mapě pozemků: najetí lehce,
+	 * vybraná místnost víc a jiným odstínem, aby se výběr nepletl s najetím.
+	 */
+	.mistnost {
+		cursor: pointer;
+		outline: none;
+	}
+
+	.mistnost:hover polygon,
+	.mistnost:focus-visible polygon {
+		fill: color-mix(in srgb, var(--barva-nabidka) 17%, var(--barva-pozadi));
+	}
+
+	.mistnost.je-zvyraznena polygon,
+	.mistnost.je-zvyraznena:hover polygon {
+		fill: color-mix(in srgb, var(--barva-nabidka-vybrana) 28%, var(--barva-pozadi));
+	}
+
+	.terasa polygon {
+		fill: color-mix(in srgb, var(--barva-pozadi) 55%, transparent);
+		stroke: var(--barva-text-tlumena);
+		stroke-width: 3;
+		stroke-dasharray: 14 10;
+	}
+
+	.terasa .popisek {
+		fill: var(--barva-text-tlumena);
+	}
+
+	/*
+	 * Písmo je v jednotkách výřezu, takže se zmenšuje se schématem. Na šířce
+	 * obsahu vychází název na zhruba 13 px; na telefonu by z něj zbylo 6 px,
+	 * proto tam zůstane jen číslo místnosti, zvětšené — jméno a plochu
+	 * čtenář najde v seznamu hned pod schématem.
+	 */
+	.popisek {
+		fill: var(--barva-text);
+		font-size: 24px;
+		pointer-events: none;
+		user-select: none;
+	}
+
+	.popisek__cislo,
+	.popisek__plocha {
+		fill: var(--barva-text-tlumena);
+		font-size: 21px;
+		font-variant-numeric: tabular-nums;
+	}
+
+	.popisek--jen-cislo .popisek__cislo {
+		font-size: 22px;
+	}
+
+	.okna {
+		pointer-events: none;
+	}
+
+	.okna polygon {
+		fill: var(--barva-pozadi);
+		stroke: var(--barva-text-tlumena);
+		stroke-width: 2;
+	}
+
+	.okna line {
+		stroke: var(--barva-text-tlumena);
+		stroke-width: 2;
+	}
+
+	.krb {
+		pointer-events: none;
+	}
+
+	.krb__teleso {
+		fill: #3d372f;
+	}
+
+	.krb__vlozka {
+		fill: var(--barva-pozadi);
+	}
+
+	.krb__ohniste {
+		fill: none;
+		stroke: var(--barva-text-tlumena);
+		stroke-width: 2;
+	}
+
+	.krb text {
+		fill: var(--barva-text-tlumena);
+		font-size: 19px;
+	}
+
+	.schodiste rect {
+		fill: none;
+		stroke: var(--barva-text-tlumena);
+		stroke-width: 2;
+	}
+
+	.schodiste line {
+		stroke: var(--barva-text-tlumena);
+		stroke-width: 2;
+	}
+
+	.schodiste {
+		pointer-events: none;
+		opacity: 0.7;
+	}
+
+	.vstup line {
+		stroke: var(--barva-text-tlumena);
+		stroke-width: 4;
+	}
+
+	.vstup polygon {
+		fill: var(--barva-text-tlumena);
+	}
+
+	.vstup text {
+		fill: var(--barva-text-tlumena);
+		font-size: 22px;
+		letter-spacing: 0.08em;
+		text-transform: uppercase;
+	}
+
+	.pudorys figcaption {
+		margin-top: 0.75rem;
+		color: var(--barva-text-tlumena);
+		font-size: 0.8rem;
+		max-width: 42rem;
+	}
+
+	@media (max-width: 40rem) {
+		.popisek__nazev,
+		.popisek__plocha {
+			display: none;
+		}
+
+		.popisek__cislo,
+		.popisek--jen-cislo .popisek__cislo {
+			font-size: 34px;
+		}
+
+		/*
+		 * Bez názvu pod sebou má číslo sedět na středu místnosti. dy tspanu
+		 * se ze stylu přepsat nedá, tak se celý popisek posune: z -1,1 em
+		 * při 34 px nad středem na +0,35 em pod ním.
+		 */
+		.popisek:not(.popisek--jen-cislo) {
+			transform: translateY(49px);
+		}
+	}
+</style>

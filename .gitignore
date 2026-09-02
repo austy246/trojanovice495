@@ -28,3 +28,6 @@ pnpm-debug.log*
 
 # srovnani mapovych podkladu
 srovnani/
+
+# kontrola schematu prizemi proti skenu (npm run pudorys)
+podklady/pudorys-kontrola.png

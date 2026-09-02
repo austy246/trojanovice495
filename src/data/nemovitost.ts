@@ -66,7 +66,7 @@ const plochy = [
 		mistnosti: [
 			{ cislo: '1.01', nazev: 'Zádveří', plocha: 7.3 },
 			{ cislo: '1.02', nazev: 'Vstupní hala', plocha: 12.86 },
-			{ cislo: '1.03', nazev: 'Jídelní hala s galerií', plocha: 32.73 },
+			{ cislo: '1.03', nazev: 'Jídelní hala', plocha: 32.73 },
 			{ cislo: '1.04', nazev: 'Obytná hala', plocha: 34.0 },
 			{ cislo: '1.05', nazev: 'Kuchyň', plocha: 18.8 },
 			{ cislo: '1.06', nazev: 'Spíž', plocha: 5.76 },

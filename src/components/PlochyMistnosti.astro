@@ -4,9 +4,17 @@
  * výkresech (viz Nakresy.astro), součty se dopočítávají, aby se nemohly
  * rozejít s rozpisem ani s užitnou plochou v přehledu parametrů.
  */
+import Pudorys from './Pudorys.astro';
 import { nemovitost } from '../data/nemovitost';
+import { prizemi, type PudorysSchema } from '../data/pudorys';
 
 const { plochy } = nemovitost;
+
+/*
+ * Schéma má zatím jen přízemí. Podlaží bez schématu má seznam obyčejný —
+ * bez kurzoru, Tabu a zvýraznění, protože není v čem zvýrazňovat.
+ */
+const schemata: Record<string, PudorysSchema> = { Přízemí: prizemi };
 
 /** 7.3 → „7,30“ — desetinná čárka bez spoléhání na ICU v Node */
 const cislo = (n: number) => n.toFixed(2).replace('.', ',');
@@ -26,6 +34,16 @@ const celkem = plochy.reduce((s, p) => s + soucet(p.mistnosti), 0);
 			vyčísluje jen terasu&nbsp;1.14 (10,20&nbsp;m²).
 		</p>
 
+		<div class="schema">
+			<Pudorys schema={prizemi} podlazi="Přízemí">
+				Schéma přízemí podle půdorysu z projektu, bez měřítka. Oblouk u dveří ukazuje, kam se
+				otvírají; posuvné jsou mezi zádveřím a vstupní halou, z haly do jídelny a na obě terasy.
+				Klepnutím na místnost ve schématu
+				nebo v seznamu se zvýrazní v obou. Terasy v rozpisu ploch nejsou; terasa 1.15 je
+				v projektu, postavená není.
+			</Pudorys>
+		</div>
+
 		<div class="podlazi">
 			{
 				plochy.map((p) => (
@@ -33,7 +51,7 @@ const celkem = plochy.reduce((s, p) => s + soucet(p.mistnosti), 0);
 						<h3>{p.podlazi}</h3>
 						<ul class="mistnosti">
 							{p.mistnosti.map((m) => (
-								<li>
+								<li data-m={schemata[p.podlazi] ? m.cislo : undefined} tabindex={schemata[p.podlazi] ? 0 : undefined}>
 									<span class="mistnosti__nazev">
 										<span class="mistnosti__cislo">{m.cislo}</span>
 										{m.nazev}
@@ -58,11 +76,68 @@ const celkem = plochy.reduce((s, p) => s + soucet(p.mistnosti), 0);
 	</div>
 </section>
 
+<script>
+	/*
+	 * Propojení schématu se seznamem, stejně jako mapa pozemků s tabulkou:
+	 * najetí nebo Tab zvýrazní místnost na obou místech, kliknutí ji zamkne,
+	 * druhé kliknutí (nebo kliknutí jinam ve schématu) zámek pustí.
+	 */
+	const prvky = [...document.querySelectorAll<HTMLElement | SVGElement>('[data-m]')];
+	let zamcena: string | null = null;
+
+	const oznac = (klic: string, zap: boolean) =>
+		prvky.forEach((el) => {
+			if (el.dataset.m === klic) el.classList.toggle('je-zvyraznena', zap);
+		});
+
+	const najeti = (klic: string, zap: boolean) => {
+		if (zamcena && zamcena !== klic) return;
+		oznac(klic, zap || zamcena === klic);
+	};
+
+	prvky.forEach((el) => {
+		const klic = el.dataset.m;
+		if (!klic) return;
+
+		el.addEventListener('mouseenter', () => najeti(klic, true));
+		el.addEventListener('mouseleave', () => najeti(klic, false));
+		el.addEventListener('focus', () => najeti(klic, true));
+		el.addEventListener('blur', () => najeti(klic, false));
+
+		const vyber = (e: Event) => {
+			e.preventDefault();
+			if (zamcena === klic) {
+				zamcena = null;
+				oznac(klic, false);
+			} else {
+				if (zamcena) oznac(zamcena, false);
+				zamcena = klic;
+				oznac(klic, true);
+			}
+		};
+
+		el.addEventListener('click', vyber);
+		el.addEventListener('keydown', (e) => {
+			if (e.key === 'Enter' || e.key === ' ') vyber(e);
+		});
+	});
+</script>
+
 <style>
 	.uvod {
 		max-width: 42rem;
 		margin: 0 0 2.5rem;
 		color: var(--barva-text-tlumena);
+	}
+
+	/*
+	 * Schéma stojí nad seznamy a drží se levé hrany jako text nad ním.
+	 * Šířka je kompromis: užší by ztratilo popisky, širší by bylo obrázkem,
+	 * který je vyšší než celé oba seznamy pod ním.
+	 */
+	.schema {
+		max-width: 38rem;
+		margin: 0 0 clamp(2.5rem, 5vw, 3.5rem);
 	}
 
 	.podlazi {
@@ -99,6 +174,41 @@ const celkem = plochy.reduce((s, p) => s + soucet(p.mistnosti), 0);
 		font-family: var(--pismo);
 		font-weight: 400;
 		white-space: nowrap;
+	}
+
+	/*
+	 * Položka s místností ve schématu se chová jako řádek tabulky pozemků:
+	 * stejná modrá, stejné tři stupně. Podklad zvýraznění přesahuje o kus
+	 * do stran, aby text neseděl na jeho hraně — kreslí ho pseudoprvek,
+	 * takže linka pod položkou zůstává tam, kde ji mají ostatní.
+	 */
+	.mistnosti li[data-m] {
+		position: relative;
+		/* vlastní stacking context, jinak by podklad se z-index -1 zapadl za pozadí sekce */
+		isolation: isolate;
+		cursor: pointer;
+		outline: none;
+	}
+
+	.mistnosti li[data-m]::before {
+		content: '';
+		position: absolute;
+		inset: 1px -0.5rem;
+		border-radius: 2px;
+		background: transparent;
+		z-index: -1;
+		transition: background 0.12s;
+	}
+
+	.mistnosti li[data-m]:hover::before,
+	.mistnosti li[data-m]:focus-visible::before {
+		background: color-mix(in srgb, var(--barva-nabidka) 17%, transparent);
+	}
+
+	.mistnosti li.je-zvyraznena::before,
+	.mistnosti li.je-zvyraznena:hover::before,
+	.mistnosti li.je-zvyraznena:focus-visible::before {
+		background: color-mix(in srgb, var(--barva-nabidka-vybrana) 26%, transparent);
 	}
 
 	/* číslo místnosti drží svůj sloupec, aby názvy začínaly pod sebou */
