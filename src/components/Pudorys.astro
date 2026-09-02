@@ -106,7 +106,13 @@ const okna = schema.okna.map((o) => {
 	return { pruh, od: o.od, do: o.do };
 });
 
-const krb = schema.krb;
+const { krb, vstup } = schema;
+const otvory = schema.otvory ?? [];
+const prostory = schema.prostory ?? [];
+const skrine = schema.skrine ?? [];
+const stresniOkna = schema.stresniOkna ?? [];
+/* šrafa otvoru v podlaze; id musí být v dokumentu jedinečné, schémat je víc */
+const srafa = `srafa-${podlazi.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`;
 ---
 
 <figure class="pudorys">
@@ -175,6 +181,45 @@ const krb = schema.krb;
 			))
 		}
 
+		{
+			prostory.map((p) => (
+				<g class="prostor" aria-label={p.nazev}>
+					<polygon points={body(p.body)} />
+					<text class="popisek" x={p.popisek[0]} y={p.popisek[1]} text-anchor="middle">
+						<tspan class="popisek__nazev" x={p.popisek[0]} dy="0.35em">
+							{p.nazev}
+						</tspan>
+					</text>
+				</g>
+			))
+		}
+
+		{/* otvor v podlaze: šrafa místo plochy, ať nevypadá jako podlaha */}
+		{
+			otvory.length > 0 && (
+				<defs>
+					<pattern id={srafa} patternUnits="userSpaceOnUse" width="14" height="14" patternTransform="rotate(45)">
+						<line class="srafa" x1="0" y1="0" x2="0" y2="14" />
+					</pattern>
+				</defs>
+			)
+		}
+		{
+			otvory.map((o) => (
+				<g class="otvor-dolu" aria-label={o.radky.join(' ')}>
+					<polygon class="otvor-dolu__srafa" points={body(o.body)} fill={`url(#${srafa})`} />
+					<polygon class="otvor-dolu__obrys" points={body(o.body)} />
+					<text class="popisek" x={o.popisek[0]} y={o.popisek[1]} text-anchor="middle">
+						{o.radky.map((r, i) => (
+							<tspan x={o.popisek[0]} dy={i === 0 ? `${0.35 - (o.radky.length - 1) * 0.575}em` : '1.15em'}>
+								{r}
+							</tspan>
+						))}
+					</text>
+				</g>
+			))
+		}
+
 		<g class="dvere" aria-hidden="true">
 			{
 				dvere.map((d) =>
@@ -200,6 +245,28 @@ const krb = schema.krb;
 					<>
 						<polygon points={body(o.pruh)} />
 						<line x1={o.od[0]} y1={o.od[1]} x2={o.do[0]} y2={o.do[1]} />
+					</>
+				))
+			}
+		</g>
+
+		<g class="skrine" aria-hidden="true">
+			{
+				skrine.map((k) => (
+					<>
+						<rect x={k.x} y={k.y} width={k.sirka} height={k.vyska} />
+						<line x1={k.x} y1={k.y + k.vyska} x2={k.x + k.sirka} y2={k.y} />
+					</>
+				))
+			}
+		</g>
+
+		<g class="stresni-okna" aria-hidden="true">
+			{
+				stresniOkna.map((o) => (
+					<>
+						<rect x={o.x} y={o.y} width={o.sirka} height={o.vyska} />
+						<line x1={o.x} y1={o.y + o.vyska / 2} x2={o.x + o.sirka} y2={o.y + o.vyska / 2} />
 					</>
 				))
 			}
@@ -234,15 +301,19 @@ const krb = schema.krb;
 			))}
 		</g>
 
-		<g class="vstup" aria-hidden="true">
-			<line x1={schema.vstup.x} y1={schema.vstup.y - 62} x2={schema.vstup.x} y2={schema.vstup.y - 10} />
-			<polygon
-				points={`${schema.vstup.x - 9},${schema.vstup.y - 24} ${schema.vstup.x + 9},${schema.vstup.y - 24} ${schema.vstup.x},${schema.vstup.y - 6}`}
-			/>
-			<text x={schema.vstup.x} y={schema.vstup.y - 74} text-anchor="middle">
-				Vstup
-			</text>
-		</g>
+		{
+			vstup && (
+				<g class="vstup" aria-hidden="true">
+					<line x1={vstup.x} y1={vstup.y - 62} x2={vstup.x} y2={vstup.y - 10} />
+					<polygon
+						points={`${vstup.x - 9},${vstup.y - 24} ${vstup.x + 9},${vstup.y - 24} ${vstup.x},${vstup.y - 6}`}
+					/>
+					<text x={vstup.x} y={vstup.y - 74} text-anchor="middle">
+						Vstup
+					</text>
+				</g>
+			)
+		}
 	</svg>
 	<figcaption>
 		<slot />
@@ -252,6 +323,8 @@ const krb = schema.krb;
 <style>
 	.pudorys {
 		margin: 0;
+		/* popisky se přepínají podle šířky schématu, ne okna — schémata stojí i dvě vedle sebe */
+		container-type: inline-size;
 	}
 
 	.pudorys svg {
@@ -315,6 +388,69 @@ const krb = schema.krb;
 		fill: color-mix(in srgb, var(--barva-nabidka-vybrana) 28%, var(--barva-pozadi));
 	}
 
+	/* prostor bez čísla: světlá plocha jako místnost, ale bez najetí a bez čísla */
+	.prostor polygon {
+		fill: var(--barva-pozadi);
+	}
+
+	.prostor .popisek {
+		fill: var(--barva-text-tlumena);
+	}
+
+	/*
+	 * Otvor v podlaze: šrafa přes tmavý podklad obrysu, aby se lišil od podlahy
+	 * místností i od zdí, tenký obrys a popisek. Popisek nese světlý podklad,
+	 * aby se dal přes šrafu číst.
+	 */
+	.otvor-dolu {
+		pointer-events: none;
+	}
+
+	/* čára šrafy leží v defs mimo skupinu otvoru, proto má vlastní třídu */
+	.srafa {
+		stroke: var(--barva-pozadi);
+		stroke-width: 2;
+		opacity: 0.5;
+	}
+
+	.otvor-dolu__obrys {
+		fill: none;
+		stroke: var(--barva-pozadi);
+		stroke-width: 2;
+		opacity: 0.6;
+	}
+
+	.otvor-dolu .popisek {
+		fill: var(--barva-pozadi);
+		font-size: 21px;
+		paint-order: stroke;
+		stroke: #3d372f;
+		stroke-width: 8;
+		stroke-linejoin: round;
+	}
+
+	.skrine,
+	.stresni-okna {
+		pointer-events: none;
+	}
+
+	.skrine rect,
+	.skrine line {
+		fill: none;
+		stroke: var(--barva-text-tlumena);
+		stroke-width: 1.5;
+		opacity: 0.7;
+	}
+
+	.stresni-okna rect,
+	.stresni-okna line {
+		fill: none;
+		stroke: var(--barva-text-tlumena);
+		stroke-width: 1.5;
+		stroke-dasharray: 6 5;
+		opacity: 0.8;
+	}
+
 	.terasa polygon {
 		fill: color-mix(in srgb, var(--barva-pozadi) 55%, transparent);
 		stroke: var(--barva-text-tlumena);
@@ -327,9 +463,9 @@ const krb = schema.krb;
 	}
 
 	/*
-	 * Písmo je v jednotkách výřezu, takže se zmenšuje se schématem. Na šířce
-	 * obsahu vychází název na zhruba 13 px; na telefonu by z něj zbylo 6 px,
-	 * proto tam zůstane jen číslo místnosti, zvětšené — jméno a plochu
+	 * Písmo je v jednotkách výřezu, takže se zmenšuje se schématem. Ve sloupci
+	 * nad seznamem vychází název na zhruba 11 px; na telefonu by z něj zbylo
+	 * 6 px, proto tam zůstane jen číslo místnosti, zvětšené — jméno a plochu
 	 * čtenář najde v seznamu hned pod schématem.
 	 */
 	.popisek {
@@ -427,9 +563,11 @@ const krb = schema.krb;
 		max-width: 42rem;
 	}
 
-	@media (max-width: 40rem) {
-		.popisek__nazev,
-		.popisek__plocha {
+	@container (max-width: 27rem) {
+		.mistnost .popisek__nazev,
+		.popisek__plocha,
+		.prostor .popisek,
+		.otvor-dolu .popisek {
 			display: none;
 		}
 
@@ -443,7 +581,7 @@ const krb = schema.krb;
 		 * se ze stylu přepsat nedá, tak se celý popisek posune: z -1,1 em
 		 * při 34 px nad středem na +0,35 em pod ním.
 		 */
-		.popisek:not(.popisek--jen-cislo) {
+		.mistnost .popisek:not(.popisek--jen-cislo) {
 			transform: translateY(49px);
 		}
 	}

@@ -1,9 +1,11 @@
 /*
- * Schéma přízemí pro sekci Rozlohy místností — zjednodušený půdorys, jaký
- * bývá v realitních nabídkách. Místnosti jsou obkreslené ručně z půdorysu
- * přízemí (public/nakresy/01-pudorys-prizemi.webp, 1415 × 1282 px) a stojí
- * v jeho pixelových souřadnicích, aby se daly proti skenu kdykoli zkontrolovat:
- * `npm run pudorys` vykreslí polygony přes sken do podklady/pudorys-kontrola.png.
+ * Schémata podlaží pro sekci Rozlohy místností — zjednodušený půdorys, jaký
+ * bývá v realitních nabídkách. Místnosti jsou obkreslené ručně z půdorysů
+ * (přízemí public/nakresy/01-pudorys-prizemi.webp, 1415 × 1282 px; podkroví
+ * public/nakresy/03-pudorys-podkrovi.webp, 1777 × 1567 px) a každé schéma stojí
+ * v pixelových souřadnicích svého skenu, aby se dalo proti němu kdykoli
+ * zkontrolovat: `npm run pudorys` (přízemí) nebo `npm run pudorys -- podkrovi`
+ * vykreslí polygony přes sken do podklady/pudorys-kontrola*.png.
  *
  * Kreslí se vnitřní líce stěn. Stěny vznikají samy: pod místnostmi leží tmavý
  * obrys domu po vnějším líci a co mezi světlými plochami místností zbude,
@@ -73,6 +75,31 @@ export interface KrbSchematu {
 	ohniste: number;
 }
 
+export interface OtvorSchematu {
+	/** otvor v podlaze, kterým je vidět do podlaží pod ním; kreslí se šrafou */
+	body: Bod[];
+	popisek: Bod;
+	/** řádky popisku */
+	radky: string[];
+}
+
+export interface ProstorSchematu {
+	/**
+	 * prostor, který výkres nečísluje a v rozpisu ploch není (komora);
+	 * kreslí se jako místnost, ale nezvýrazňuje se a nese jen název
+	 */
+	nazev: string;
+	body: Bod[];
+	popisek: Bod;
+}
+
+export interface ObdelnikSchematu {
+	x: number;
+	y: number;
+	sirka: number;
+	vyska: number;
+}
+
 export interface PudorysSchema {
 	/** výřez schématu v souřadnicích skenu: x, y, šířka, výška */
 	viewBox: [number, number, number, number];
@@ -85,8 +112,16 @@ export interface PudorysSchema {
 	krb?: KrbSchematu;
 	/** schodiště: obdélník a počet stupňů, kreslí se jako pruhy */
 	schodiste: { x: number; y: number; sirka: number; vyska: number; stupnu: number };
-	/** kde se vchází: bod na vnějším líci a popisek nad ním */
-	vstup: { x: number; y: number };
+	/** kde se vchází: bod na vnějším líci a popisek nad ním; podkroví vstup nemá */
+	vstup?: { x: number; y: number };
+	/** otvory v podlaze do nižšího podlaží (galerie nad halou) */
+	otvory?: OtvorSchematu[];
+	/** prostory bez čísla místnosti */
+	prostory?: ProstorSchematu[];
+	/** vestavěné skříně: tenký obrys s úhlopříčkou */
+	skrine?: ObdelnikSchematu[];
+	/** střešní okna: čárkovaný obdélník v ploše místnosti */
+	stresniOkna?: ObdelnikSchematu[];
 }
 
 export const prizemi: PudorysSchema = {
@@ -347,4 +382,173 @@ export const prizemi: PudorysSchema = {
 	schodiste: { x: 608, y: 556, sirka: 60, vyska: 201, stupnu: 11 },
 
 	vstup: { x: 655, y: 180 },
+};
+
+/*
+ * Podkroví. Kreslí se jen hlavní část domu: jižní křídlo je střecha nad
+ * obytnou halou, žádné místnosti pod ní nejsou. Sken je ohnutý v přehybu
+ * (kolem x 1010), kóty vpravo od něj tedy vůči pixelům trochu plavou.
+ *
+ * Co je ve výkresu jasné: pět místností z legendy, otvor v podlaze galerie
+ * nad jídelní halou, schodiště přicházející z jihu, dvě střešní okna nad
+ * galerií a čtyři okna ve štítových zdech. Co je odhad, je poznamenáno
+ * u příslušné položky — hlavně dveře do pokoje 2.04, které ve skenu nejsou
+ * vidět, a nečíslovaná místnost vedle otvoru do haly.
+ */
+export const podkrovi: PudorysSchema = {
+	viewBox: [260, 225, 1230, 710],
+
+	obrys: [
+		[284, 247],
+		[1464, 247],
+		[1464, 913],
+		[284, 913],
+	],
+
+	mistnosti: [
+		{
+			cislo: '2.01',
+			/* galerie včetně chodbičky k pokojům a schodiště; jižní hrana nad
+			 * otvorem do haly je zábradlí */
+			body: [
+				[640, 275],
+				[985, 275],
+				[985, 507],
+				[1078, 507],
+				[1078, 650],
+				[700, 650],
+				[700, 885],
+				[640, 885],
+			],
+			popisek: [812, 470],
+		},
+		{
+			cislo: '2.02',
+			/* přes celou hloubku domu, koupelnu obchází */
+			body: [
+				[312, 275],
+				[544, 275],
+				[544, 500],
+				[625, 500],
+				[625, 885],
+				[312, 885],
+			],
+			popisek: [445, 690],
+		},
+		{
+			cislo: '2.03',
+			/* výklenek u chodbičky (x 1000–1078) není od pokoje oddělený zdí;
+			 * s ním vychází plocha větší než v legendě, takže je to nejisté */
+			body: [
+				[1000, 275],
+				[1436, 275],
+				[1436, 550],
+				[1094, 550],
+				[1094, 490],
+				[1000, 490],
+			],
+			popisek: [1240, 420],
+		},
+		{
+			cislo: '2.04',
+			/* pás u příčky (y 562–600) vypadá na vestavěné skříně, viz `skrine` */
+			body: [
+				[1094, 562],
+				[1436, 562],
+				[1436, 885],
+				[1094, 885],
+			],
+			popisek: [1265, 745],
+		},
+		{
+			cislo: '2.05',
+			/* severní hranice je odhad: čára na y 340 ve skenu je spíš linie
+			 * střechy než zeď, koupelna tedy jde až k obvodové zdi */
+			body: [
+				[556, 275],
+				[625, 275],
+				[625, 500],
+				[556, 500],
+			],
+			popisek: [590, 330],
+			jenCislo: true,
+		},
+	],
+
+	terasy: [],
+
+	prostory: [
+		{
+			/* ve výkresu bez čísla a bez názvu, 1,8 × 3,5 m s komínem v rohu;
+			 * název je odhad */
+			nazev: 'Komora',
+			body: [
+				[978, 660],
+				[1078, 660],
+				[1078, 885],
+				[950, 885],
+				[950, 700],
+				[978, 700],
+			],
+			popisek: [1020, 780],
+		},
+	],
+
+	otvory: [
+		{
+			body: [
+				[706, 656],
+				[935, 656],
+				[935, 885],
+				[706, 885],
+			],
+			popisek: [820, 760],
+			radky: ['Otevřeno dolů', 'do jídelní haly'],
+		},
+	],
+
+	/*
+	 * Směr otvírání je ze skenu čitelný u všech čtyř nakreslených dveří.
+	 * Dveře do pokoje 2.04 ve výkresu vidět nejsou; jsou odhadnuté ve zdi
+	 * chodbičky, kde jediné dávají smysl.
+	 */
+	dvere: [
+		// galerie → pokoj 2.02, křídlo do pokoje
+		{ od: [632, 508], do: [632, 552], strana: 'vpravo' },
+		// galerie → koupelna, křídlo do koupelny
+		{ od: [632, 458], do: [632, 410], strana: 'vlevo' },
+		// chodbička → pokoj 2.03, křídlo do pokoje
+		{ od: [1010, 498], do: [1065, 498], strana: 'vlevo' },
+		// chodbička → komora, křídlo do komory
+		{ od: [1010, 655], do: [1065, 655], strana: 'vpravo' },
+		// chodbička → pokoj 2.04: odhad, ve skenu nejsou
+		{ od: [1086, 600], do: [1086, 648], strana: 'vlevo' },
+	],
+
+	/* okna ve štítových zdech; polohy odečtené ze skenu, výšky parapetů neřeší */
+	okna: [
+		// pokoj 2.02: západní zeď
+		{ od: [298, 469], do: [298, 534], sila: 28 },
+		{ od: [298, 630], do: [298, 694], sila: 28 },
+		// pokoj 2.03 a 2.04: východní zeď
+		{ od: [1450, 452], do: [1450, 522], sila: 28 },
+		{ od: [1450, 620], do: [1450, 687], sila: 28 },
+	],
+
+	/* dvě střešní okna 800 × 1400 v severní střeše nad galerií */
+	stresniOkna: [
+		{ x: 792, y: 292, sirka: 58, vyska: 58 },
+		{ x: 860, y: 292, sirka: 62, vyska: 58 },
+	],
+
+	skrine: [
+		// pokoj 2.02: vestavěná skříň vedle koupelny
+		{ x: 478, y: 410, sirka: 66, vyska: 90 },
+		// pokoj 2.04: dvě skříně podél příčky k pokoji 2.03
+		{ x: 1094, y: 562, sirka: 161, vyska: 38 },
+		{ x: 1265, y: 562, sirka: 171, vyska: 38 },
+	],
+
+	/* schodiště přichází zdola z jihu, výstup je u galerie */
+	schodiste: { x: 645, y: 700, sirka: 55, vyska: 185, stupnu: 12 },
 };

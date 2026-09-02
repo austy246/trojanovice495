@@ -6,15 +6,29 @@
  */
 import Pudorys from './Pudorys.astro';
 import { nemovitost } from '../data/nemovitost';
-import { prizemi, type PudorysSchema } from '../data/pudorys';
+import { podkrovi, prizemi, type PudorysSchema } from '../data/pudorys';
 
 const { plochy } = nemovitost;
 
 /*
- * Schéma má zatím jen přízemí. Podlaží bez schématu má seznam obyčejný —
- * bez kurzoru, Tabu a zvýraznění, protože není v čem zvýrazňovat.
+ * Každé podlaží má své schéma nad svým seznamem. Podlaží bez schématu by
+ * mělo seznam obyčejný — bez kurzoru, Tabu a zvýraznění, protože není
+ * v čem zvýrazňovat. Popisky pod schématy říkají, co je ve výkresu
+ * a co je odhad.
  */
-const schemata: Record<string, PudorysSchema> = { Přízemí: prizemi };
+const schemata: Record<string, PudorysSchema> = { Přízemí: prizemi, Podkroví: podkrovi };
+
+const popisky: Record<string, string> = {
+	Přízemí:
+		'Schéma přízemí podle půdorysu z projektu, bez měřítka. Oblouk u dveří ukazuje, kam se ' +
+		'otvírají; posuvné jsou mezi zádveřím a vstupní halou, z haly do jídelny a na obě terasy. ' +
+		'Terasy v rozpisu ploch nejsou; terasa 1.15 je v projektu, postavená není.',
+	Podkroví:
+		'Schéma podkroví podle půdorysu z projektu, bez měřítka; jižní křídlo je jen střecha nad ' +
+		'obytnou halou. Galerie je nad jídelní halou otevřená dolů, čárkované obdélníky jsou střešní ' +
+		'okna, tenké obdélníky s úhlopříčkou vestavěné skříně. Komora u otvoru do haly je ve výkresu ' +
+		'bez čísla; dveře do pokoje 2.04 výkres nezachycuje a jsou odhad.',
+};
 
 /** 7.3 → „7,30“ — desetinná čárka bez spoléhání na ICU v Node */
 const cislo = (n: number) => n.toFixed(2).replace('.', ',');
@@ -34,20 +48,22 @@ const celkem = plochy.reduce((s, p) => s + soucet(p.mistnosti), 0);
 			vyčísluje jen terasu&nbsp;1.14 (10,20&nbsp;m²).
 		</p>
 
-		<div class="schema">
-			<Pudorys schema={prizemi} podlazi="Přízemí">
-				Schéma přízemí podle půdorysu z projektu, bez měřítka. Oblouk u dveří ukazuje, kam se
-				otvírají; posuvné jsou mezi zádveřím a vstupní halou, z haly do jídelny a na obě terasy.
-				Klepnutím na místnost ve schématu
-				nebo v seznamu se zvýrazní v obou. Terasy v rozpisu ploch nejsou; terasa 1.15 je
-				v projektu, postavená není.
-			</Pudorys>
-		</div>
+		<p class="napoveda">
+			Klepnutím na místnost ve schématu nebo v seznamu se zvýrazní v obou.
+		</p>
 
 		<div class="podlazi">
 			{
 				plochy.map((p) => (
 					<div class="podlazi__sloupec">
+						{schemata[p.podlazi] && (
+							<div class="podlazi__schema">
+								<Pudorys schema={schemata[p.podlazi]} podlazi={p.podlazi}>
+									{popisky[p.podlazi]}
+								</Pudorys>
+							</div>
+						)}
+						<div class="podlazi__seznam">
 						<h3>{p.podlazi}</h3>
 						<ul class="mistnosti">
 							{p.mistnosti.map((m) => (
@@ -64,6 +80,7 @@ const celkem = plochy.reduce((s, p) => s + soucet(p.mistnosti), 0);
 								<strong>{cislo(soucet(p.mistnosti))}&nbsp;m²</strong>
 							</li>
 						</ul>
+						</div>
 					</div>
 				))
 			}
@@ -126,24 +143,56 @@ const celkem = plochy.reduce((s, p) => s + soucet(p.mistnosti), 0);
 <style>
 	.uvod {
 		max-width: 42rem;
+		margin: 0 0 1rem;
+		color: var(--barva-text-tlumena);
+	}
+
+	.napoveda {
+		max-width: 42rem;
 		margin: 0 0 2.5rem;
+		font-size: 0.9rem;
 		color: var(--barva-text-tlumena);
 	}
 
 	/*
-	 * Schéma stojí nad seznamy a drží se levé hrany jako text nad ním.
-	 * Šířka je kompromis: užší by ztratilo popisky, širší by bylo obrázkem,
-	 * který je vyšší než celé oba seznamy pod ním.
+	 * Dva sloupce, přízemí a podkroví; každé schéma stojí nad svým seznamem.
+	 * Sloupec je průhledný obal (display: contents), takže schémata sedí
+	 * v prvním řádku mřížky u spodní hrany a seznamy pod nimi začínají
+	 * na stejné výšce, i když je přízemí vyšší než podkroví.
+	 * Na úzkém displeji jde všechno pod sebe: schéma, seznam, schéma, seznam.
 	 */
-	.schema {
-		max-width: 38rem;
-		margin: 0 0 clamp(2.5rem, 5vw, 3.5rem);
-	}
-
 	.podlazi {
 		display: grid;
-		grid-template-columns: repeat(auto-fit, minmax(19rem, 1fr));
-		gap: clamp(2rem, 5vw, 3.5rem);
+		grid-template-columns: 1fr;
+		gap: 0 clamp(2rem, 5vw, 3.5rem);
+	}
+
+	.podlazi__sloupec {
+		display: contents;
+	}
+
+	.podlazi__schema {
+		margin-bottom: clamp(1.5rem, 3vw, 2rem);
+	}
+
+	.podlazi__seznam {
+		margin-bottom: clamp(2rem, 5vw, 3rem);
+	}
+
+	@media (min-width: 46rem) {
+		.podlazi {
+			grid-template-columns: 1fr 1fr;
+		}
+
+		.podlazi__schema {
+			grid-row: 1;
+			align-self: end;
+		}
+
+		.podlazi__seznam {
+			grid-row: 2;
+			margin-bottom: 0;
+		}
 	}
 
 	.podlazi h3 {
