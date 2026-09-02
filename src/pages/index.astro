@@ -347,6 +347,34 @@ const velikostPrukazu = maPrukaz
 		line-height: 1.6;
 	}
 
+	/*
+	 * Mřížka fotek: na šířce obsahu tři sloupce, na tabletu dva, na telefonu
+	 * jeden. Poměr stran drží CSS, fotky jsou na výšku i na šířku.
+	 */
+	.galerie {
+		display: grid;
+		grid-template-columns: repeat(auto-fit, minmax(20rem, 1fr));
+		gap: 1.5rem;
+	}
+
+	.galerie__polozka {
+		margin: 0;
+	}
+
+	.galerie__polozka img {
+		width: 100%;
+		aspect-ratio: 3 / 2;
+		object-fit: cover;
+		background: var(--barva-pozadi-blok);
+		border-radius: 2px;
+	}
+
+	.galerie figcaption {
+		margin-top: 0.5rem;
+		font-size: 0.875rem;
+		color: var(--barva-text-tlumena);
+	}
+
 	.lokalita__popis {
 		max-width: 42rem;
 		margin-top: 0;
