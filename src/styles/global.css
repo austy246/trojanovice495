@@ -17,7 +17,7 @@
 	--barva-nabidka-vybrana: #0a6ad2;
 	--sirka-obsahu: 68rem;
 	--mezera-sekce: 5rem;
-	--pismo: 'Georgia', 'Times New Roman', serif;
+	/* jedno písmo pro všechno; nadpisy a hodnoty se liší jen velikostí, řezem a barvou */
 	--pismo-ui: system-ui, -apple-system, 'Segoe UI', sans-serif;
 }
 
@@ -39,8 +39,7 @@ body {
 h1,
 h2,
 h3 {
-	font-family: var(--pismo);
-	font-weight: 400;
+	font-weight: 500;
 	line-height: 1.2;
 	letter-spacing: -0.01em;
 	text-wrap: balance;
@@ -121,7 +120,7 @@ a {
 
 /*
  * Rozpiska: mřížka dlaždic s popiskem nad hodnotou (parametry domu, údaje
- * o pozemcích). Hodnota je v serifu jako nadpisy, popisek verzálkami jako
+ * o pozemcích). Hodnota je větší a v středním řezu, popisek verzálkami jako
  * nadpis sekce; každá dlaždice má nad sebou linku.
  */
 .rozpiska {
@@ -145,8 +144,8 @@ a {
 
 .rozpiska dd {
 	margin: 0.25rem 0 0;
-	font-family: var(--pismo);
 	font-size: 1.375rem;
+	font-weight: 500;
 }
 
 .rozpiska dd span {
@@ -155,7 +154,7 @@ a {
 
 /*
  * Řádky: seznam dvojic popisek vlevo, hodnota vpravo, pod každým řádkem
- * linka (místnosti s plochami, vzdálenosti). Hodnota je v serifu a nezalamuje se.
+ * linka (místnosti s plochami, vzdálenosti). Hodnota je ve středním řezu a nezalamuje se.
  */
 .radky {
 	list-style: none;
@@ -173,7 +172,6 @@ a {
 }
 
 .radky strong {
-	font-family: var(--pismo);
-	font-weight: 400;
+	font-weight: 500;
 	white-space: nowrap;
 }
