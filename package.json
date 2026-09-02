@@ -12,8 +12,7 @@
     "srovnani": "node scripts/srovnani-kresby.mjs",
     "pudorys": "node scripts/pudorys-kontrola.mjs",
     "preview": "astro preview",
-    "astro": "astro",
-    "vykresy": "node scripts/vykresy.mjs"
+    "astro": "astro"
   },
   "dependencies": {
     "astro": "^7.2.2"

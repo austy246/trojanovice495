@@ -1,7 +1,7 @@
 ---
 /*
  * Rozpis ploch po místnostech. Čísla jsou opsaná z legend na stavebních
- * výkresech (viz Nakresy.astro), součty se dopočítávají, aby se nemohly
+ * výkresech (A.J.A, 2004), součty se dopočítávají, aby se nemohly
  * rozejít s rozpisem ani s užitnou plochou v přehledu parametrů.
  */
 import Pudorys from './Pudorys.astro';
@@ -65,7 +65,7 @@ const celkem = plochy.reduce((s, p) => s + soucet(p.mistnosti), 0);
 						)}
 						<div class="podlazi__seznam">
 						<h3>{p.podlazi}</h3>
-						<ul class="mistnosti">
+						<ul class="radky mistnosti">
 							{p.mistnosti.map((m) => (
 								<li data-m={schemata[p.podlazi] ? m.cislo : undefined} tabindex={schemata[p.podlazi] ? 0 : undefined}>
 									<span class="mistnosti__nazev">
@@ -141,19 +141,6 @@ const celkem = plochy.reduce((s, p) => s + soucet(p.mistnosti), 0);
 </script>
 
 <style>
-	.uvod {
-		max-width: 42rem;
-		margin: 0 0 1rem;
-		color: var(--barva-text-tlumena);
-	}
-
-	.napoveda {
-		max-width: 42rem;
-		margin: 0 0 2.5rem;
-		font-size: 0.9rem;
-		color: var(--barva-text-tlumena);
-	}
-
 	/*
 	 * Dva sloupce, přízemí a podkroví; každé schéma stojí nad svým seznamem.
 	 * Sloupec je průhledný obal (display: contents), takže schémata sedí
@@ -202,27 +189,6 @@ const celkem = plochy.reduce((s, p) => s + soucet(p.mistnosti), 0);
 		letter-spacing: 0.08em;
 		text-transform: uppercase;
 		color: var(--barva-text-tlumena);
-	}
-
-	.mistnosti {
-		list-style: none;
-		padding: 0;
-		margin: 0;
-	}
-
-	.mistnosti li {
-		display: flex;
-		align-items: baseline;
-		justify-content: space-between;
-		gap: 1rem;
-		padding: 0.55rem 0;
-		border-bottom: 1px solid var(--barva-linka);
-	}
-
-	.mistnosti strong {
-		font-family: var(--pismo);
-		font-weight: 400;
-		white-space: nowrap;
 	}
 
 	/*

@@ -93,3 +93,87 @@ a {
 	color: var(--barva-text-tlumena);
 	margin: 0 0 0.75rem;
 }
+
+/*
+ * Úvodní odstavec sekce a nápověda pod ním. Jedna šířka řádku pro všechen
+ * souvislý text na webu: 42 rem je zhruba 75 znaků.
+ */
+.uvod {
+	max-width: 42rem;
+	margin: 0 0 2.5rem;
+	color: var(--barva-text-tlumena);
+}
+
+.uvod:has(+ .napoveda) {
+	margin-bottom: 1rem;
+}
+
+.uvod:last-child {
+	margin-bottom: 0;
+}
+
+.napoveda {
+	max-width: 42rem;
+	margin: 0 0 2.5rem;
+	font-size: 0.9rem;
+	color: var(--barva-text-tlumena);
+}
+
+/*
+ * Rozpiska: mřížka dlaždic s popiskem nad hodnotou (parametry domu, údaje
+ * o pozemcích). Hodnota je v serifu jako nadpisy, popisek verzálkami jako
+ * nadpis sekce; každá dlaždice má nad sebou linku.
+ */
+.rozpiska {
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(13rem, 1fr));
+	gap: 1.5rem 2rem;
+	margin: 0;
+}
+
+.rozpiska > div {
+	border-top: 1px solid var(--barva-linka);
+	padding-top: 0.75rem;
+}
+
+.rozpiska dt {
+	font-size: 0.8rem;
+	letter-spacing: 0.08em;
+	text-transform: uppercase;
+	color: var(--barva-text-tlumena);
+}
+
+.rozpiska dd {
+	margin: 0.25rem 0 0;
+	font-family: var(--pismo);
+	font-size: 1.375rem;
+}
+
+.rozpiska dd span {
+	color: var(--barva-text-tlumena);
+}
+
+/*
+ * Řádky: seznam dvojic popisek vlevo, hodnota vpravo, pod každým řádkem
+ * linka (místnosti s plochami, vzdálenosti). Hodnota je v serifu a nezalamuje se.
+ */
+.radky {
+	list-style: none;
+	padding: 0;
+	margin: 0;
+}
+
+.radky li {
+	display: flex;
+	align-items: baseline;
+	justify-content: space-between;
+	gap: 1rem;
+	padding: 0.6rem 0;
+	border-bottom: 1px solid var(--barva-linka);
+}
+
+.radky strong {
+	font-family: var(--pismo);
+	font-weight: 400;
+	white-space: nowrap;
+}

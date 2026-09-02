@@ -1,7 +1,6 @@
 ---
 import Layout from '../layouts/Layout.astro';
 import Pozemky from '../components/Pozemky.astro';
-import Nakresy from '../components/Nakresy.astro';
 import PlochyMistnosti from '../components/PlochyMistnosti.astro';
 import Cena from '../components/Cena.astro';
 import { existsSync, statSync } from 'node:fs';
@@ -9,8 +8,7 @@ import { resolve } from 'node:path';
 import { energie, nemovitost } from '../data/nemovitost';
 import { spolecne, telefonHref } from '../data/spolecne';
 
-const { nazev, podtitul, perex, cena, cenaPoznamka, uvodniFoto, parametry, rozlozeni, galerie } =
-	nemovitost;
+const { nazev, podtitul, perex, cena, cenaPoznamka, uvodniFoto, parametry, galerie } = nemovitost;
 const { lokalita, kontakt } = spolecne;
 
 const cisloCZ = new Intl.NumberFormat('cs-CZ');
@@ -44,7 +42,7 @@ const velikostPrukazu = maPrukaz
 		</div>
 
 		<div class="obsah">
-			<p class="hero__perex">{perex}</p>
+			<p class="uvod hero__perex">{perex}</p>
 			<Cena cena={cena} poznamka={cenaPoznamka} />
 		</div>
 	</header>
@@ -53,27 +51,16 @@ const velikostPrukazu = maPrukaz
 		<div class="obsah">
 			<p class="nadpis-sekce">Přehled</p>
 			<h2>Základní parametry</h2>
-			<dl class="parametry">
+			<dl class="rozpiska">
 				{
 					parametry.map((polozka) => (
-						<div class="parametry__polozka">
+						<div>
 							<dt>{polozka.nazev}</dt>
 							<dd>{polozka.hodnota}</dd>
 						</div>
 					))
 				}
 			</dl>
-
-			<ul class="rozlozeni">
-				{
-					rozlozeni.map((podlazi) => (
-						<li>
-							<span>{podlazi.podlazi}</span>
-							<strong>{podlazi.mistnosti}</strong>
-						</li>
-					))
-				}
-			</ul>
 
 			<div class="provoz">
 				<p class="stitek">
@@ -129,16 +116,14 @@ const velikostPrukazu = maPrukaz
 
 	<PlochyMistnosti />
 
-	<Nakresy />
-
 	<Pozemky />
 
 	<section class="sekce sekce--tlumena" id="lokalita">
 		<div class="obsah">
 			<p class="nadpis-sekce">Okolí</p>
 			<h2>Lokalita</h2>
-			<p class="lokalita__popis">{lokalita.popis}</p>
-			<ul class="vzdalenosti">
+			<p class="uvod">{lokalita.popis}</p>
+			<ul class="radky vzdalenosti">
 				{
 					lokalita.vzdalenosti.map((polozka) => (
 						<li>
@@ -160,9 +145,10 @@ const velikostPrukazu = maPrukaz
 				<a href={telefonHref}>{kontakt.telefon}</a><br />
 				<a href={`mailto:${kontakt.email}`}>{kontakt.email}</a>
 			</p>
-			<p class="kontakt__poznamka">
+			<p class="uvod">
 				Prodávám sám, bez realitní kanceláře — ozvěte se mi přímo. Dům i háječek se
-				prodávají dohromady, jako jeden celek.
+				prodávají dohromady, jako jeden celek. Projektovou dokumentaci domu (půdorysy
+				a řezy z roku 2004) pošlu na vyžádání.
 			</p>
 		</div>
 	</section>
@@ -222,80 +208,20 @@ const velikostPrukazu = maPrukaz
 		margin-bottom: 0.5rem;
 	}
 
+	/* úvod hera je větší než úvody sekcí a má odstup od fotky */
 	.hero__perex {
-		max-width: 42rem;
-		margin-top: clamp(2rem, 5vw, 3rem);
+		margin: clamp(2rem, 5vw, 3rem) 0 1.125rem;
 		font-size: 1.125rem;
-		color: var(--barva-text-tlumena);
-	}
-
-	.parametry {
-		display: grid;
-		grid-template-columns: repeat(auto-fit, minmax(13rem, 1fr));
-		gap: 1.5rem 2rem;
-		margin: 0;
-	}
-
-	.parametry__polozka {
-		border-top: 1px solid var(--barva-linka);
-		padding-top: 0.75rem;
-	}
-
-	.parametry dt {
-		font-size: 0.8rem;
-		letter-spacing: 0.08em;
-		text-transform: uppercase;
-		color: var(--barva-text-tlumena);
-	}
-
-	.parametry dd {
-		margin: 0.25rem 0 0;
-		font-family: var(--pismo);
-		font-size: 1.375rem;
-	}
-
-	.rozlozeni {
-		list-style: none;
-		padding: 0;
-		margin: 2rem 0 0;
-		max-width: 44rem;
-	}
-
-	/* Stejná sazba jako položky přehledu výše — popisek podlaží nad výčtem místností. */
-	.rozlozeni li {
-		border-top: 1px solid var(--barva-linka);
-		padding-top: 0.75rem;
-	}
-
-	.rozlozeni li + li {
-		margin-top: 1.25rem;
-	}
-
-	.rozlozeni span {
-		display: block;
-		font-size: 0.8rem;
-		letter-spacing: 0.08em;
-		text-transform: uppercase;
-		color: var(--barva-text-tlumena);
-	}
-
-	.rozlozeni strong {
-		display: block;
-		margin-top: 0.25rem;
-		font-family: var(--pismo);
-		font-size: 1.375rem;
-		font-weight: normal;
 	}
 
 	/*
 	 * Provozní náklady. Nedělá se z nich vlastní ostrůvek s rámečkem a jiným
-	 * pozadím — v sekci už je rozpiska i rozložení podlaží a třetí krabice by
-	 * působila jako cizí prvek. Drží se proto stejné vodorovné linky jako
-	 * položky přehledu nad ní.
+	 * pozadím — v sekci už je rozpiska a druhá krabice by působila jako cizí
+	 * prvek. Drží se proto stejné vodorovné linky jako položky přehledu nad ní.
 	 */
 	.provoz {
 		margin: 2.5rem 0 0;
-		max-width: 44rem;
+		max-width: 42rem;
 		border-top: 1px solid var(--barva-linka);
 		padding-top: 1.25rem;
 	}
@@ -375,32 +301,11 @@ const velikostPrukazu = maPrukaz
 		color: var(--barva-text-tlumena);
 	}
 
-	.lokalita__popis {
-		max-width: 42rem;
-		margin-top: 0;
-	}
-
 	.vzdalenosti {
-		list-style: none;
-		padding: 0;
-		margin: 2rem 0 0;
-		max-width: 32rem;
-	}
-
-	.vzdalenosti li {
-		display: flex;
-		justify-content: space-between;
-		gap: 1rem;
-		padding: 0.75rem 0;
-		border-bottom: 1px solid var(--barva-linka);
+		max-width: 42rem;
 	}
 
 	.kontakt {
 		font-size: 1.125rem;
-	}
-
-	.kontakt__poznamka {
-		color: var(--barva-text-tlumena);
-		max-width: 34rem;
 	}
 </style>

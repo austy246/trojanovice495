@@ -6,7 +6,7 @@
  *
  * Vykreslí polygony, dveře (modře, tečka je závěs), okna (zeleně), krb
  * a skříně (fialově), otvory v podlaze (oranžově) ze src/data/pudorys.ts
- * přes sken v public/nakresy/ a uloží podklady/pudorys-kontrola.png
+ * přes sken v podklady/pudorys/ a uloží podklady/pudorys-kontrola.png
  * (přízemí) nebo podklady/pudorys-kontrola-podkrovi.png.
  * Nic na webu nemění — je to jen oko pro toho, kdo v datech posouvá body.
  * Jede na sharpu, který si s sebou nese Astro, a na čtení TypeScriptu
@@ -32,7 +32,7 @@ if (!podlazi) {
 const { schema } = podlazi;
 
 const KOREN = resolve(dirname(fileURLToPath(import.meta.url)), '..');
-const SKEN = resolve(KOREN, 'public/nakresy', podlazi.sken);
+const SKEN = resolve(KOREN, 'podklady/pudorys', podlazi.sken);
 const VYSTUP = resolve(KOREN, 'podklady', podlazi.vystup);
 
 const { width, height } = await sharp(SKEN).metadata();

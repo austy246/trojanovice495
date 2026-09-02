@@ -1,11 +1,15 @@
 /*
  * Schémata podlaží pro sekci Rozlohy místností — zjednodušený půdorys, jaký
  * bývá v realitních nabídkách. Místnosti jsou obkreslené ručně z půdorysů
- * (přízemí public/nakresy/01-pudorys-prizemi.webp, 1415 × 1282 px; podkroví
- * public/nakresy/03-pudorys-podkrovi.webp, 1777 × 1567 px) a každé schéma stojí
+ * (přízemí podklady/pudorys/01-pudorys-prizemi.webp, 1415 × 1282 px; podkroví
+ * podklady/pudorys/03-pudorys-podkrovi.webp, 1777 × 1567 px) a každé schéma stojí
  * v pixelových souřadnicích svého skenu, aby se dalo proti němu kdykoli
  * zkontrolovat: `npm run pudorys` (přízemí) nebo `npm run pudorys -- podkrovi`
  * vykreslí polygony přes sken do podklady/pudorys-kontrola*.png.
+ *
+ * V projektu je i list „PŮDORYS 2.NP“ (V1-06-03) s jinými plochami místností;
+ * schéma i rozpis ploch vycházejí z listu „podkroví“. Skeny se na webu
+ * neukazují, kde se rozcházejí se skutečností, platí slovo majitele.
  *
  * Kreslí se vnitřní líce stěn. Stěny vznikají samy: pod místnostmi leží tmavý
  * obrys domu po vnějším líci a co mezi světlými plochami místností zbude,

@@ -54,7 +54,7 @@ const casti = [uDomu, hajecek];
 		<p class="nadpis-sekce">Pozemky</p>
 		<h2>Pozemek u domu a háječek, {vymeraText}</h2>
 
-		<dl class="rozpiska">
+		<dl class="rozpiska pozemky__rozpiska">
 			<div><dt>Katastrální území</dt><dd>{spolecne.katastr.uzemi}</dd></div>
 			<div><dt>Kód k.ú.</dt><dd>{spolecne.katastr.kod}</dd></div>
 			<div>
@@ -153,40 +153,8 @@ const casti = [uDomu, hajecek];
 </section>
 
 <style>
-	.rozpiska {
-		display: grid;
-		grid-template-columns: repeat(auto-fit, minmax(11rem, 1fr));
-		border: 1px solid var(--barva-linka);
-		border-radius: 2px;
-		background: var(--barva-pozadi-blok);
-		margin: 0 0 1.5rem;
-	}
-
-	.rozpiska > div {
-		padding: 0.6rem 0.9rem;
-		border-right: 1px solid var(--barva-linka);
-	}
-
-	.rozpiska > div:last-child {
-		border-right: none;
-	}
-
-	.rozpiska dt {
-		font-size: 0.7rem;
-		letter-spacing: 0.1em;
-		text-transform: uppercase;
-		color: var(--barva-text-tlumena);
-		margin-bottom: 0.2rem;
-	}
-
-	.rozpiska dd {
-		margin: 0;
-		font: 0.95rem/1.3 ui-monospace, Consolas, monospace;
-		font-variant-numeric: tabular-nums;
-	}
-
-	.rozpiska dd span {
-		color: var(--barva-text-tlumena);
+	.pozemky__rozpiska {
+		margin-bottom: 2rem;
 	}
 
 	/*
@@ -197,11 +165,9 @@ const casti = [uDomu, hajecek];
 		max-width: 36rem;
 	}
 
+	/* nápověda stojí mezi mapou a tabulkou, odstupy má proto vlastní */
 	.napoveda {
-		color: var(--barva-text-tlumena);
-		font-size: 0.8rem;
 		margin: 0.75rem 0 1.75rem;
-		max-width: 52rem;
 	}
 
 	.tabulka {

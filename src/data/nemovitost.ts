@@ -55,8 +55,10 @@ const zastavenoGaraz = vymeraStavby('garáž');
 const stavebniVHajecku = proCast('hajecek').find((p) => p.stavebni);
 
 // Plochy místností opsané z legend na stavebních výkresech (A.J.A, 07/2004) —
-// listy „Půdorys přízemí“ a „Půdorys podkroví“, viz nakresy.ts. Čísla místností
-// odpovídají popiskům ve výkresech, ať se dají v legendě dohledat.
+// listy „Půdorys přízemí“ a „Půdorys podkroví“; skeny obou půdorysů jsou
+// v podklady/pudorys/, ostatní listy v podklady/vykresy/. Web výkresy neukazuje,
+// schémata v pudorys.ts kreslí skutečný stav a výkresy se od něj místy liší.
+// Čísla místností odpovídají popiskům ve výkresech, ať se dají v legendě dohledat.
 //
 // Terasy tu záměrně nejsou: legenda 1.NP je vede jako 1.14–1.16, ale plochu má
 // vyčíslenou jen 1.14 (10,20 m²). Do užitné plochy se terasy nepočítají.
@@ -157,11 +159,6 @@ export const nemovitost = {
 		{ nazev: 'Náklady na energie', hodnota: `${cislo.format(energie.mesicne)} Kč měsíčně` },
 		{ nazev: 'Garáž', hodnota: 'Pro dva vozy, s dílnou a podkrovím' },
 		{ nazev: 'Parkování', hodnota: '3 místa před garáží' },
-	],
-
-	rozlozeni: [
-		{ podlazi: 'Přízemí', mistnosti: 'Ložnice se šatnou a koupelnou, pokoj a koupelna pro hosty, pracovna, obývací pokoj a kuchyň' },
-		{ podlazi: 'Patro', mistnosti: 'Tři pokoje a koupelna' },
 	],
 
 	// Dočasné amatérské fotky z 2. 5. 2026, než budou profesionální.
