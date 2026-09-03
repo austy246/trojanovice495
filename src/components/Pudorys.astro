@@ -12,7 +12,7 @@
  * název a plocha se čtou z karty.
  */
 import { nemovitost } from '../data/nemovitost';
-import type { Bod, PudorysSchema } from '../data/pudorys';
+import { AZIMUT_VRCHU, type Bod, type PudorysSchema } from '../data/pudorys';
 
 interface Props {
 	schema: PudorysSchema;
@@ -110,6 +110,39 @@ const okna = schema.okna.map((o) => {
 });
 
 const { krb, vstup } = schema;
+
+/*
+ * Směrová růžice: šipka k severu a písmena světových stran kolem kruhu,
+ * písmena zůstávají vzpřímená. Sever je o AZIMUT_VRCHU doleva od svislice
+ * výkresu, ostatní strany po 90° po směru hodin.
+ */
+const ruzice = (() => {
+	const { x, y, polomer: r } = schema.ruzice;
+	const smer = (azimut: number): [number, number] => {
+		const u = ((azimut - AZIMUT_VRCHU) * Math.PI) / 180;
+		/* svislice výkresu je (0, -1) */
+		return [Math.sin(u), -Math.cos(u)];
+	};
+	const [sx, sy] = smer(0);
+	const bod = (k: number): Bod => [x + sx * r * k, y + sy * r * k];
+	const pismena = (
+		[
+			['S', 0],
+			['V', 90],
+			['J', 180],
+			['Z', 270],
+		] as const
+	).map(([p, az]) => {
+		const [dx, dy] = smer(az);
+		return { p, x: x + dx * r * 1.5, y: y + dy * r * 1.5 };
+	});
+	const [hx, hy] = bod(0.95);
+	/* hrot: trojúhelník kolmý na směr šipky, dřík končí u jeho základny */
+	const sirka = r * 0.24;
+	const [zx, zy] = bod(0.5);
+	const hrot = `${hx},${hy} ${zx + sy * sirka},${zy - sx * sirka} ${zx - sy * sirka},${zy + sx * sirka}`;
+	return { x, y, r, ocas: bod(-0.65), zaklad: [zx, zy] as Bod, hrot, pismena };
+})();
 const otvory = schema.otvory ?? [];
 const prostory = schema.prostory ?? [];
 const stresniOkna = schema.stresniOkna ?? [];
@@ -316,6 +349,25 @@ const srafa = `srafa-${podlazi.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`;
 			{stupne.map((y) => (
 				<line x1={s.x} y1={y} x2={s.x + s.sirka} y2={y} />
 			))}
+		</g>
+
+		<g class="ruzice" aria-label="Sever">
+			<circle cx={ruzice.x} cy={ruzice.y} r={ruzice.r} />
+			<line x1={ruzice.ocas[0]} y1={ruzice.ocas[1]} x2={ruzice.zaklad[0]} y2={ruzice.zaklad[1]} />
+			<polygon points={ruzice.hrot} />
+			{
+				ruzice.pismena.map((p) => (
+					<text
+						class:list={{ 'ruzice__sever': p.p === 'S' }}
+						x={p.x}
+						y={p.y}
+						text-anchor="middle"
+						dominant-baseline="central"
+					>
+						{p.p}
+					</text>
+				))
+			}
 		</g>
 
 		{
@@ -645,6 +697,37 @@ const srafa = `srafa-${podlazi.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`;
 	.schodiste {
 		pointer-events: none;
 		opacity: 0.7;
+	}
+
+	.ruzice {
+		pointer-events: none;
+	}
+
+	.ruzice circle {
+		fill: none;
+		stroke: var(--barva-text-tlumena);
+		stroke-width: 1.5;
+		opacity: 0.6;
+	}
+
+	.ruzice line {
+		stroke: var(--barva-text-tlumena);
+		stroke-width: 2.5;
+		stroke-linecap: round;
+	}
+
+	.ruzice polygon {
+		fill: var(--barva-text-tlumena);
+	}
+
+	.ruzice text {
+		fill: var(--barva-text-tlumena);
+		font-size: 19px;
+	}
+
+	.ruzice__sever {
+		font-size: 22px;
+		font-weight: 500;
 	}
 
 	.vstup line {

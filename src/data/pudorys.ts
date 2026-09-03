@@ -27,6 +27,14 @@
 
 export type Bod = [number, number];
 
+/*
+ * Kam míří vrch výkresů: azimut ve stupních. Z obrysu stavební parcely
+ * v mapě (EPSG:3857) má dlouhá strana domu azimut 146° a křídlo s obytnou
+ * halou vybíhá na jihozápad (236°); vrch výkresu, kde je vstup, tedy míří
+ * na severovýchod. Sever je na výkresu o tolik stupňů doleva od svislice.
+ */
+export const AZIMUT_VRCHU = 56;
+
 export interface MistnostSchematu {
 	/** číslo místnosti podle legendy výkresu, klíč do rozpisu ploch */
 	cislo: string;
@@ -128,6 +136,8 @@ export interface PudorysSchema {
 	stresniOkna?: ObdelnikSchematu[];
 	/** vestavěné skříně: tenký obrys s úhlopříčkou */
 	skrine?: ObdelnikSchematu[];
+	/** směrová růžice: střed a poloměr; natočení dává AZIMUT_VRCHU */
+	ruzice: { x: number; y: number; polomer: number };
 }
 
 export const prizemi: PudorysSchema = {
@@ -386,19 +396,21 @@ export const prizemi: PudorysSchema = {
 	krb: { x: 765, y: 551, sirka: 85, hloubka: 31, ohniste: 45 },
 
 	/*
-	 * Vestavěné skříně v šatně 1.10: u severní i jižní stěny, po obou
-	 * stranách dveří, jak je kreslí výkres a jak potvrdil majitel.
+	 * Vestavěné skříně v šatně 1.10: dvě, každá po celé délce západní
+	 * a východní stěny (podle majitele; výkres kreslí čtyři kusy po stranách
+	 * dveří v severní a jižní stěně, tak to není). Hloubka 0,6 m je odhad.
 	 */
 	skrine: [
-		{ x: 316, y: 402, sirka: 69, vyska: 35 },
-		{ x: 430, y: 402, sirka: 67, vyska: 35 },
-		{ x: 316, y: 503, sirka: 69, vyska: 35 },
-		{ x: 430, y: 503, sirka: 67, vyska: 35 },
+		{ x: 316, y: 402, sirka: 35, vyska: 136 },
+		{ x: 462, y: 402, sirka: 35, vyska: 136 },
 	],
 
 	schodiste: { x: 608, y: 556, sirka: 60, vyska: 201, stupnu: 11 },
 
 	vstup: { x: 655, y: 180 },
+
+	/* pravý dolní roh, vedle plánované terasy */
+	ruzice: { x: 1305, y: 1045, polomer: 42 },
 };
 
 /*
@@ -594,4 +606,7 @@ export const podkrovi: PudorysSchema = {
 
 	/* schodiště přichází zdola z jihu, výstup je u galerie */
 	schodiste: { x: 645, y: 700, sirka: 55, vyska: 185, stupnu: 12 },
+
+	/* na stejném místě jako v přízemí, přepočteno 1,125× */
+	ruzice: { x: 1425, y: 1220, polomer: 47 },
 };
