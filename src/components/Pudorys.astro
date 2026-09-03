@@ -7,6 +7,9 @@
  * Každá místnost nese data-m se svým číslem; totéž mají položky v seznamu
  * ploch. Kdo je zvýrazňuje a jak, řeší skript v PlochyMistnosti.astro —
  * schéma samo jen kreslí a nabízí místnosti k najetí, Tabu a kliknutí.
+ * Nad schématem je karta s nadpisem a řádkem, do kterého tentýž skript
+ * dopisuje zvýrazněnou místnost: na telefonu jsou v místnostech jen čísla,
+ * název a plocha se čtou z karty.
  */
 import { nemovitost } from '../data/nemovitost';
 import type { Bod, PudorysSchema } from '../data/pudorys';
@@ -116,6 +119,10 @@ const srafa = `srafa-${podlazi.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`;
 ---
 
 <figure class="pudorys">
+	<div class="karta">
+		<p class="karta__nadpis">Schéma {podlazi.toLowerCase()}</p>
+		<p class="karta__mistnost" aria-live="polite"></p>
+	</div>
 	<svg
 		viewBox={`${vx} ${vy} ${vs} ${vv}`}
 		role="group"
@@ -152,6 +159,8 @@ const srafa = `srafa-${podlazi.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`;
 				<g
 					class="mistnost"
 					data-m={m.cislo}
+					data-nazev={m.nazev}
+					data-plocha={`${cislo(m.plocha)} m²`}
 					tabindex="0"
 					role="button"
 					aria-label={`${m.cislo} ${m.nazev}, ${cislo(m.plocha)} m²`}
@@ -332,6 +341,55 @@ const srafa = `srafa-${podlazi.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`;
 		width: 100%;
 		height: auto;
 		font-family: var(--pismo-ui);
+	}
+
+	/*
+	 * Karta nad schématem: nadpis a řádek pro zvýrazněnou místnost. Řádek má
+	 * výšku pořád, i prázdný, aby schéma pod ním při klepnutí neposkočilo.
+	 * Když je v něm místnost, karta se zbarví stejnou modrou jako místnost.
+	 */
+	.karta {
+		margin: 0 0 0.75rem;
+		padding: 0.6rem 0.9rem 0.65rem;
+		border: 1px solid var(--barva-linka);
+		border-radius: 2px;
+		background: var(--barva-pozadi);
+		transition: background 0.12s, border-color 0.12s;
+	}
+
+	.karta.je-vybrana {
+		border-color: color-mix(in srgb, var(--barva-nabidka-vybrana) 45%, var(--barva-linka));
+		background: color-mix(in srgb, var(--barva-nabidka-vybrana) 10%, var(--barva-pozadi));
+	}
+
+	.karta__nadpis {
+		margin: 0;
+		font-size: 0.8rem;
+		letter-spacing: 0.08em;
+		text-transform: uppercase;
+		color: var(--barva-text-tlumena);
+	}
+
+	.karta__mistnost {
+		display: flex;
+		align-items: baseline;
+		justify-content: space-between;
+		gap: 1rem;
+		min-height: 1.5em;
+		margin: 0.15rem 0 0;
+		font-size: 1.125rem;
+		line-height: 1.5;
+	}
+
+	.karta__cislo {
+		margin-right: 0.5rem;
+		color: var(--barva-text-tlumena);
+		font-variant-numeric: tabular-nums;
+	}
+
+	.karta__plocha {
+		font-weight: 500;
+		white-space: nowrap;
 	}
 
 	/*

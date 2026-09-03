@@ -102,10 +102,40 @@ const celkem = plochy.reduce((s, p) => s + soucet(p.mistnosti), 0);
 	const prvky = [...document.querySelectorAll<HTMLElement | SVGElement>('[data-m]')];
 	let zamcena: string | null = null;
 
-	const oznac = (klic: string, zap: boolean) =>
+	/*
+	 * Karta nad každým schématem ukazuje místnost, která je v něm právě
+	 * zvýrazněná — na telefonu jsou v místnostech jen čísla. Bez zvýraznění
+	 * je řádek prázdný a karta bez barvy.
+	 */
+	const obnovKarty = () =>
+		document.querySelectorAll<HTMLElement>('.pudorys').forEach((figura) => {
+			const radek = figura.querySelector<HTMLElement>('.karta__mistnost');
+			const karta = figura.querySelector<HTMLElement>('.karta');
+			if (!radek || !karta) return;
+			const m = figura.querySelector<SVGElement>('.mistnost.je-zvyraznena');
+			karta.classList.toggle('je-vybrana', !!m);
+			if (!m) {
+				radek.replaceChildren();
+				return;
+			}
+			const cislo = document.createElement('span');
+			cislo.className = 'karta__cislo';
+			cislo.textContent = m.dataset.m ?? '';
+			const nazev = document.createElement('span');
+			nazev.className = 'karta__nazev';
+			nazev.append(cislo, m.dataset.nazev ?? '');
+			const plocha = document.createElement('strong');
+			plocha.className = 'karta__plocha';
+			plocha.textContent = m.dataset.plocha ?? '';
+			radek.replaceChildren(nazev, plocha);
+		});
+
+	const oznac = (klic: string, zap: boolean) => {
 		prvky.forEach((el) => {
 			if (el.dataset.m === klic) el.classList.toggle('je-zvyraznena', zap);
 		});
+		obnovKarty();
+	};
 
 	const najeti = (klic: string, zap: boolean) => {
 		if (zamcena && zamcena !== klic) return;
