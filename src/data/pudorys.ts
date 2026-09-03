@@ -42,6 +42,8 @@ export interface TerasaSchematu extends MistnostSchematu {
 	nazev: string;
 	/** projekt vyčísluje jen terasu 1.14 */
 	plocha?: number;
+	/** jen čárkovaný obrys bez popisku (terasa v podkroví drží obrys domu, popisek má v přízemí) */
+	jenObrys?: boolean;
 }
 
 export interface DvereSchematu {
@@ -389,9 +391,13 @@ export const prizemi: PudorysSchema = {
 };
 
 /*
- * Podkroví. Kreslí se jen hlavní část domu: jižní křídlo je střecha nad
- * obytnou halou, žádné místnosti pod ní nejsou. Sken je ohnutý v přehybu
- * (kolem x 1010), kóty vpravo od něj tedy vůči pixelům trochu plavou.
+ * Podkroví. Obrys je stejný jako v přízemí, aby obě schémata vedle sebe
+ * seděla na sebe: jižní křídlo ale v podkroví podlahu nemá, obytná hala je
+ * otevřená až do krovu, a kreslí se proto jako otvor se šrafou, stejně jako
+ * otvor galerie nad jídelní halou u krbu. Plánovaná terasa drží čárkovaný
+ * obrys bez popisku; krytá terasa 1.14 je pod podlahou pokoje 2.04, v podkroví
+ * není co kreslit. Sken je ohnutý v přehybu (kolem x 1010), kóty vpravo od
+ * něj tedy vůči pixelům trochu plavou.
  *
  * Co je ve výkresu jasné: pět místností z legendy, otvor v podlaze galerie
  * nad jídelní halou, schodiště přicházející z jihu, dvě střešní okna nad
@@ -400,12 +406,16 @@ export const prizemi: PudorysSchema = {
  * a je to poznamenáno u položky.
  */
 export const podkrovi: PudorysSchema = {
-	viewBox: [260, 225, 1230, 710],
+	viewBox: [260, 225, 1230, 1085],
 
 	obrys: [
 		[284, 247],
 		[1464, 247],
 		[1464, 913],
+		[860, 913],
+		[860, 1283],
+		[390, 1283],
+		[390, 913],
 		[284, 913],
 	],
 
@@ -490,9 +500,23 @@ export const podkrovi: PudorysSchema = {
 		},
 	],
 
-	terasy: [],
+	terasy: [
+		{
+			cislo: '1.15',
+			nazev: 'Plánovaná terasa',
+			jenObrys: true,
+			body: [
+				[860, 913],
+				[1246, 913],
+				[1246, 1283],
+				[860, 1283],
+			],
+			popisek: [1053, 1098],
+		},
+	],
 
 	otvory: [
+		// galerie nad jídelní halou, nad krbem
 		{
 			body: [
 				[706, 656],
@@ -502,6 +526,23 @@ export const podkrovi: PudorysSchema = {
 			],
 			popisek: [820, 760],
 			radky: ['Otevřeno dolů', 'do jídelní haly'],
+		},
+		// jižní křídlo: obytná hala je otevřená až do krovu; s otvorem nad
+		// jídelnou se spojuje mezerou vedle schodiště, kde zeď mezi halami nesahá
+		// do podkroví
+		{
+			body: [
+				[706, 885],
+				[805, 885],
+				[805, 913],
+				[835, 913],
+				[835, 1255],
+				[415, 1255],
+				[415, 913],
+				[706, 913],
+			],
+			popisek: [625, 1075],
+			radky: ['Otevřeno dolů', 'do obytné haly,', 'strop až do krovu'],
 		},
 	],
 

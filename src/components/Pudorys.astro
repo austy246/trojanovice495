@@ -136,6 +136,7 @@ const srafa = `srafa-${podlazi.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`;
 			schema.terasy.map((t) => (
 				<g class="terasa">
 					<polygon points={body(t.body)} />
+					{!t.jenObrys && (
 					<text class="popisek" x={t.popisek[0]} y={t.popisek[1]} text-anchor="middle">
 						<tspan class="popisek__cislo" x={t.popisek[0]} dy="-1.1em">
 							{t.cislo}
@@ -149,6 +150,7 @@ const srafa = `srafa-${podlazi.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`;
 							</tspan>
 						)}
 					</text>
+					)}
 				</g>
 			))
 		}
@@ -207,7 +209,7 @@ const srafa = `srafa-${podlazi.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`;
 			))
 		}
 
-		{/* otvor v podlaze: šrafa místo plochy, ať nevypadá jako podlaha */}
+		{/* otvor v podlaze: světlý podklad se šrafou místo plochy, ať nevypadá jako podlaha ani jako zeď */}
 		{
 			otvory.length > 0 && (
 				<defs>
@@ -220,6 +222,7 @@ const srafa = `srafa-${podlazi.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`;
 		{
 			otvory.map((o) => (
 				<g class="otvor-dolu" aria-label={o.radky.join(' ')}>
+					<polygon class="otvor-dolu__podklad" points={body(o.body)} />
 					<polygon class="otvor-dolu__srafa" points={body(o.body)} fill={`url(#${srafa})`} />
 					<polygon class="otvor-dolu__obrys" points={body(o.body)} />
 					<text class="popisek" x={o.popisek[0]} y={o.popisek[1]} text-anchor="middle">
@@ -460,34 +463,38 @@ const srafa = `srafa-${podlazi.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`;
 	}
 
 	/*
-	 * Otvor v podlaze: šrafa přes tmavý podklad obrysu, aby se lišil od podlahy
-	 * místností i od zdí, tenký obrys a popisek. Popisek nese světlý podklad,
-	 * aby se dal přes šrafu číst.
+	 * Otvor v podlaze: světlý podklad jako u místností, přes něj řídká šrafa
+	 * tlumenou barvou a tenký obrys. Tmavá výplň by vedle zdí působila jako
+	 * masiv; takhle je to podlaha, která tam není.
 	 */
 	.otvor-dolu {
 		pointer-events: none;
 	}
 
+	.otvor-dolu__podklad {
+		fill: var(--barva-pozadi);
+	}
+
 	/* čára šrafy leží v defs mimo skupinu otvoru, proto má vlastní třídu */
 	.srafa {
-		stroke: var(--barva-pozadi);
-		stroke-width: 2;
-		opacity: 0.5;
+		stroke: var(--barva-text-tlumena);
+		stroke-width: 1.5;
+		opacity: 0.35;
 	}
 
 	.otvor-dolu__obrys {
 		fill: none;
-		stroke: var(--barva-pozadi);
+		stroke: var(--barva-text-tlumena);
 		stroke-width: 2;
 		opacity: 0.6;
 	}
 
 	.otvor-dolu .popisek {
-		fill: var(--barva-pozadi);
+		fill: var(--barva-text-tlumena);
 		font-size: 21px;
 		paint-order: stroke;
-		stroke: #3d372f;
-		stroke-width: 8;
+		stroke: var(--barva-pozadi);
+		stroke-width: 6;
 		stroke-linejoin: round;
 	}
 
