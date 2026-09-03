@@ -388,6 +388,33 @@ const srafa = `srafa-${podlazi.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`;
 		line-height: 1.5;
 	}
 
+	/*
+	 * Popis místnosti se neobjeví skokem: krátce se prolne a vysune zdola.
+	 * Animace startuje s třídou je-vybrana, takže při přechodu z jedné
+	 * místnosti na druhou (třída se sundá a nasadí) běží znovu.
+	 */
+	.karta.je-vybrana .karta__mistnost {
+		animation: karta-objeveni 0.28s ease-out both;
+	}
+
+	@keyframes karta-objeveni {
+		from {
+			opacity: 0;
+			transform: translateY(0.35em);
+		}
+
+		to {
+			opacity: 1;
+			transform: none;
+		}
+	}
+
+	@media (prefers-reduced-motion: reduce) {
+		.karta.je-vybrana .karta__mistnost {
+			animation: none;
+		}
+	}
+
 	.karta__cislo {
 		margin-right: 0.5rem;
 		color: var(--barva-text-tlumena);
