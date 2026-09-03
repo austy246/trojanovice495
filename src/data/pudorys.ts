@@ -126,6 +126,8 @@ export interface PudorysSchema {
 	prostory?: ProstorSchematu[];
 	/** střešní okna: čárkovaný obdélník v ploše místnosti */
 	stresniOkna?: ObdelnikSchematu[];
+	/** vestavěné skříně: tenký obrys s úhlopříčkou */
+	skrine?: ObdelnikSchematu[];
 }
 
 export const prizemi: PudorysSchema = {
@@ -382,6 +384,17 @@ export const prizemi: PudorysSchema = {
 
 	/* krbová vložka ve zdi mezi halou a jídelnou, ohniště vystupuje do jídelny */
 	krb: { x: 765, y: 551, sirka: 85, hloubka: 31, ohniste: 45 },
+
+	/*
+	 * Vestavěné skříně v šatně 1.10: u severní i jižní stěny, po obou
+	 * stranách dveří, jak je kreslí výkres a jak potvrdil majitel.
+	 */
+	skrine: [
+		{ x: 316, y: 402, sirka: 69, vyska: 35 },
+		{ x: 430, y: 402, sirka: 67, vyska: 35 },
+		{ x: 316, y: 503, sirka: 69, vyska: 35 },
+		{ x: 430, y: 503, sirka: 67, vyska: 35 },
+	],
 
 	schodiste: { x: 608, y: 556, sirka: 60, vyska: 201, stupnu: 11 },
 

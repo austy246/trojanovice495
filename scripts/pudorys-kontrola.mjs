@@ -5,7 +5,7 @@
  *   npm run pudorys -- podkrovi
  *
  * Vykreslí polygony, dveře (modře, tečka je závěs), okna a střešní okna
- * (zeleně), krb (fialově), otvory v podlaze (oranžově) ze src/data/pudorys.ts
+ * (zeleně), krb a skříně (fialově), otvory v podlaze (oranžově) ze src/data/pudorys.ts
  * přes sken v podklady/pudorys/ a uloží podklady/pudorys-kontrola.png
  * (přízemí) nebo podklady/pudorys-kontrola-podkrovi.png.
  * Nic na webu nemění — je to jen oko pro toho, kdo v datech posouvá body.
@@ -67,6 +67,7 @@ const obdelnik = (r, barva, dash = '') =>
 	`<rect x="${r.x}" y="${r.y}" width="${r.sirka}" height="${r.vyska ?? r.hloubka}" fill="none" stroke="${barva}" stroke-width="3"${dash}/>`;
 const krb = schema.krb ? obdelnik(schema.krb, '#c0c') : '';
 const stresniOkna = (schema.stresniOkna ?? []).map((o) => obdelnik(o, '#0a0', ' stroke-dasharray="8 6"')).join('');
+const skrine = (schema.skrine ?? []).map((k) => obdelnik(k, '#c0c')).join('');
 
 const s = schema.schodiste;
 const vstup = schema.vstup ? `<circle cx="${schema.vstup.x}" cy="${schema.vstup.y}" r="8" fill="#00c"/>` : '';
@@ -78,6 +79,7 @@ const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${
 	${okna}
 	${krb}
 	${stresniOkna}
+	${skrine}
 	<rect x="${s.x}" y="${s.y}" width="${s.sirka}" height="${s.vyska}" fill="none" stroke="#00c" stroke-width="2"/>
 	${vstup}
 </svg>`;
