@@ -123,6 +123,7 @@ const srafa = `srafa-${podlazi.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`;
 		<p class="karta__nadpis">Schéma {podlazi.toLowerCase()}</p>
 		{/* prvky jsou v šabloně, ne ze skriptu: jen tak na ně dosáhnou zdejší styly */}
 		<p class="karta__mistnost" aria-live="polite">
+			<span class="karta__napoveda">Klepněte na místnost</span>
 			<span class="karta__nazev"><span class="karta__cislo"></span><span class="karta__jmeno"></span></span>
 			<strong class="karta__plocha"></strong>
 		</p>
@@ -413,6 +414,16 @@ const srafa = `srafa-${podlazi.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`;
 		.karta.je-vybrana .karta__mistnost {
 			animation: none;
 		}
+	}
+
+	/* nápověda v prázdném řádku; s vybranou místností ustoupí jejímu popisu */
+	.karta__napoveda {
+		font-size: 0.85rem;
+		color: var(--barva-text-tlumena);
+	}
+
+	.karta.je-vybrana .karta__napoveda {
+		display: none;
 	}
 
 	.karta__cislo {
