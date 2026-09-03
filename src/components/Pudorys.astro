@@ -112,6 +112,7 @@ const okna = schema.okna.map((o) => {
 const { krb, vstup } = schema;
 const otvory = schema.otvory ?? [];
 const prostory = schema.prostory ?? [];
+const stresniOkna = schema.stresniOkna ?? [];
 /* šrafa otvoru v podlaze; id musí být v dokumentu jedinečné, schémat je víc */
 const srafa = `srafa-${podlazi.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`;
 ---
@@ -260,6 +261,17 @@ const srafa = `srafa-${podlazi.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`;
 					<>
 						<polygon points={body(o.pruh)} />
 						<line x1={o.od[0]} y1={o.od[1]} x2={o.do[0]} y2={o.do[1]} />
+					</>
+				))
+			}
+		</g>
+
+		<g class="stresni-okna" aria-hidden="true">
+			{
+				stresniOkna.map((o) => (
+					<>
+						<rect x={o.x} y={o.y} width={o.sirka} height={o.vyska} />
+						<line x1={o.x} y1={o.y + o.vyska / 2} x2={o.x + o.sirka} y2={o.y + o.vyska / 2} />
 					</>
 				))
 			}
@@ -510,6 +522,19 @@ const srafa = `srafa-${podlazi.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`;
 		stroke: var(--barva-pozadi);
 		stroke-width: 6;
 		stroke-linejoin: round;
+	}
+
+	.stresni-okna {
+		pointer-events: none;
+	}
+
+	.stresni-okna rect,
+	.stresni-okna line {
+		fill: none;
+		stroke: var(--barva-text-tlumena);
+		stroke-width: 1.5;
+		stroke-dasharray: 6 5;
+		opacity: 0.8;
 	}
 
 	.terasa polygon {

@@ -99,6 +99,13 @@ export interface ProstorSchematu {
 	popisek: Bod;
 }
 
+export interface ObdelnikSchematu {
+	x: number;
+	y: number;
+	sirka: number;
+	vyska: number;
+}
+
 export interface PudorysSchema {
 	/** výřez schématu v souřadnicích skenu: x, y, šířka, výška */
 	viewBox: [number, number, number, number];
@@ -117,6 +124,8 @@ export interface PudorysSchema {
 	otvory?: OtvorSchematu[];
 	/** prostory bez čísla místnosti */
 	prostory?: ProstorSchematu[];
+	/** střešní okna: čárkovaný obdélník v ploše místnosti */
+	stresniOkna?: ObdelnikSchematu[];
 }
 
 export const prizemi: PudorysSchema = {
@@ -389,10 +398,11 @@ export const prizemi: PudorysSchema = {
  * něj tedy vůči pixelům trochu plavou.
  *
  * Co je ve výkresu jasné: pět místností z legendy, otvor v podlaze galerie
- * nad jídelní halou, schodiště přicházející z jihu a čtyři okna ve štítových
- * zdech. Kde se výkres a skutečnost rozcházejí (koupelna, hranice pokojů
- * 2.03 a 2.04, střešní okna a vestavěné skříně, které výkres kreslí a ve
- * skutečnosti nejsou), platí slovo majitele a je to poznamenáno u položky.
+ * nad jídelní halou, schodiště přicházející z jihu, dvě střešní okna nad
+ * galerií a čtyři okna ve štítových zdech. Kde se výkres a skutečnost
+ * rozcházejí (koupelna, hranice pokojů 2.03 a 2.04, vestavěné skříně, které
+ * výkres kreslí a ve skutečnosti nejsou), platí slovo majitele a je to
+ * poznamenáno u položky.
  */
 export const podkrovi: PudorysSchema = {
 	/*
@@ -561,6 +571,12 @@ export const podkrovi: PudorysSchema = {
 		// pokoj 2.03 a 2.04: východní zeď
 		{ od: [1450, 452], do: [1450, 522], sila: 28 },
 		{ od: [1450, 620], do: [1450, 687], sila: 28 },
+	],
+
+	/* dvě střešní okna 800 × 1400 v severní střeše nad galerií */
+	stresniOkna: [
+		{ x: 792, y: 292, sirka: 58, vyska: 58 },
+		{ x: 860, y: 292, sirka: 62, vyska: 58 },
 	],
 
 	/* schodiště přichází zdola z jihu, výstup je u galerie */
