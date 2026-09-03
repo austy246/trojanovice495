@@ -121,7 +121,11 @@ const srafa = `srafa-${podlazi.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`;
 <figure class="pudorys">
 	<div class="karta">
 		<p class="karta__nadpis">Schéma {podlazi.toLowerCase()}</p>
-		<p class="karta__mistnost" aria-live="polite"></p>
+		{/* prvky jsou v šabloně, ne ze skriptu: jen tak na ně dosáhnou zdejší styly */}
+		<p class="karta__mistnost" aria-live="polite">
+			<span class="karta__nazev"><span class="karta__cislo"></span><span class="karta__jmeno"></span></span>
+			<strong class="karta__plocha"></strong>
+		</p>
 	</div>
 	<svg
 		viewBox={`${vx} ${vy} ${vs} ${vv}`}

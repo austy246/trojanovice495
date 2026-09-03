@@ -109,25 +109,16 @@ const celkem = plochy.reduce((s, p) => s + soucet(p.mistnosti), 0);
 	 */
 	const obnovKarty = () =>
 		document.querySelectorAll<HTMLElement>('.pudorys').forEach((figura) => {
-			const radek = figura.querySelector<HTMLElement>('.karta__mistnost');
 			const karta = figura.querySelector<HTMLElement>('.karta');
-			if (!radek || !karta) return;
+			const cislo = figura.querySelector<HTMLElement>('.karta__cislo');
+			const jmeno = figura.querySelector<HTMLElement>('.karta__jmeno');
+			const plocha = figura.querySelector<HTMLElement>('.karta__plocha');
+			if (!karta || !cislo || !jmeno || !plocha) return;
 			const m = figura.querySelector<SVGElement>('.mistnost.je-zvyraznena');
 			karta.classList.toggle('je-vybrana', !!m);
-			if (!m) {
-				radek.replaceChildren();
-				return;
-			}
-			const cislo = document.createElement('span');
-			cislo.className = 'karta__cislo';
-			cislo.textContent = m.dataset.m ?? '';
-			const nazev = document.createElement('span');
-			nazev.className = 'karta__nazev';
-			nazev.append(cislo, m.dataset.nazev ?? '');
-			const plocha = document.createElement('strong');
-			plocha.className = 'karta__plocha';
-			plocha.textContent = m.dataset.plocha ?? '';
-			radek.replaceChildren(nazev, plocha);
+			cislo.textContent = m?.dataset.m ?? '';
+			jmeno.textContent = m?.dataset.nazev ?? '';
+			plocha.textContent = m?.dataset.plocha ?? '';
 		});
 
 	const oznac = (klic: string, zap: boolean) => {
