@@ -166,8 +166,10 @@ const celkem = plochy.reduce((s, p) => s + soucet(p.mistnosti), 0);
 	/*
 	 * Dva sloupce, přízemí a podkroví; každé schéma stojí nad svým seznamem.
 	 * Sloupec je průhledný obal (display: contents), takže schémata sedí
-	 * v prvním řádku mřížky u spodní hrany a seznamy pod nimi začínají
-	 * na stejné výšce, i když je přízemí vyšší než podkroví.
+	 * v prvním řádku mřížky a seznamy pod nimi začínají na stejné výšce.
+	 * Schémata se drží horní hrany řádku: mají stejný poměr stran a dům
+	 * v nich sedí na stejném místě, takže přízemí a podkroví stojí přesně
+	 * vedle sebe; delší popisek pod jedním z nich tomu nevadí.
 	 * Na úzkém displeji jde všechno pod sebe: schéma, seznam, schéma, seznam.
 	 */
 	.podlazi {
@@ -195,7 +197,7 @@ const celkem = plochy.reduce((s, p) => s + soucet(p.mistnosti), 0);
 
 		.podlazi__schema {
 			grid-row: 1;
-			align-self: end;
+			align-self: start;
 		}
 
 		.podlazi__seznam {

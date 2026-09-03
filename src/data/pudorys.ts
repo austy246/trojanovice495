@@ -406,7 +406,12 @@ export const prizemi: PudorysSchema = {
  * a je to poznamenáno u položky.
  */
 export const podkrovi: PudorysSchema = {
-	viewBox: [260, 225, 1230, 1085],
+	/*
+	 * Výřez je výřez přízemí zvětšený 1,125× (o tolik je sken podkroví větší)
+	 * a posunutý tak, aby severní i západní líc domu ležely na stejném místě.
+	 * Obě schémata pak mají při stejné šířce stejnou výšku a domy se kryjí.
+	 */
+	viewBox: [238, 146, 1282, 1181],
 
 	obrys: [
 		[284, 247],
