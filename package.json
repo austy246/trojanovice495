@@ -11,6 +11,7 @@
     "podklady": "node scripts/podklady.mjs",
     "srovnani": "node scripts/srovnani-kresby.mjs",
     "pudorys": "node scripts/pudorys-kontrola.mjs",
+    "schemata": "node scripts/schemata.mjs",
     "preview": "astro preview",
     "astro": "astro"
   },

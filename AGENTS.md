@@ -49,3 +49,20 @@ překreslit.
 `cuzk.gov.cz` blokuje, takže `npm run podklady` i `npm run srovnani` musí běžet
 lokálně. Odsud jde ověřit jen to, co síť nepotřebuje: build, a stránky
 v prohlížeči proti podvrženým odpovědím.
+
+## Schémata podlaží jako obrázky
+
+`npm run schemata` vyexportuje obě schémata podlaží do
+`public/schemata/prizemi.png` a `public/schemata/podkrovi.png` (2000 px na
+šířku) pro sdílení mimo web — do inzerátu, do e-mailu, k vytištění.
+
+- Skript nekreslí nic vlastního: sestaví web a z hotové stránky vyzobne SVG
+  schémat i pravidla jejich stylu, takže obrázky jdou samy s daty
+  v `src/data/pudorys.ts` i se stylem v `Pudorys.astro`. Vazbou je scoped
+  atribut `data-astro-cid-…` v `scripts/schemata.mjs`; když se přejmenuje
+  komponenta, přestane se styl chytat.
+- Obrázek je vždy „široká“ podoba schématu s celými popisky; stavy z myši
+  a přepínání popisků na úzké obrazovce se do něj nepřenášejí. Rasterizuje
+  sharp, který neumí `color-mix` ani `var()` — obojí skript dopočítá sám.
+- Obrázky nevznikají v buildu; kdo posune bod ve schématu, spustí `npm run
+  schemata` ručně a výsledek commitne.
