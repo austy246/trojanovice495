@@ -31,3 +31,6 @@ srovnani/
 
 # kontrola schemat podlazi proti skenum (npm run pudorys)
 podklady/pudorys-kontrola*.png
+
+# claude code: konfigurace spousteni je sdilena, mistni nastaveni ne
+.claude/settings.local.json
