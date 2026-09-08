@@ -165,7 +165,8 @@ export const prizemi: PudorysSchema = {
 				[756, 375],
 				[608, 375],
 			],
-			popisek: [682, 325],
+			/* na střed volné části, ne místnosti: u východní stěny stojí skříň */
+			popisek: [667, 325],
 		},
 		{
 			cislo: '1.02',
@@ -399,10 +400,14 @@ export const prizemi: PudorysSchema = {
 	 * Vestavěné skříně v šatně 1.10: dvě, každá po celé délce západní
 	 * a východní stěny (podle majitele; výkres kreslí čtyři kusy po stranách
 	 * dveří v severní a jižní stěně, tak to není). Hloubka 0,6 m je odhad.
+	 * Třetí je v zádveří 1.01 po celé délce východní stěny, té vpravo od
+	 * vchodu; tu výkres kreslí, obkreslená je podle něj (mělčí, 0,5 m).
+	 * Do křídla vchodových dveří nezasahuje.
 	 */
 	skrine: [
 		{ x: 316, y: 402, sirka: 35, vyska: 136 },
 		{ x: 462, y: 402, sirka: 35, vyska: 136 },
+		{ x: 726, y: 210, sirka: 30, vyska: 165 },
 	],
 
 	schodiste: { x: 608, y: 556, sirka: 60, vyska: 201, stupnu: 11 },
