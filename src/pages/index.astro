@@ -42,7 +42,6 @@ const velikostPrukazu = maPrukaz
 
 		<div class="obsah">
 			<p class="uvod hero__perex">{perex}</p>
-			<Cena cena={cena} poznamka={cenaPoznamka} />
 		</div>
 	</header>
 
@@ -137,6 +136,14 @@ const velikostPrukazu = maPrukaz
 	<PlochyMistnosti />
 
 	<Pozemky />
+
+	<section class="sekce" id="cena">
+		<div class="obsah">
+			<p class="nadpis-sekce">Nabídka</p>
+			<h2>Cena</h2>
+			<Cena cena={cena} poznamka={cenaPoznamka} />
+		</div>
+	</section>
 
 	<section class="sekce sekce--tlumena" id="lokalita">
 		<div class="obsah">
