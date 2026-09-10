@@ -69,7 +69,7 @@ const plochy = [
 	{
 		podlazi: 'Přízemí',
 		mistnosti: [
-			{ cislo: '1.01', nazev: 'Zádveří', plocha: 7.3, foto: '08-zadveri.jpg' },
+			{ cislo: '1.01', nazev: 'Zádveří', plocha: 7.3 },
 			{ cislo: '1.02', nazev: 'Vstupní hala', plocha: 12.86, foto: '09-vstupni-hala.jpg' },
 			{ cislo: '1.03', nazev: 'Jídelní hala', plocha: 32.73, foto: '12-jidelni-hala.jpg' },
 			{ cislo: '1.04', nazev: 'Obytná hala', plocha: 34.0, foto: '10-obytna-hala.jpg' },
@@ -78,7 +78,7 @@ const plochy = [
 			{ cislo: '1.07', nazev: 'Pokoj', plocha: 12.6, foto: '16-pokoj.jpg' },
 			{ cislo: '1.08', nazev: 'Pracovna', plocha: 12.78, foto: '15-pracovna.jpg' },
 			{ cislo: '1.09', nazev: 'Ložnice', plocha: 17.12, foto: '17-loznice.jpg' },
-			{ cislo: '1.10', nazev: 'Šatna', plocha: 7.25 },
+			{ cislo: '1.10', nazev: 'Šatna', plocha: 7.25, foto: '08-satna.jpg' },
 			{ cislo: '1.11', nazev: 'Koupelna', plocha: 10.36, foto: '18-koupelna.jpg' },
 			{ cislo: '1.12', nazev: 'Koupelna', plocha: 3.7, foto: '19-koupelna-mala.jpg' },
 			{ cislo: '1.13', nazev: 'Technické zázemí', plocha: 4.72, foto: '20-technicke-zazemi.jpg' },
@@ -173,7 +173,7 @@ export const nemovitost = {
 		{ soubor: '05-zahrada.jpg', popis: 'Vzrostlá zahrada kolem domu' },
 		{ soubor: '06-vyhled.jpg', popis: 'Výhled na Beskydy' },
 		{ soubor: '07-garaz.jpg', popis: 'Garáž pro dva vozy' },
-		{ soubor: '08-zadveri.jpg', popis: 'Zádveří s vestavěnou skříní' },
+		{ soubor: '08-satna.jpg', popis: 'Šatna s vestavěnou skříní' },
 		{ soubor: '09-vstupni-hala.jpg', popis: 'Vstupní hala' },
 		{ soubor: '10-obytna-hala.jpg', popis: 'Obytná hala se schodištěm do podkroví' },
 		{ soubor: '11-obytna-hala-galerie.jpg', popis: 'Obytná hala s výhledem do galerie' },
