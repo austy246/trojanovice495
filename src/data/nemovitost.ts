@@ -89,8 +89,8 @@ const plochy = [
 		mistnosti: [
 			{ cislo: '2.01', nazev: 'Galerie', plocha: 33.6, foto: '21-galerie.jpg' },
 			{ cislo: '2.02', nazev: 'Pokoj', plocha: 30.6, foto: '22-pokoj-podkrovi.jpg' },
-			{ cislo: '2.03', nazev: 'Pokoj', plocha: 23.1, foto: '23-pokoj-podkrovi-2.jpg' },
-			{ cislo: '2.04', nazev: 'Pokoj', plocha: 25.75, foto: '24-pokoj-podkrovi-3.jpg' },
+			{ cislo: '2.03', nazev: 'Pokoj', plocha: 23.1, foto: '24-pokoj-podkrovi-3.jpg' },
+			{ cislo: '2.04', nazev: 'Pokoj', plocha: 25.75, foto: '23-pokoj-podkrovi-2.jpg' },
 			{ cislo: '2.05', nazev: 'Koupelna', plocha: 4.05, foto: '25-koupelna-podkrovi.jpg' },
 		],
 	},
