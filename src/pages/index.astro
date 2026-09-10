@@ -28,17 +28,16 @@ const velikostPrukazu = maPrukaz
 
 <Layout titulek={`${nazev} — ${podtitul}`} popis={perex}>
 	<header class="hero">
+		<div class="obsah hero__titulek">
+			<p class="nadpis-sekce">{podtitul}</p>
+			<h1>{nazev}</h1>
+		</div>
+
 		<div class="hero__media">
 			<picture>
 				<source media="(max-width: 60rem)" srcset={`/fotky/${uvodniFoto.souborNaVysku}`} />
 				<img class="hero__foto" src={`/fotky/${uvodniFoto.soubor}`} alt={uvodniFoto.popis} fetchpriority="high" />
 			</picture>
-			<div class="hero__titulek">
-				<div class="obsah">
-					<p class="nadpis-sekce">{podtitul}</p>
-					<h1>{nazev}</h1>
-				</div>
-			</div>
 		</div>
 
 		<div class="obsah">
@@ -181,10 +180,6 @@ const velikostPrukazu = maPrukaz
 		border-bottom: 1px solid var(--barva-linka);
 	}
 
-	.hero__media {
-		position: relative;
-	}
-
 	.hero__media picture {
 		display: block;
 	}
@@ -194,12 +189,7 @@ const velikostPrukazu = maPrukaz
 		width: 100%;
 		height: clamp(21rem, 66vh, 38rem);
 		object-fit: cover;
-		/*
-		 * Nižší hodnota ukazuje horní část fotky a tlačí dům v záběru dolů
-		 * k nadpisu, vyšší ho zvedá a přidává trávu pod ním. Hřeben střechy
-		 * je ve 32 % výšky fotky; 45 % ho na běžných šířkách okna nechá
-		 * těsně u horní hrany a pod nadpisem udrží travnatý pás.
-		 */
+		/* Nižší hodnota ukazuje horní část fotky, vyšší ji posune dolů a přidá víc trávy pod domem. */
 		object-position: 50% 45%;
 	}
 
@@ -210,22 +200,11 @@ const velikostPrukazu = maPrukaz
 		}
 	}
 
-	/* Ztmavení jde jen zespodu a nahoře doběhne do průhledna, aby fotka
-	   zůstala fotkou a text na ní přesto držel kontrast. */
 	.hero__titulek {
-		position: absolute;
-		inset-inline: 0;
-		bottom: 0;
-		padding-block: clamp(4rem, 12vh, 7rem) clamp(1.5rem, 4vh, 2.5rem);
-		background: linear-gradient(to top, rgba(16, 14, 11, 0.74), rgba(16, 14, 11, 0.4) 45%, transparent);
-	}
-
-	.hero__titulek h1 {
-		color: #fff;
+		padding-block: clamp(2rem, 6vw, 3.5rem) clamp(1.5rem, 4vw, 2rem);
 	}
 
 	.hero__titulek .nadpis-sekce {
-		color: rgba(255, 255, 255, 0.85);
 		margin-bottom: 0.5rem;
 	}
 
