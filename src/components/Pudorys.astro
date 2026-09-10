@@ -33,7 +33,7 @@ const body = (b: Bod[]) => b.map((p) => p.join(',')).join(' ');
 const mistnosti = schema.mistnosti.map((m) => {
 	const r = rozpis.get(m.cislo);
 	if (!r) throw new Error(`Místnost ${m.cislo} ve schématu není v rozpisu ploch`);
-	return { ...m, nazev: r.nazev, plocha: r.plocha };
+	return { ...m, nazev: r.nazev, plocha: r.plocha, foto: r.foto };
 });
 
 const [vx, vy, vs, vv] = schema.viewBox;
@@ -153,13 +153,17 @@ const srafa = `srafa-${podlazi.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`;
 
 <figure class="pudorys">
 	<div class="karta">
-		<p class="karta__nadpis">Schéma {podlazi.toLowerCase()}</p>
-		{/* prvky jsou v šabloně, ne ze skriptu: jen tak na ně dosáhnou zdejší styly */}
-		<p class="karta__mistnost" aria-live="polite">
-			<span class="karta__napoveda">Klepněte na místnost</span>
-			<span class="karta__nazev"><span class="karta__cislo"></span><span class="karta__jmeno"></span></span>
-			<strong class="karta__plocha"></strong>
-		</p>
+		<div class="karta__text">
+			<p class="karta__nadpis">Schéma {podlazi.toLowerCase()}</p>
+			{/* prvky jsou v šabloně, ne ze skriptu: jen tak na ně dosáhnou zdejší styly */}
+			<p class="karta__mistnost" aria-live="polite">
+				<span class="karta__napoveda">Klepněte na místnost</span>
+				<span class="karta__nazev"><span class="karta__cislo"></span><span class="karta__jmeno"></span></span>
+				<strong class="karta__plocha"></strong>
+			</p>
+		</div>
+		{/* fotka místnosti napravo od popisku — jen když ji má vybraná místnost přiřazenou */}
+		<img class="karta__nahled" alt="" />
 	</div>
 	<svg
 		viewBox={`${vx} ${vy} ${vs} ${vv}`}
@@ -201,6 +205,7 @@ const srafa = `srafa-${podlazi.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`;
 					data-m={m.cislo}
 					data-nazev={m.nazev}
 					data-plocha={`${cislo(m.plocha)} m²`}
+					data-foto={m.foto}
 					tabindex="0"
 					role="button"
 					aria-label={`${m.cislo} ${m.nazev}, ${cislo(m.plocha)} m²`}
@@ -409,6 +414,9 @@ const srafa = `srafa-${podlazi.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`;
 	 * Když je v něm místnost, karta se zbarví stejnou modrou jako místnost.
 	 */
 	.karta {
+		display: flex;
+		align-items: center;
+		gap: 0.75rem;
 		margin: 0 0 0.75rem;
 		padding: 0.6rem 0.9rem 0.65rem;
 		border: 1px solid var(--barva-linka);
@@ -417,9 +425,32 @@ const srafa = `srafa-${podlazi.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`;
 		transition: background 0.12s, border-color 0.12s;
 	}
 
+	.karta__text {
+		flex: 1 1 auto;
+		min-width: 0;
+	}
+
 	.karta.je-vybrana {
 		border-color: color-mix(in srgb, var(--barva-nabidka-vybrana) 45%, var(--barva-linka));
 		background: color-mix(in srgb, var(--barva-nabidka-vybrana) 10%, var(--barva-pozadi));
+	}
+
+	/*
+	 * Náhled fotky napravo od popisku: ukáže se, jen když má zvýrazněná
+	 * místnost fotku přiřazenou (skript nastaví src a přidá je-videt) —
+	 * jinak zůstává schovaný, karta si drží svou výšku i bez fotky.
+	 */
+	.karta__nahled {
+		display: none;
+		flex: none;
+		width: 3.5rem;
+		height: 3.5rem;
+		object-fit: cover;
+		border-radius: 2px;
+	}
+
+	.karta__nahled.je-videt {
+		display: block;
 	}
 
 	.karta__nadpis {

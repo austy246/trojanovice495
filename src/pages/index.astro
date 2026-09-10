@@ -114,6 +114,27 @@ const velikostPrukazu = maPrukaz
 		)
 	}
 
+	<section class="sekce" id="video">
+		<div class="obsah">
+			<p class="nadpis-sekce">Video</p>
+			<h2>Video prohlídka</h2>
+			<video
+				class="video-prohlidka"
+				controls
+				playsinline
+				preload="none"
+				poster="/video/poster.jpg"
+				width="1920"
+				height="1080"
+			>
+				<source src="/video/prohlidka-mobile.mp4" media="(max-width: 40rem)" type="video/mp4" />
+				<source src="/video/prohlidka.mp4" type="video/mp4" />
+				Váš prohlížeč přehrávání videa nepodporuje. Video si můžete
+				<a href="/video/prohlidka.mp4">stáhnout přímo</a>.
+			</video>
+		</div>
+	</section>
+
 	<PlochyMistnosti />
 
 	<Pozemky />
@@ -292,6 +313,15 @@ const velikostPrukazu = maPrukaz
 		aspect-ratio: 3 / 2;
 		object-fit: cover;
 		background: var(--barva-pozadi-blok);
+		border-radius: 2px;
+	}
+
+	.video-prohlidka {
+		display: block;
+		width: 100%;
+		height: auto;
+		aspect-ratio: 16 / 9;
+		background: #000;
 		border-radius: 2px;
 	}
 

@@ -106,7 +106,8 @@ const celkem = plochy.reduce((s, p) => s + soucet(p.mistnosti), 0);
 	/*
 	 * Karta nad každým schématem ukazuje místnost, která je v něm právě
 	 * zvýrazněná — na telefonu jsou v místnostech jen čísla. Bez zvýraznění
-	 * je řádek prázdný a karta bez barvy.
+	 * je řádek prázdný a karta bez barvy. Náhled fotky napravo od popisku
+	 * se ukáže, jen když má zvýrazněná místnost fotku přiřazenou.
 	 */
 	const obnovKarty = () =>
 		document.querySelectorAll<HTMLElement>('.pudorys').forEach((figura) => {
@@ -114,12 +115,21 @@ const celkem = plochy.reduce((s, p) => s + soucet(p.mistnosti), 0);
 			const cislo = figura.querySelector<HTMLElement>('.karta__cislo');
 			const jmeno = figura.querySelector<HTMLElement>('.karta__jmeno');
 			const plocha = figura.querySelector<HTMLElement>('.karta__plocha');
-			if (!karta || !cislo || !jmeno || !plocha) return;
+			const nahled = figura.querySelector<HTMLImageElement>('.karta__nahled');
+			if (!karta || !cislo || !jmeno || !plocha || !nahled) return;
 			const m = figura.querySelector<SVGElement>('.mistnost.je-zvyraznena');
 			karta.classList.toggle('je-vybrana', !!m);
 			cislo.textContent = m?.dataset.m ?? '';
 			jmeno.textContent = m?.dataset.nazev ?? '';
 			plocha.textContent = m?.dataset.plocha ?? '';
+			const foto = m?.dataset.foto;
+			if (foto) {
+				if (nahled.getAttribute('src') !== `/fotky/${foto}`) nahled.src = `/fotky/${foto}`;
+				nahled.alt = `${m?.dataset.nazev ?? ''} — fotka místnosti`;
+				nahled.classList.add('je-videt');
+			} else {
+				nahled.classList.remove('je-videt');
+			}
 		});
 
 	const oznac = (klic: string, zap: boolean) => {

@@ -62,33 +62,36 @@ const stavebniVHajecku = proCast('hajecek').find((p) => p.stavebni);
 //
 // Terasy tu záměrně nejsou: legenda 1.NP je vede jako 1.14–1.16, ale plochu má
 // vyčíslenou jen 1.14 (10,20 m²). Do užitné plochy se terasy nepočítají.
+// `foto` u místnosti je jen tip, na kterou fotku z galerie se u schématu
+// ukázat náhled — fotograf nedodal fotky podle čísel místností, spárování
+// je odhadem podle nábytku a pohledu. Pár místností fotku nemá vůbec (šatna).
 const plochy = [
 	{
 		podlazi: 'Přízemí',
 		mistnosti: [
-			{ cislo: '1.01', nazev: 'Zádveří', plocha: 7.3 },
-			{ cislo: '1.02', nazev: 'Vstupní hala', plocha: 12.86 },
-			{ cislo: '1.03', nazev: 'Jídelní hala', plocha: 32.73 },
-			{ cislo: '1.04', nazev: 'Obytná hala', plocha: 34.0 },
-			{ cislo: '1.05', nazev: 'Kuchyň', plocha: 18.8 },
-			{ cislo: '1.06', nazev: 'Spíž', plocha: 5.76 },
-			{ cislo: '1.07', nazev: 'Pokoj', plocha: 12.6 },
-			{ cislo: '1.08', nazev: 'Pracovna', plocha: 12.78 },
-			{ cislo: '1.09', nazev: 'Ložnice', plocha: 17.12 },
+			{ cislo: '1.01', nazev: 'Zádveří', plocha: 7.3, foto: '08-zadveri.jpg' },
+			{ cislo: '1.02', nazev: 'Vstupní hala', plocha: 12.86, foto: '09-vstupni-hala.jpg' },
+			{ cislo: '1.03', nazev: 'Jídelní hala', plocha: 32.73, foto: '12-jidelni-hala.jpg' },
+			{ cislo: '1.04', nazev: 'Obytná hala', plocha: 34.0, foto: '10-obytna-hala.jpg' },
+			{ cislo: '1.05', nazev: 'Kuchyň', plocha: 18.8, foto: '13-kuchyn.jpg' },
+			{ cislo: '1.06', nazev: 'Spíž', plocha: 5.76, foto: '14-spiz.jpg' },
+			{ cislo: '1.07', nazev: 'Pokoj', plocha: 12.6, foto: '16-pokoj.jpg' },
+			{ cislo: '1.08', nazev: 'Pracovna', plocha: 12.78, foto: '15-pracovna.jpg' },
+			{ cislo: '1.09', nazev: 'Ložnice', plocha: 17.12, foto: '17-loznice.jpg' },
 			{ cislo: '1.10', nazev: 'Šatna', plocha: 7.25 },
-			{ cislo: '1.11', nazev: 'Koupelna', plocha: 10.36 },
-			{ cislo: '1.12', nazev: 'Koupelna', plocha: 3.7 },
-			{ cislo: '1.13', nazev: 'Technické zázemí', plocha: 4.72 },
+			{ cislo: '1.11', nazev: 'Koupelna', plocha: 10.36, foto: '18-koupelna.jpg' },
+			{ cislo: '1.12', nazev: 'Koupelna', plocha: 3.7, foto: '19-koupelna-mala.jpg' },
+			{ cislo: '1.13', nazev: 'Technické zázemí', plocha: 4.72, foto: '20-technicke-zazemi.jpg' },
 		],
 	},
 	{
 		podlazi: 'Podkroví',
 		mistnosti: [
-			{ cislo: '2.01', nazev: 'Galerie', plocha: 33.6 },
-			{ cislo: '2.02', nazev: 'Pokoj', plocha: 30.6 },
-			{ cislo: '2.03', nazev: 'Pokoj', plocha: 23.1 },
-			{ cislo: '2.04', nazev: 'Pokoj', plocha: 25.75 },
-			{ cislo: '2.05', nazev: 'Koupelna', plocha: 4.05 },
+			{ cislo: '2.01', nazev: 'Galerie', plocha: 33.6, foto: '21-galerie.jpg' },
+			{ cislo: '2.02', nazev: 'Pokoj', plocha: 30.6, foto: '22-pokoj-podkrovi.jpg' },
+			{ cislo: '2.03', nazev: 'Pokoj', plocha: 23.1, foto: '23-pokoj-podkrovi-2.jpg' },
+			{ cislo: '2.04', nazev: 'Pokoj', plocha: 25.75, foto: '24-pokoj-podkrovi-3.jpg' },
+			{ cislo: '2.05', nazev: 'Koupelna', plocha: 4.05, foto: '25-koupelna-podkrovi.jpg' },
 		],
 	},
 ];
@@ -126,7 +129,7 @@ export const nemovitost = {
 	uvodniFoto: {
 		soubor: '01-dum-a-pozemek.jpg',
 		souborNaVysku: '01-dum-a-pozemek-na-vysku.jpg',
-		popis: 'Dům na kraji vlastní louky',
+		popis: 'Dům s garáží uprostřed vlastní louky, v pozadí Beskydy',
 	},
 
 	// Rozpis místností, ze kterého se počítá užitná plocha níž.
@@ -161,22 +164,32 @@ export const nemovitost = {
 		{ nazev: 'Parkování', hodnota: '3 místa před garáží' },
 	],
 
-	// Dočasné amatérské fotky z 2. 5. 2026, než budou profesionální.
+	// Profesionální fotky z 4. 9. 2026 (dron + interiéry).
 	galerie: [
-		{ soubor: '01-dum-a-pozemek.jpg', popis: 'Dům na kraji vlastní louky' },
-		{ soubor: '02-dum-ze-zahrady.jpg', popis: 'Vstup do domu ze zahrady' },
-		{ soubor: '03-terasa.jpg', popis: 'Krytá terasa s výhledem do zahrady' },
-		{ soubor: '04-obytna-hala.jpg', popis: 'Obytná hala se schodištěm do podkroví' },
-		{ soubor: '05-krb.jpg', popis: 'Krb v obytné hale' },
-		{ soubor: '06-kuchyn.jpg', popis: 'Kuchyň s ostrůvkem a barem' },
-		{ soubor: '07-jidelna.jpg', popis: 'Jídelna' },
-		{ soubor: '08-obyvaci-cast.jpg', popis: 'Obývací část s výstupem na terasu' },
-		{ soubor: '09-loznice.jpg', popis: 'Ložnice' },
-		{ soubor: '10-koupelna.jpg', popis: 'Koupelna s vanou i sprchovým koutem' },
-		{ soubor: '11-galerie.jpg', popis: 'Galerie v podkroví' },
-		{ soubor: '12-pokoj-podkrovi.jpg', popis: 'Pokoj v podkroví' },
-		{ soubor: '13-vyhled.jpg', popis: 'Výhled na Beskydy ze zahrady' },
-		{ soubor: '14-zahrada.jpg', popis: 'Vzrostlá zahrada kolem domu' },
-		{ soubor: '15-garaz.jpg', popis: 'Garáž pro dva vozy' },
+		{ soubor: '01-dum-a-pozemek.jpg', popis: 'Dům s garáží uprostřed vlastní louky' },
+		{ soubor: '02-pozemek-shora.jpg', popis: 'Pozemek z ptačí perspektivy' },
+		{ soubor: '03-dum-ze-zahrady.jpg', popis: 'Dům ze zahrady' },
+		{ soubor: '04-terasa.jpg', popis: 'Krytá terasa s posezením' },
+		{ soubor: '05-zahrada.jpg', popis: 'Vzrostlá zahrada kolem domu' },
+		{ soubor: '06-vyhled.jpg', popis: 'Výhled na Beskydy' },
+		{ soubor: '07-garaz.jpg', popis: 'Garáž pro dva vozy' },
+		{ soubor: '08-zadveri.jpg', popis: 'Zádveří s vestavěnou skříní' },
+		{ soubor: '09-vstupni-hala.jpg', popis: 'Vstupní hala' },
+		{ soubor: '10-obytna-hala.jpg', popis: 'Obytná hala se schodištěm do podkroví' },
+		{ soubor: '11-obytna-hala-galerie.jpg', popis: 'Obytná hala s výhledem do galerie' },
+		{ soubor: '12-jidelni-hala.jpg', popis: 'Jídelní hala' },
+		{ soubor: '13-kuchyn.jpg', popis: 'Kuchyň s ostrůvkem a barem' },
+		{ soubor: '14-spiz.jpg', popis: 'Spíž' },
+		{ soubor: '15-pracovna.jpg', popis: 'Pracovna' },
+		{ soubor: '16-pokoj.jpg', popis: 'Pokoj v přízemí' },
+		{ soubor: '17-loznice.jpg', popis: 'Ložnice' },
+		{ soubor: '18-koupelna.jpg', popis: 'Koupelna s vanou i sprchovým koutem' },
+		{ soubor: '19-koupelna-mala.jpg', popis: 'Menší koupelna se sprchou' },
+		{ soubor: '20-technicke-zazemi.jpg', popis: 'Technické zázemí' },
+		{ soubor: '21-galerie.jpg', popis: 'Galerie v podkroví' },
+		{ soubor: '22-pokoj-podkrovi.jpg', popis: 'Pokoj v podkroví' },
+		{ soubor: '23-pokoj-podkrovi-2.jpg', popis: 'Další pokoj v podkroví' },
+		{ soubor: '24-pokoj-podkrovi-3.jpg', popis: 'Třetí pokoj v podkroví' },
+		{ soubor: '25-koupelna-podkrovi.jpg', popis: 'Koupelna v podkroví' },
 	],
 };
