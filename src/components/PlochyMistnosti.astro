@@ -200,6 +200,13 @@ const celkem = plochy.reduce((s, p) => s + soucet(p.mistnosti), 0);
 		margin-bottom: clamp(2rem, 5vw, 3rem);
 	}
 
+	/* Na širokém displeji dostanou schémata víc místa než běžný `.obsah` (68rem), ať jsou větší. */
+	@media (min-width: 78rem) {
+		#plochy .obsah {
+			max-width: 84rem;
+		}
+	}
+
 	@media (min-width: 46rem) {
 		.podlazi {
 			grid-template-columns: 1fr 1fr;
