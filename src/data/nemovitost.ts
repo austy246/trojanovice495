@@ -69,7 +69,7 @@ const plochy = [
 	{
 		podlazi: 'Přízemí',
 		mistnosti: [
-			{ cislo: '1.01', nazev: 'Zádveří', plocha: 7.3 },
+			{ cislo: '1.01', nazev: 'Zádveří', plocha: 7.3, foto: '26-zadveri.jpg' },
 			{ cislo: '1.02', nazev: 'Vstupní hala', plocha: 12.86, foto: '09-vstupni-hala.jpg' },
 			{ cislo: '1.03', nazev: 'Jídelní hala', plocha: 32.73, foto: '12-jidelni-hala.jpg' },
 			{ cislo: '1.04', nazev: 'Obytná hala', plocha: 34.0, foto: '10-obytna-hala.jpg' },
@@ -173,6 +173,7 @@ export const nemovitost = {
 		{ soubor: '05-zahrada.jpg', popis: 'Vzrostlá zahrada kolem domu' },
 		{ soubor: '06-vyhled.jpg', popis: 'Výhled na Beskydy' },
 		{ soubor: '07-garaz.jpg', popis: 'Garáž pro dva vozy' },
+		{ soubor: '26-zadveri.jpg', popis: 'Zádveří se zrcadlovou vestavěnou skříní' },
 		{ soubor: '08-satna.jpg', popis: 'Šatna s vestavěnou skříní' },
 		{ soubor: '09-vstupni-hala.jpg', popis: 'Vstupní hala' },
 		{ soubor: '10-obytna-hala.jpg', popis: 'Obytná hala se schodištěm do podkroví' },
