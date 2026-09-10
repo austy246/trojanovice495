@@ -437,20 +437,25 @@ const srafa = `srafa-${podlazi.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`;
 
 	/*
 	 * Náhled fotky napravo od popisku: ukáže se, jen když má zvýrazněná
-	 * místnost fotku přiřazenou (skript nastaví src a přidá je-videt) —
-	 * jinak zůstává schovaný, karta si drží svou výšku i bez fotky.
+	 * místnost fotku přiřazenou (skript nastaví src a přidá je-videt).
+	 * Místo pro něj je v kartě vyhrazené pořád — i prázdné, jen průhledné —
+	 * aby se karta při objevení a zmizení fotky neroztahovala a nic v ní
+	 * neposkočilo.
 	 */
 	.karta__nahled {
-		display: none;
 		flex: none;
 		width: 6rem;
 		aspect-ratio: 3 / 2;
 		object-fit: cover;
 		border-radius: 2px;
+		opacity: 0;
+		visibility: hidden;
+		transition: opacity 0.12s;
 	}
 
 	.karta__nahled.je-videt {
-		display: block;
+		opacity: 1;
+		visibility: visible;
 	}
 
 	.karta__nadpis {
