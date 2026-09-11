@@ -36,6 +36,17 @@ const mapa = `https://mapy.cz/zakladni?x=${delka}&y=${sirka}&z=17&source=coor&id
 		<meta property="og:title" content={titulek} />
 		<meta property="og:description" content={popis} />
 		<meta property="og:url" content={kanonicka} />
+
+		<!-- Google tag (gtag.js) -->
+		<script async src="https://www.googletagmanager.com/gtag/js?id=G-5L50GE9NDR"></script>
+		<script>
+			window.dataLayer = window.dataLayer || [];
+			function gtag(...args: unknown[]) {
+				dataLayer.push(args);
+			}
+			gtag('js', new Date());
+			gtag('config', 'G-5L50GE9NDR');
+		</script>
 	</head>
 	<body>
 		<slot />
