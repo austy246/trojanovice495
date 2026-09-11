@@ -197,17 +197,16 @@ const velikostPrukazu = maPrukaz
 		height: clamp(21rem, 66vh, 38rem);
 		object-fit: cover;
 		/*
-		 * Nižší hodnota ukazuje horní část fotky, vyšší ji posune dolů. Dům i garáž
-		 * jsou na fotce posunuté níž od středu, takže střed (50/50 %) je oříznutí
-		 * shazovalo — na širokém výřezu garáž skoro celou, na užším aspoň její kus.
+		 * 100 % drží spodní hranu fotky vždy v záběru — ať se ořízne cokoli, je to
+		 * shora (obloha), ne zdola (dům a garáž).
 		 */
-		object-position: 56% 75%;
+		object-position: 56% 100%;
 	}
 
-	/* varianta na výšku má dům i garáž jinde, výřez se počítá zvlášť */
+	/* varianta na výšku má dům i garáž jinde vodorovně, výřez se počítá zvlášť */
 	@media (max-width: 60rem) {
 		.hero__foto {
-			object-position: 55% 68%;
+			object-position: 55% 100%;
 		}
 	}
 
