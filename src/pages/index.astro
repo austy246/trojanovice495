@@ -45,6 +45,27 @@ const velikostPrukazu = maPrukaz
 		</div>
 	</header>
 
+	<section class="sekce" id="video">
+		<div class="obsah">
+			<p class="nadpis-sekce">Video</p>
+			<h2>Video prohlídka</h2>
+			<video
+				class="video-prohlidka"
+				controls
+				playsinline
+				preload="none"
+				poster="/video/poster.jpg"
+				width="1920"
+				height="1080"
+			>
+				<source src="/video/prohlidka-mobile.mp4" media="(max-width: 40rem)" type="video/mp4" />
+				<source src="/video/prohlidka.mp4" type="video/mp4" />
+				Váš prohlížeč přehrávání videa nepodporuje. Video si můžete
+				<a href="/video/prohlidka.mp4">stáhnout přímo</a>.
+			</video>
+		</div>
+	</section>
+
 	<section class="sekce sekce--tlumena" id="parametry">
 		<div class="obsah">
 			<p class="nadpis-sekce">Přehled</p>
@@ -112,27 +133,6 @@ const velikostPrukazu = maPrukaz
 		)
 	}
 
-	<section class="sekce" id="video">
-		<div class="obsah">
-			<p class="nadpis-sekce">Video</p>
-			<h2>Video prohlídka</h2>
-			<video
-				class="video-prohlidka"
-				controls
-				playsinline
-				preload="none"
-				poster="/video/poster.jpg"
-				width="1920"
-				height="1080"
-			>
-				<source src="/video/prohlidka-mobile.mp4" media="(max-width: 40rem)" type="video/mp4" />
-				<source src="/video/prohlidka.mp4" type="video/mp4" />
-				Váš prohlížeč přehrávání videa nepodporuje. Video si můžete
-				<a href="/video/prohlidka.mp4">stáhnout přímo</a>.
-			</video>
-		</div>
-	</section>
-
 	<PlochyMistnosti />
 
 	<Pozemky />
@@ -196,14 +196,18 @@ const velikostPrukazu = maPrukaz
 		width: 100%;
 		height: clamp(21rem, 66vh, 38rem);
 		object-fit: cover;
-		/* Nižší hodnota ukazuje horní část fotky, vyšší ji posune dolů a přidá víc trávy pod domem. */
-		object-position: 50% 62%;
+		/*
+		 * Nižší hodnota ukazuje horní část fotky, vyšší ji posune dolů. Dům i garáž
+		 * jsou na fotce posunuté níž od středu, takže střed (50/50 %) je oříznutí
+		 * shazovalo — na širokém výřezu garáž skoro celou, na užším aspoň její kus.
+		 */
+		object-position: 56% 75%;
 	}
 
-	/* varianta na výšku je oříznutá už v souboru, stačí ji držet u středu */
+	/* varianta na výšku má dům i garáž jinde, výřez se počítá zvlášť */
 	@media (max-width: 60rem) {
 		.hero__foto {
-			object-position: 50% 50%;
+			object-position: 55% 68%;
 		}
 	}
 
