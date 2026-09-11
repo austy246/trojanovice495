@@ -116,19 +116,35 @@ const velikostPrukazu = maPrukaz
 					<p class="nadpis-sekce">Fotografie</p>
 					<h2>Prohlídka</h2>
 					<div class="galerie">
-						{galerie.map((fotka, index) => (
-							<figure class="galerie__polozka">
-								{/* poměr stran drží CSS, fotky jsou na výšku i na šířku */}
-								<img
-									src={`/fotky/${fotka.soubor}`}
-									alt={fotka.popis}
-									loading={index === 0 ? 'eager' : 'lazy'}
-								/>
-								<figcaption>{fotka.popis}</figcaption>
-							</figure>
-						))}
+						{galerie.map((fotka, index) => {
+							const zaklad = fotka.soubor.replace(/\.jpg$/, '');
+							return (
+								<figure class="galerie__polozka">
+									<button
+										type="button"
+										class="galerie__spoustec"
+										data-plna={`/fotky/${zaklad}-plna.jpg`}
+										data-popis={fotka.popis}
+										aria-label={`Zvětšit fotku: ${fotka.popis}`}
+									>
+										{/* poměr stran drží CSS, fotky jsou na výšku i na šířku */}
+										<img
+											src={`/fotky/${zaklad}-nahled.jpg`}
+											alt={fotka.popis}
+											loading={index === 0 ? 'eager' : 'lazy'}
+										/>
+									</button>
+									<figcaption>{fotka.popis}</figcaption>
+								</figure>
+							);
+						})}
 					</div>
 				</div>
+				<dialog class="lightbox" id="lightbox">
+					<button type="button" class="lightbox__zavrit" aria-label="Zavřít">✕</button>
+					<img class="lightbox__foto" alt="" />
+					<p class="lightbox__popis"></p>
+				</dialog>
 			</section>
 		)
 	}
@@ -180,6 +196,32 @@ const velikostPrukazu = maPrukaz
 		</div>
 	</section>
 </Layout>
+
+<script>
+	const lightbox = document.querySelector<HTMLDialogElement>('#lightbox');
+	const foto = lightbox?.querySelector<HTMLImageElement>('.lightbox__foto');
+	const popis = lightbox?.querySelector<HTMLElement>('.lightbox__popis');
+
+	if (lightbox && foto && popis) {
+		document.querySelectorAll<HTMLButtonElement>('.galerie__spoustec').forEach((spoustec) => {
+			spoustec.addEventListener('click', () => {
+				foto.src = spoustec.dataset.plna ?? '';
+				foto.alt = spoustec.dataset.popis ?? '';
+				popis.textContent = spoustec.dataset.popis ?? '';
+				lightbox.showModal();
+			});
+		});
+
+		lightbox.querySelector('.lightbox__zavrit')?.addEventListener('click', () => lightbox.close());
+		// klik mimo fotku (na `::backdrop` nebo okraj dialogu) zavře stejně jako tlačítko
+		lightbox.addEventListener('click', (udalost) => {
+			if (udalost.target === lightbox) lightbox.close();
+		});
+		lightbox.addEventListener('close', () => {
+			foto.src = '';
+		});
+	}
+</script>
 
 <style>
 	.hero {
@@ -297,12 +339,85 @@ const velikostPrukazu = maPrukaz
 		margin: 0;
 	}
 
+	.galerie__spoustec {
+		display: block;
+		width: 100%;
+		margin: 0;
+		padding: 0;
+		border: 0;
+		background: none;
+		cursor: zoom-in;
+	}
+
 	.galerie__polozka img {
 		width: 100%;
 		aspect-ratio: 3 / 2;
 		object-fit: cover;
 		background: var(--barva-pozadi-blok);
 		border-radius: 2px;
+	}
+
+	/*
+	 * Lightbox po kliknutí na fotku. `<dialog>` dává zavření na Esc i vlastní
+	 * ::backdrop zdarma; na mobilu zabírá fotka celou šířku obrazovky, na
+	 * širším plátně nechává kolem sebe vzduch, ať nepůsobí staženě.
+	 */
+	.lightbox {
+		box-sizing: border-box;
+		max-width: min(90vw, 64rem);
+		max-height: 90vh;
+		margin: auto;
+		border: 0;
+		border-radius: 2px;
+		padding: 0;
+		background: var(--barva-pozadi);
+	}
+
+	.lightbox::backdrop {
+		background: rgb(20 16 12 / 0.85);
+	}
+
+	.lightbox__foto {
+		display: block;
+		width: 100%;
+		max-height: 80vh;
+		object-fit: contain;
+	}
+
+	.lightbox__popis {
+		margin: 0;
+		padding: 0.75rem 1rem;
+		font-size: 0.875rem;
+		color: var(--barva-text-tlumena);
+	}
+
+	.lightbox__zavrit {
+		position: absolute;
+		top: 0.5rem;
+		right: 0.5rem;
+		width: 2.25rem;
+		height: 2.25rem;
+		border: 0;
+		border-radius: 999px;
+		background: rgb(20 16 12 / 0.55);
+		color: #fff;
+		font-size: 1.1rem;
+		line-height: 1;
+		cursor: pointer;
+	}
+
+	@media (max-width: 40rem) {
+		.lightbox {
+			max-width: 100vw;
+			max-height: 100vh;
+			width: 100%;
+			height: 100%;
+			border-radius: 0;
+		}
+
+		.lightbox__foto {
+			max-height: calc(100vh - 3rem);
+		}
 	}
 
 	.video-prohlidka {

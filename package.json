@@ -12,6 +12,7 @@
     "srovnani": "node scripts/srovnani-kresby.mjs",
     "pudorys": "node scripts/pudorys-kontrola.mjs",
     "schemata": "node scripts/schemata.mjs",
+    "fotky": "node scripts/fotky.mjs",
     "preview": "astro preview",
     "astro": "astro"
   },
