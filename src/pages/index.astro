@@ -127,11 +127,14 @@ const velikostPrukazu = maPrukaz
 										data-popis={fotka.popis}
 										aria-label={`Zvětšit fotku: ${fotka.popis}`}
 									>
-										{/* poměr stran drží CSS, fotky jsou na výšku i na šířku */}
+										{/* poměr stran drží CSS, fotky jsou na výšku i na šířku; rozměry jsou u náhledu pevné (NAHLED_SIRKA ve fotky.mjs) */}
 										<img
 											src={`/fotky/${zaklad}-nahled.jpg`}
 											alt={fotka.popis}
+											width="640"
+											height="427"
 											loading={index === 0 ? 'eager' : 'lazy'}
+											decoding="async"
 										/>
 									</button>
 									<figcaption>{fotka.popis}</figcaption>
@@ -337,6 +340,26 @@ const velikostPrukazu = maPrukaz
 
 	.galerie__polozka {
 		margin: 0;
+	}
+
+	/*
+	 * Pod 40rem je mřížka jednosloupcová (viz `auto-fit, minmax(20rem, 1fr)`
+	 * výše) — fotka ať tam jde přes celou šířku obrazovky, ne jen šířku
+	 * odsazeného `.obsah`. Popisek zůstává odsazený jako zbytek textu.
+	 */
+	@media (max-width: 40rem) {
+		.galerie {
+			margin-inline: -1.5rem;
+			gap: 2rem;
+		}
+
+		.galerie__polozka img {
+			border-radius: 0;
+		}
+
+		.galerie figcaption {
+			padding-inline: 1.5rem;
+		}
 	}
 
 	.galerie__spoustec {
