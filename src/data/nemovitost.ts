@@ -70,7 +70,7 @@ const plochy = [
 		podlazi: 'Přízemí',
 		mistnosti: [
 			{ cislo: '1.01', nazev: 'Zádveří', plocha: 7.3, foto: '07-zadveri.jpg' },
-			{ cislo: '1.02', nazev: 'Vstupní hala', plocha: 12.86, foto: '32-vstupni-hala.jpg' },
+			{ cislo: '1.02', nazev: 'Vstupní hala', plocha: 12.86, foto: '32-vstupni-hala-v2.jpg' },
 			{ cislo: '1.03', nazev: 'Jídelní hala', plocha: 32.73, foto: '08-jidelni-hala.jpg' },
 			{ cislo: '1.04', nazev: 'Obytná hala', plocha: 34.0, foto: '09-obytna-hala.jpg' },
 			{ cislo: '1.05', nazev: 'Kuchyň', plocha: 18.8, foto: '12-kuchyn.jpg' },
@@ -176,7 +176,7 @@ export const nemovitost = {
 		{ soubor: '05-pozemek-shora.jpg', popis: 'Pozemek z ptačí perspektivy' },
 		{ soubor: '06-vyhled.jpg', popis: 'Výhled na Beskydy' },
 		{ soubor: '07-zadveri.jpg', popis: 'Zádveří se zrcadlovou vestavěnou skříní' },
-		{ soubor: '32-vstupni-hala.jpg', popis: 'Vstupní hala' },
+		{ soubor: '32-vstupni-hala-v2.jpg', popis: 'Vstupní hala' },
 		{ soubor: '08-jidelni-hala.jpg', popis: 'Jídelní hala se schodištěm a krbem' },
 		{ soubor: '09-obytna-hala.jpg', popis: 'Obytná hala' },
 		{ soubor: '10-obytna-hala-galerie.jpg', popis: 'Obytná hala s výhledem do galerie' },
