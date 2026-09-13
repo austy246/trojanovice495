@@ -66,3 +66,21 @@ v prohlížeči proti podvrženým odpovědím.
   sharp, který neumí `color-mix` ani `var()` — obojí skript dopočítá sám.
 - Obrázky nevznikají v buildu; kdo posune bod ve schématu, spustí `npm run
   schemata` ručně a výsledek commitne.
+
+## Podklady pro inzerát mimo web
+
+`npm run inzerat` vysází `podklady/inzerat.md` — text k vložení do formuláře
+portálu (nadpis, popis, cena, parametry, dispozice po místnostech, energetika,
+lokalita, kontakt) a soupis souborů k nahrání: video, plány podlaží,
+energetický průkaz a fotky v pořadí galerie i s popisky.
+
+- Skript nic neopisuje: čte tytéž soubory v `src/data/`, ze kterých staví web,
+  takže se inzerát nemůže rozejít se stránkou. Data jsou TypeScript, proto běží
+  přes `--experimental-strip-types` (Node ≥ 22.12) a s hookem, který importům
+  bez přípony dosadí `.ts`.
+- **`podklady/inzerat.md` je generovaný soubor — needitovat ručně.** Kdo změní
+  cenu nebo popis místnosti, spustí `npm run inzerat` a výsledek commitne.
+- Video ani fotky se nekopírují — soupis vede cesty do `public/` a velikosti.
+  Portál, který video nepřijme jako soubor, chce odkaz na YouTube či Vimeo.
+- Plány jsou schémata z `public/schemata/` (`npm run schemata`). Skeny výkresů
+  z projektu v `podklady/pudorys/` a `podklady/vykresy/` zůstávají na vyžádání.

@@ -13,6 +13,7 @@
     "pudorys": "node scripts/pudorys-kontrola.mjs",
     "schemata": "node scripts/schemata.mjs",
     "fotky": "node scripts/fotky.mjs",
+    "inzerat": "node --experimental-strip-types scripts/inzerat.mjs",
     "preview": "astro preview",
     "astro": "astro"
   },
