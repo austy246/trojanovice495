@@ -205,7 +205,7 @@ export const nemovitost = {
 		{ soubor: '27-garaz.jpg', popis: 'Garáž z ptačí perspektivy' },
 		{ soubor: '28-garaz-auto.jpg', popis: 'Garáž pro dva vozy' },
 		{ soubor: '29-garaz-dilna.jpg', popis: 'Dílna v garáži' },
-		{ soubor: '30-garaz-patro.jpg', popis: 'Podkroví nad garáží — prkenná podlaha, střecha bez zateplení' },
+		{ soubor: '30-garaz-patro.jpg', popis: 'Podkroví nad garáží' },
 		{ soubor: '31-pozemek-oznaceny.jpg', popis: 'Pozemek, dům a garáž s vyznačenými plochami' },
 		{ soubor: '32-kouzelny-strom.jpg', popis: 'Kouzelný strom v háječku' },
 	],
