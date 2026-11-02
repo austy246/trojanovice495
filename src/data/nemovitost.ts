@@ -160,7 +160,13 @@ export const nemovitost = {
 		{ nazev: 'Otopná soustava', hodnota: 'Podlahové vytápění' },
 		{ nazev: 'Energetická třída', hodnota: `${energie.trida} — ${energie.tridaSlovy}` },
 		{ nazev: 'Náklady na energie', hodnota: `${cislo.format(energie.mesicne)} Kč měsíčně` },
-		{ nazev: 'Garáž', hodnota: 'Pro dva vozy, s dílnou a podkrovím' },
+		{ nazev: 'Garáž', hodnota: 'Pro dva vozy, s dílnou' },
+		// Plochu podkroví uvedl majitel (zhruba stejná jako půdorys garáže); v projektu
+		// ani v katastru není. Do užitné plochy domu se záměrně nepočítá.
+		{
+			nazev: 'Podkroví nad garáží',
+			hodnota: `${zastavenoGaraz} m², prkenná podlaha`,
+		},
 		{ nazev: 'Parkování', hodnota: '3 místa před garáží' },
 	],
 
@@ -199,7 +205,8 @@ export const nemovitost = {
 		{ soubor: '27-garaz.jpg', popis: 'Garáž z ptačí perspektivy' },
 		{ soubor: '28-garaz-auto.jpg', popis: 'Garáž pro dva vozy' },
 		{ soubor: '29-garaz-dilna.jpg', popis: 'Dílna v garáži' },
-		{ soubor: '30-garaz-patro.jpg', popis: 'Podkroví nad garáží' },
+		{ soubor: '30-garaz-patro.jpg', popis: 'Podkroví nad garáží — prkenná podlaha, střecha bez zateplení' },
 		{ soubor: '31-pozemek-oznaceny.jpg', popis: 'Pozemek, dům a garáž s vyznačenými plochami' },
+		{ soubor: '32-kouzelny-strom.jpg', popis: 'Kouzelný strom v háječku' },
 	],
 };
